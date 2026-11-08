@@ -23,24 +23,35 @@ const ESTADO = {
 };
 
 const browser = await chromium.launch(process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {});
-async function captura(nombre, { ancho, alto, tema, hash, caso, panel, completa = false }) {
-  const ctx = await browser.newContext({ viewport: { width: ancho, height: alto }, colorScheme: tema, locale: 'es-ES', deviceScaleFactor: 2 });
+async function captura(nombre, { ancho = 1440, alto = 900, tema = 'light', hash = 'turnos', caso, panel, lang = 'es', acento = 'azul', compacto = false, estado = ESTADO }) {
+  const movil = ancho < 900;
+  const ctx = await browser.newContext({ viewport: { width: ancho, height: alto }, colorScheme: tema === 'dark' ? 'dark' : 'light', locale: lang === 'es' ? 'es-ES' : 'en-GB', deviceScaleFactor: 2 });
   const p = await ctx.newPage();
-  await p.addInitScript((s) => { localStorage.setItem('bluejr-v1', JSON.stringify(s)); localStorage.setItem('bluejr-prefs', JSON.stringify({ lang: 'es' })); }, ESTADO);
+  await p.addInitScript(([s, pr]) => { localStorage.setItem('bluejr-v1', JSON.stringify(s)); localStorage.setItem('bluejr-prefs', JSON.stringify(pr)); }, [estado, { lang, theme: tema, accent: acento, lateral: !compacto }]);
   await p.goto(`${URL_APP}#${hash}`); await p.waitForSelector('.vista');
-  if (caso) { if (ancho < 900) await p.click('[data-panel="cola"]'); await p.click(`.cola [data-caso="${caso}"]`); }
+  if (caso) { if (movil) await p.click('[data-panel="cola"]'); await p.click(`.cola [data-caso="${caso}"]`); }
   if (panel) await p.click(`[data-panel="${panel}"]`);
   if (nombre.startsWith('resultado')) await p.evaluate(() => { const r = document.querySelector('#resultado'); r.closest('.ticket').scrollTop = r.offsetTop - 80; });
-  await p.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => {}))));
-  await p.mouse.move(0, 0);
-  await p.screenshot({ path: join(OUT, nombre), fullPage: completa });
+  await p.mouse.move(ancho - 5, alto - 5);
+  await p.waitForTimeout(hash === 'turnos' ? 2900 : 900); // en la portada, que la consola llegue a una señal
+  await p.evaluate(() => Promise.all(document.getAnimations().filter((a) => a.effect?.getTiming().iterations !== Infinity).map((a) => a.finished.catch(() => {}))));
+  await p.screenshot({ path: join(OUT, nombre) });
   await ctx.close();
   console.log(`✓ docs/capturas/${nombre}`);
 }
-await captura('turno-oscuro.png', { ancho: 1440, alto: 900, tema: 'dark', hash: 'T1', caso: 'T1-04' });
-await captura('resultado-oscuro.png', { ancho: 1440, alto: 900, tema: 'dark', hash: 'T1', caso: 'T1-03' });
-await captura('inicio-claro.png', { ancho: 1440, alto: 900, tema: 'light', hash: 'turnos' });
-await captura('historial-claro.png', { ancho: 1440, alto: 900, tema: 'light', hash: 'historial' });
-await captura('movil-alerta.png', { ancho: 390, alto: 844, tema: 'dark', hash: 'T1', caso: 'T1-04' });
-await captura('movil-ticket.png', { ancho: 390, alto: 844, tema: 'light', hash: 'T1', caso: 'T1-01', panel: 'ticket' });
+await captura('portada-claro.png', {});
+await captura('portada-oscuro.png', { tema: 'dark' });
+await captura('turno-claro.png', { hash: 'T1', caso: 'T1-04' });
+await captura('turno-oscuro.png', { tema: 'dark', hash: 'T1', caso: 'T1-04' });
+await captura('resultado-oscuro.png', { tema: 'dark', hash: 'T1', caso: 'T1-03' });
+await captura('historial-claro.png', { hash: 'historial' });
+await captura('historial-oscuro.png', { tema: 'dark', hash: 'historial' });
+await captura('ingles-claro.png', { lang: 'en' });
+await captura('lateral-compacto-oscuro.png', { tema: 'dark', hash: 'T1', caso: 'T1-01', compacto: true });
+await captura('acento-verde.png', { acento: 'verde', hash: 'historial' });
+await captura('acento-orquidea.png', { tema: 'dark', acento: 'orquidea', hash: 'historial' });
+await captura('acento-solar.png', { acento: 'solar', hash: 'historial' });
+await captura('movil-claro.png', { ancho: 390, alto: 844 });
+await captura('movil-oscuro.png', { ancho: 390, alto: 844, tema: 'dark', hash: 'T1', caso: 'T1-04' });
+await captura('movil-en.png', { ancho: 390, alto: 844, lang: 'en', hash: 'T1', caso: 'T1-01', panel: 'ticket' });
 await browser.close();

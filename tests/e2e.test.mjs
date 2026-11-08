@@ -232,3 +232,62 @@ test('tema, acento y movimiento reducido', async () => {
   assert.ok(parseFloat(dur) < 0.01, dur);
   await p.context().close();
 });
+
+test('movimiento: la entrada termina antes de 450 ms y solo al cambiar de vista', async () => {
+  const p = await pagina();
+  await ir(p, 'turnos');
+  const fin = () => p.evaluate(() => Math.max(0, ...document.getAnimations().filter((a) => a.effect?.getTiming().iterations !== Infinity && a.effect?.target?.closest?.('#main') && !a.effect.target.closest('.flujo')).map((a) => a.effect.getComputedTiming().endTime)));
+  await p.click('.lat-nav a[href="#historial"]');
+  const t = await fin();
+  assert.ok(t > 0 && t <= 450, `termina a los ${t} ms`);
+  assert.equal(await p.evaluate(() => MOV.ENTRADA_MAX_MS <= 450), true);
+  // Repintar sin cambiar de vista (p. ej. cambiar el idioma) no vuelve a animar la entrada.
+  await p.waitForTimeout(500);
+  await p.click('[data-lang="en"]');
+  assert.equal(await fin(), 0);
+  await p.context().close();
+});
+
+test('lateral plegable: botón y tecla [, persistente y desplegable al pasar el ratón', async () => {
+  const p = await pagina();
+  await ir(p, 'T2');
+  const ancho = () => p.evaluate(() => document.querySelector('#lateral').getBoundingClientRect().width);
+  const lleno = await ancho();
+  await p.keyboard.press('[');
+  await p.mouse.move(900, 600);
+  await p.waitForTimeout(450);
+  assert.ok(await ancho() < 100, 'en carril');
+  assert.equal(await p.getAttribute('[data-alternar-lateral]', 'aria-expanded'), 'false');
+  await p.reload(); await p.waitForSelector('.vista');
+  await p.mouse.move(900, 600);
+  await p.waitForTimeout(450);
+  assert.ok(await ancho() < 100, 'sigue en carril tras recargar');
+  // Los enlaces conservan su nombre accesible en carril.
+  assert.match(await p.getAttribute('.lat-nav a[href="#T2"]', 'title'), /Martes/);
+  await p.mouse.move(40, 300); await p.waitForTimeout(450);
+  assert.ok(await ancho() > 200, 'se despliega al pasar el ratón');
+  await p.mouse.move(900, 600); await p.waitForTimeout(450);
+  await p.click('[data-alternar-lateral]'); await p.mouse.move(900, 600); await p.waitForTimeout(450);
+  assert.ok(Math.abs(await ancho() - lleno) < 2, 'vuelve a completo');
+  await p.context().close();
+});
+
+test('portada: consola en directo, cifras contadas y estático con movimiento reducido', async () => {
+  const p = await pagina();
+  const c = INDICE['T1-02'];
+  await p.addInitScript(([id, r]) => { if (!localStorage.getItem('bluejr-v1')) localStorage.setItem('bluejr-v1', JSON.stringify({ respuestas: { [id]: { ...r, cerrado: true, cuando: new Date().toISOString() } } })); }, [c.id, respuestaPerfecta(c)]);
+  await ir(p, 'turnos');
+  const primera = await p.textContent('#flujo-lineas li:last-child');
+  await p.waitForTimeout(1500);
+  assert.notEqual(await p.textContent('#flujo-lineas li:last-child'), primera, 'la consola avanza');
+  assert.equal(await p.locator('.stat-v [data-cuenta]').first().textContent(), '1');
+  assert.match(await p.textContent('.stat-c.sube'), /1 hoy/);
+  assert.match(await p.textContent('.portada .btn'), /turno 1/);
+  await p.context().close();
+  const q = await pagina({ reducedMotion: 'reduce' });
+  await ir(q, 'turnos');
+  const fija = await q.textContent('#flujo-lineas');
+  await q.waitForTimeout(1500);
+  assert.equal(await q.textContent('#flujo-lineas'), fija, 'con movimiento reducido la consola no se mueve');
+  await q.context().close();
+});

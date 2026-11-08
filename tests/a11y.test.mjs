@@ -12,7 +12,7 @@ after(async () => { await navegador?.close(); });
 
 async function auditar(p, donde, contexto = 'document') {
   // Espera a que terminen las animaciones de entrada: axe mide colores a mitad de un fundido.
-  await p.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => {}))));
+  await p.evaluate(() => Promise.all(document.getAnimations().filter((a) => a.effect?.getTiming().iterations !== Infinity).map((a) => a.finished.catch(() => {}))));
   await p.addScriptTag({ path: AXE });
   const v = await p.evaluate(async ([ctx, reglas]) => {
     const r = await window.axe.run(ctx === 'document' ? document : document.querySelector(ctx), { runOnly: reglas });

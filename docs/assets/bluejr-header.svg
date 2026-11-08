@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="320" viewBox="0 0 1280 320" role="img" aria-labelledby="t d">
+  <title id="t">BlueJr</title>
+  <desc id="d">Tu primer turno como analista SOC antes de tu primer empleo. Consola en directo: los registros pasan, una línea se ilumina como señal y se convierte en un ticket.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f1320"/>
+      <stop offset=".55" stop-color="#16244d"/>
+      <stop offset="1" stop-color="#2643a8"/>
+    </linearGradient>
+    <radialGradient id="glowA" cx="12%" cy="0%" r="55%">
+      <stop offset="0" stop-color="#6b9bff" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#6b9bff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="96%" cy="100%" r="55%">
+      <stop offset="0" stop-color="#7c4dff" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#7c4dff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="mark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6b9bff"/>
+      <stop offset="1" stop-color="#7c4dff"/>
+    </linearGradient>
+    <linearGradient id="title" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#cfdcff"/>
+    </linearGradient>
+    <linearGradient id="senal" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#6b9bff" stop-opacity=".45"/>
+      <stop offset="1" stop-color="#6b9bff" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="frame"><rect width="1280" height="320"/></clipPath>
+    <clipPath id="consola"><rect x="0" y="40" width="500" height="160"/></clipPath>
+  </defs>
+
+  <style>
+    .ico { fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .t1 { font: 800 78px 'Outfit','Segoe UI Variable Display','SF Pro Display',-apple-system,'Segoe UI',system-ui,sans-serif; letter-spacing: -2.5px; }
+    .t2 { font: 500 23px 'Outfit','Segoe UI Variable Text','SF Pro Text',-apple-system,'Segoe UI',system-ui,sans-serif; fill: rgba(255,255,255,.86); }
+    .t3 { font: 700 13px ui-monospace,'SF Mono','Cascadia Code',Consolas,monospace; letter-spacing: 3px; fill: #a9c2ff; }
+    .m { font: 500 12.5px ui-monospace,'SF Mono','Cascadia Code',Consolas,monospace; fill: #c9d1db; }
+    .mt { fill: #8b95a3; }
+    .ms { fill: #8fb4ff; }
+    .tk { font: 600 13px 'Outfit','Segoe UI Variable Text',-apple-system,'Segoe UI',system-ui,sans-serif; fill: #f2f5f8; }
+    .tkd { font: 500 12px 'Outfit','Segoe UI Variable Text',-apple-system,'Segoe UI',system-ui,sans-serif; fill: #8fe0b0; }
+    .chip { font: 700 9.5px 'Outfit',-apple-system,'Segoe UI',system-ui,sans-serif; letter-spacing: .8px; fill: #041226; }
+
+    /* Las líneas suben de una en una, como un tail -f */
+    .rodillo { animation: subir 12s steps(1) infinite; }
+    @keyframes subir {
+      0% { transform: translateY(0) } 14% { transform: translateY(-22px) } 28% { transform: translateY(-44px) } 42% { transform: translateY(-66px) }
+      57% { transform: translateY(-88px) } 71% { transform: translateY(-110px) } 85% { transform: translateY(-132px) } 100% { transform: translateY(0) }
+    }
+    .vivo { animation: latido 1.8s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+    @keyframes latido { 0% { opacity: 1 } 70% { opacity: .35 } 100% { opacity: 1 } }
+    /* El ticket aparece tras la señal y se queda */
+    .ticket { animation: ticket 6s cubic-bezier(.23,1,.32,1) infinite; }
+    @keyframes ticket { 0%, 30% { opacity: 0; transform: translateY(10px) } 42%, 92% { opacity: 1; transform: translateY(0) } 100% { opacity: 0; transform: translateY(0) } }
+    .brillo { animation: brillo 6s ease-in-out infinite; }
+    @keyframes brillo { 0%, 20% { opacity: .25 } 32%, 90% { opacity: 1 } 100% { opacity: .25 } }
+    .flota { animation: flota 7s ease-in-out infinite; transform-box: fill-box; }
+    .flota.b { animation-duration: 9s; animation-delay: -2s }
+    .flota.c { animation-duration: 8s; animation-delay: -4s }
+    @keyframes flota { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-8px) } }
+    @media (prefers-reduced-motion: reduce) { .rodillo, .vivo, .ticket, .brillo, .flota { animation: none } .ticket { opacity: 1 } }
+  </style>
+
+  <g clip-path="url(#frame)">
+    <rect width="1280" height="320" fill="url(#bg)"/>
+    <rect width="1280" height="320" fill="url(#glowA)"/>
+    <rect width="1280" height="320" fill="url(#glowB)"/>
+    <!-- Retícula sutil -->
+    <g stroke="#ffffff" stroke-opacity=".045">
+      <path d="M0 64H1280M0 128H1280M0 192H1280M0 256H1280"/>
+      <path d="M128 0V320M256 0V320M384 0V320M512 0V320M640 0V320M768 0V320M896 0V320M1024 0V320M1152 0V320"/>
+    </g>
+
+    <!-- Marca -->
+    <g transform="translate(64 56)">
+      <rect width="56" height="56" rx="16" fill="url(#mark)"/>
+      <g transform="translate(14 14) scale(1.17)" class="ico">
+        <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+        <path d="M12 22V2"/>
+      </g>
+      <text x="74" y="22" class="t3">SIMULADOR SOC · NIVEL 1</text>
+      <text x="74" y="44" class="t3" fill-opacity=".7" style="letter-spacing:2px">BLUE TEAM · LOCAL-FIRST</text>
+    </g>
+    <text x="60" y="196" class="t1" fill="url(#title)">BlueJr</text>
+    <text x="64" y="238" class="t2">Tu primer turno como analista SOC,</text>
+    <text x="64" y="268" class="t2">antes de tu primer empleo.</text>
+
+    <!-- Consola en directo -->
+    <g transform="translate(700 46)">
+      <rect width="520" height="232" rx="18" fill="#13161b" stroke="#ffffff" stroke-opacity=".08"/>
+      <rect x="0" y="0" width="520" height="34" rx="18" fill="#ffffff" fill-opacity=".03"/>
+      <circle cx="20" cy="17" r="4.5" fill="#4ad38a" class="vivo"/>
+      <text x="34" y="21" class="m mt" style="font-size:11px;letter-spacing:1.5px">SIEM · EN DIRECTO</text>
+      <circle cx="478" cy="17" r="4.5" fill="#ffffff" fill-opacity=".14"/>
+      <circle cx="494" cy="17" r="4.5" fill="#ffffff" fill-opacity=".14"/>
+      <circle cx="462" cy="17" r="4.5" fill="#ffffff" fill-opacity=".14"/>
+      <g clip-path="url(#consola)" transform="translate(10 0)">
+        <g class="rodillo">
+          <text class="m" x="10" y="56"><tspan class="mt">07:56:45</tspan><tspan class="ms" x="88">vpn01</tspan><tspan x="170">login OK user=l.moreno src=203.0.113.20</tspan></text>
+          <text class="m" x="10" y="78"><tspan class="mt">07:57:28</tspan><tspan class="ms" x="88">fw01</tspan><tspan x="170">ALLOW tcp 10.20.2.9 -&gt; 192.0.2.71:443</tspan></text>
+          <text class="m" x="10" y="100"><tspan class="mt">07:58:25</tspan><tspan class="ms" x="88">win-DC01</tspan><tspan x="170">EventID=4624 LogonType=3 e.navas</tspan></text>
+          <text class="m" x="10" y="122"><tspan class="mt">08:00:27</tspan><tspan class="ms" x="88">proxy01</tspan><tspan x="170">GET erp.nortelogistica.example 200</tspan></text>
+          <text class="m" x="10" y="144"><tspan class="mt">08:01:12</tspan><tspan class="ms" x="88">vpn01</tspan><tspan x="170">login FAILED user=r.ibanez (x23)</tspan></text>
+          <text class="m" x="10" y="166"><tspan class="mt">08:02:10</tspan><tspan class="ms" x="88">dns</tspan><tspan x="170">query A maps.example NOERROR</tspan></text>
+          <text class="m" x="10" y="188"><tspan class="mt">08:03:00</tspan><tspan class="ms" x="88">mail</tspan><tspan x="170">delivered spf=pass dkim=pass</tspan></text>
+          <text class="m" x="10" y="210"><tspan class="mt">08:04:51</tspan><tspan class="ms" x="88">edr</tspan><tspan x="170">process=OUTLOOK.EXE verdict=clean</tspan></text>
+          <text class="m" x="10" y="232"><tspan class="mt">08:05:20</tspan><tspan class="ms" x="88">fw01</tspan><tspan x="170">ALLOW tcp 10.20.3.33 -&gt; 192.0.2.33:443</tspan></text>
+          <text class="m" x="10" y="254"><tspan class="mt">08:05:33</tspan><tspan class="ms" x="88">win-FS01</tspan><tspan x="170">EventID=4634 LogonType=3 h.diaz</tspan></text>
+          <text class="m" x="10" y="276"><tspan class="mt">08:05:39</tspan><tspan class="ms" x="88">proxy01</tspan><tspan x="170">GET teams.office.example 200</tspan></text>
+          <text class="m" x="10" y="298"><tspan class="mt">08:05:40</tspan><tspan class="ms" x="88">dns</tspan><tspan x="170">query A intranet NOERROR</tspan></text>
+          <text class="m" x="10" y="320"><tspan class="mt">08:05:41</tspan><tspan class="ms" x="88">edr</tspan><tspan x="170">process=Teams.exe verdict=clean</tspan></text>
+        </g>
+      </g>
+      <!-- Señal fija sobre el rodillo -->
+      <g class="brillo">
+        <rect x="0" y="172" width="520" height="28" fill="#13161b"/>
+        <rect x="0" y="174" width="520" height="24" fill="url(#senal)"/>
+        <rect x="0" y="174" width="3" height="24" fill="#6b9bff"/>
+        <text class="m" x="20" y="190" style="fill:#f2f5f8"><tspan class="mt">08:05:41</tspan><tspan class="ms" x="98">vpn01</tspan><tspan x="180">login OK r.ibanez · 203.0.113.45</tspan></text>
+        <rect x="452" y="179" width="56" height="15" rx="7.5" fill="#6b9bff"/>
+        <text x="480" y="190" class="chip" text-anchor="middle">SEÑAL</text>
+      </g>
+      <!-- Ticket -->
+      <g class="ticket">
+        <rect x="12" y="202" width="496" height="24" rx="8" fill="#ffffff" fill-opacity=".06"/>
+        <text x="24" y="219" class="m mt" style="font-size:11px">T1-01</text>
+        <rect x="70" y="207" width="44" height="14" rx="7" fill="#ffa25a" fill-opacity=".18"/>
+        <text x="92" y="218" class="chip" text-anchor="middle" style="fill:#ffb57a">ALTA</text>
+        <text x="124" y="219" class="tk">Fuerza bruta con éxito</text>
+        <text x="300" y="219" class="tkd">Verdadero positivo · Contener</text>
+      </g>
+    </g>
+
+    <!-- Iconos de Lucide flotando -->
+    <g transform="translate(560 64)" opacity=".55"><g class="flota">
+      <g class="ico" style="stroke-width:1.75"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z"/><path d="M21 12h1"/><path d="M18.5 4.5 18 5"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.929 4.929.707.707"/><path d="M12 12v6"/></g>
+    </g></g>
+    <g transform="translate(600 214)" opacity=".45"><g class="flota b">
+      <g class="ico" style="stroke-width:1.75"><polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/></g>
+    </g></g>
+    <g transform="translate(500 120)" opacity=".4"><g class="flota c">
+      <g class="ico" style="stroke-width:1.75"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></g>
+    </g></g>
+  </g>
+</svg>

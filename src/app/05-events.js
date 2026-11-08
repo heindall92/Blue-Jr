@@ -10,6 +10,11 @@ function pintar() {
   const titulo = r.vista === 'turno' ? `${T('turno_n', { n: r.turno.slice(1) })} · ${diaDe(turnoDe(r.turno))}` : r.vista === 'historial' ? T('nav_historial') : T('nav_turnos');
   document.title = `${titulo} · BlueJr`;
   $('.saltar').textContent = T('saltar');
+  // La entrada solo se reproduce al cambiar de vista (y al arrancar), no en cada repintado.
+  const clave = r.vista + (r.turno || '');
+  if (clave !== UI.vistaAnimada) { UI.vistaAnimada = clave; MOV.vista($('#main .vista')); MOV.contar($('#main')); }
+  else for (const el of $$('#main [data-cuenta]')) el.textContent = num(Number(el.dataset.cuenta)) + (el.dataset.sufijo || '');
+  if (r.vista === 'turnos') iniciarFlujo();
 }
 
 /* Repintados parciales del puesto de trabajo: no se pierde el foco ni el desplazamiento de los registros. */
@@ -64,7 +69,7 @@ document.addEventListener('click', (e) => {
   if (d.lang) { P.lang = d.lang; guardarPrefs(); return pintar(); }
   if ('tema' in d) { P.theme = temaActual() === 'dark' ? 'light' : 'dark'; guardarPrefs(); aplicarTema(); return b.setAttribute('aria-checked', temaActual() === 'dark'); }
   if (d.accentPick) { P.accent = d.accentPick; guardarPrefs(); aplicarTema(); return $$('[data-accent-pick]').forEach((x) => x.setAttribute('aria-pressed', x.dataset.accentPick === P.accent)); }
-  if ('alternarLateral' in d) { P.lateral = !P.lateral; guardarPrefs(); document.body.classList.toggle('lateral-oculto', !P.lateral); return b.setAttribute('aria-expanded', P.lateral); }
+  if ('alternarLateral' in d) return alternarLateral(b);
   if (d.q !== undefined) return elegirBusqueda(+d.q);
   if (d.casoIr) { UI.caso = d.casoIr; return; }
   if (d.caso) return abrirCaso(d.caso);
@@ -95,6 +100,13 @@ document.addEventListener('click', (e) => {
     UI.borrarArmado = false; S = BJ.sanearEstado(null, CASOS); guardar(); pintar(); return avisar(T('borrado'));
   }
 });
+
+function alternarLateral(b = $('[data-alternar-lateral]')) {
+  P.lateral = !P.lateral; guardarPrefs();
+  document.body.classList.toggle('lateral-compacto', !P.lateral);
+  b?.setAttribute('aria-expanded', P.lateral);
+  setTimeout(MOV.indicador, 320);
+}
 
 /* Desde el historial, el enlace de un ticket abre su turno con esa alerta seleccionada. */
 document.addEventListener('click', (e) => { const a = e.target.closest('[data-caso-ir]'); if (a) UI.caso = a.dataset.casoIr; }, true);
@@ -148,6 +160,7 @@ document.addEventListener('keydown', (e) => {
   }
   if (enCampo || e.ctrlKey || e.metaKey || e.altKey || document.querySelector('dialog[open]')) return;
   if (e.key === '?') { e.preventDefault(); return abrirAyuda(); }
+  if (e.key === '[' && matchMedia('(min-width: 901px)').matches) { e.preventDefault(); return alternarLateral(); }
   if (e.key === '/' && $('#filtro')) { e.preventDefault(); return $('#filtro').focus(); }
   if ((e.key === 'j' || e.key === 'k') && ruta().vista === 'turno') {
     const casos = turnoDe(ruta().turno).casos;
@@ -163,3 +176,5 @@ matchMedia('(max-width: 900px)').addEventListener?.('change', () => { if (ruta()
 
 if (TEST) window.__BJ__ = { S: () => S, UI, CASOS, BJ, pintar };
 pintar();
+// Tras la primera carga, el lateral ya no repite su entrada al repintarse.
+setTimeout(() => document.body.classList.add('ya-cargado'), 700);
