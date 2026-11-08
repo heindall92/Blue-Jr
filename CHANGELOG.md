@@ -2,6 +2,15 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [versionado semántico](https://semver.org/lang/es/).
 
+## [0.2.1] - 2026-11-08
+
+### Cambiado
+- El icono de la marca pasa de escudo a radar (Lucide `radar`) en la barra lateral, el antetítulo de la portada, el favicon y la cabecera y el pie animados del README. El apartado de privacidad del README usa un candado.
+- Se quita `shield-alert` de los iconos empaquetados: no se usaba.
+
+### Corregido
+- La prueba «la entrada termina antes de 450 ms» espera al cambio de vista antes de medir. Con el navegador sin interfaz de la CI medía la escena de la portada (1780 ms) en lugar de la entrada del historial.
+
 ## [0.2.0] - 2026-11-08
 
 ### Añadido

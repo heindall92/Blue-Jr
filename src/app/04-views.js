@@ -45,7 +45,7 @@ function vTurnos() {
   const palabras = titulo.split(' ').map((p, i) => `<span class="pal"><span style="--i:${i}">${esc(p)}</span></span>`).join(' ');
   return `<section class="portada" aria-labelledby="portada-t">
       <div class="p-txt">
-        <p class="ante">${ic('shield-half')}${esc(T('inicio_ante'))}</p>
+        <p class="ante">${ic('radar')}${esc(T('inicio_ante'))}</p>
         <h1 id="portada-t" aria-label="${esc(titulo)}"><span aria-hidden="true">${palabras}</span></h1>
         <p class="entradilla">${esc(T('hero_texto'))}</p>
         <div class="p-cta">${cta}<button type="button" class="btn sec grande" data-ayuda>${ic('book-open')}${esc(T('hero_como'))}</button></div>

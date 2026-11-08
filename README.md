@@ -12,7 +12,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/badge/licencia-MIT-4169A1?style=flat"/></a>
-  <img alt="Versión 0.2.0" src="https://img.shields.io/badge/versi%C3%B3n-0.2.0-6B9BFF?style=flat"/>
+  <img alt="Versión 0.2.1" src="https://img.shields.io/badge/versi%C3%B3n-0.2.1-6B9BFF?style=flat"/>
   <img alt="40 alertas" src="https://img.shields.io/badge/alertas-40-7C4DFF?style=flat"/>
   <img alt="5 turnos" src="https://img.shields.io/badge/turnos-5-2E9E7A?style=flat"/>
   <img alt="MITRE ATT&CK" src="https://img.shields.io/badge/MITRE-ATT%26CK-E07B39?style=flat"/>
@@ -91,7 +91,7 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
   </tbody>
   <tfoot>
     <tr>
-      <td colspan="2"><code>version: 0.2.0&nbsp;&nbsp;·&nbsp;&nbsp;nivel: SOC N1&nbsp;&nbsp;·&nbsp;&nbsp;empresa: Norte Logística (ficticia)&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
+      <td colspan="2"><code>version: 0.2.1&nbsp;&nbsp;·&nbsp;&nbsp;nivel: SOC N1&nbsp;&nbsp;·&nbsp;&nbsp;empresa: Norte Logística (ficticia)&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
     </tr>
   </tfoot>
 </table>
@@ -101,6 +101,10 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
 ---
 
 ## <img src="docs/assets/icons/sparkles.svg" width="20" height="20" valign="middle"/> Novedades
+
+### 0.2.1 · noviembre de 2026
+
+- **Marca nueva:** el escudo, el icono más gastado de la ciberseguridad, deja paso a un radar. Lo que hace un analista de nivel 1 es barrer el ruido hasta encontrar la señal. Cambia en la barra lateral, la portada, el favicon y la cabecera y el pie del README.
 
 ### 0.2.0 · noviembre de 2026
 
@@ -317,7 +321,7 @@ flowchart LR
 - **Motor sin DOM** (`src/engine/`): funciones puras y deterministas que prueban las unitarias con `require()`.
 - **Datos separados**: añadir un turno es añadir un fichero en `src/data/`; `tests/casos.test.mjs` comprueba que se pueda resolver.
 
-## <img src="docs/assets/icons/shield-check.svg" width="20" height="20" valign="middle"/> Privacidad y seguridad
+## <img src="docs/assets/icons/lock-keyhole.svg" width="20" height="20" valign="middle"/> Privacidad y seguridad
 
 - **Local-first.** Todo se guarda en el `localStorage` de tu navegador. Sin cuentas, servidor ni telemetría.
 - **Cero peticiones.** CSP por hashes (`default-src 'none'`, `connect-src 'none'`), fuentes incrustadas e iconos en línea. El e2e bloquea cualquier URL que no sea `file:`, `data:` o `blob:` y la cuenta como fallo.
@@ -341,6 +345,7 @@ Detalle en [ROADMAP.md](ROADMAP.md).
 
 - [x] 0.1.0 · Primera semana: cinco turnos, corrección, relevo e historial
 - [x] 0.2.0 · Portada, movimiento, lateral plegable, modo oscuro y tipografía
+- [x] 0.2.1 · Radar como marca y prueba de movimiento estable en la CI
 - [ ] 0.3.0 · Turnos con reloj: SLA por severidad y alertas que llegan mientras trabajas
 - [ ] 0.4.0 · Segunda semana: nube y SaaS
 - [ ] 0.5.0 · Del ticket a la entrevista: historial en PDF y tickets como historias STAR para Astrolabio
