@@ -1,6 +1,5 @@
-<p align="center">
-  <img src="docs/assets/blue-jr-portada.jpg" alt="Blue-Jr · Simulador SOC · Nivel 1 · Tu primer turno como analista SOC" width="100%"/>
-</p>
+<img width="2172" height="724" alt="Banner premium minimalista Blue-Jr" src="https://github.com/user-attachments/assets/86701960-5fc3-4061-bd67-deb383308fe8" />
+
 
   <b>Una semana de turnos de nivel 1 en el SOC de una empresa ficticia: 40 alertas con registros reales y ruido, decisiones que se corrigen al momento y un historial que puedes llevar a la entrevista. Un solo HTML, sin servidor, sin cuenta y sin una sola petición a Internet.</b>
 </p>
