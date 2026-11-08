@@ -24,7 +24,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/capturas/portada-claro.png" alt="Portada en modo claro: «Te quedan 37 alertas esta semana», consola en directo con una señal convertida en ticket, tarjetas de estadísticas y los cinco turnos" width="880"/>
+  <img src="docs/capturas/portada-claro.png" alt="Portada en modo claro: «Te quedan 37 alertas esta semana», escena del amanecer en Norte Logística con la ventana del SOC encendida, cuenta atrás del turno, consola en directo y tarjetas de estadísticas" width="880"/>
 </p>
 
 Para el primer empleo en ciberseguridad piden experiencia, y para tener experiencia hace falta el primer empleo. Las certificaciones y los CTF demuestran que *sabes*; no demuestran que *has trabajado*: qué haces el lunes a las 9 con una cola de alertas, mucho ruido y un ticket que escribir. **BlueJr te da esa semana:**
@@ -104,7 +104,7 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
 
 ### 0.2.0 · noviembre de 2026
 
-- **Portada nueva:** una consola en directo donde los registros pasan como ruido, una línea se enciende como señal y se convierte en un ticket clasificado. Debajo, tarjetas de estadísticas con icono en degradado que se elevan al pasar el ratón, y el botón para seguir donde lo dejaste.
+- **Portada nueva:** titular gigante que entra palabra a palabra, cuenta atrás hasta el turno de las 08:00 y una escena ilustrada del amanecer en Norte Logística: sale el sol con trama de puntos, la sede sube, sus ventanas se encienden una a una y la del SOC late con su etiqueta y la burbuja del último ticket. Debajo, una consola en directo donde los registros pasan como ruido, una línea se enciende como señal y se convierte en un ticket clasificado. Debajo, tarjetas de estadísticas con icono en degradado que se elevan al pasar el ratón, y el botón para seguir donde lo dejaste.
 - **Movimiento con oficio:** la entrada de cada vista dura menos de 450 ms, solo anima transform y opacity, se reproduce solo al cambiar de vista y nunca mueve lo que tiene el foco. Las cifras se cuentan al llegar.
 - **Barra lateral plegable** a un carril de iconos (botón o tecla `[`): se despliega por encima del contenido al pasar el ratón o al entrar con el teclado. La sección activa lleva una píldora que se desliza y cada sección tiene su gesto en el icono.
 - **Modo oscuro según la guía de superficies:** sin negro puro ni blanco puro (superficies `#1D2127` y `#252930`, texto `#D1D7E0` y `#AAAEB6`) y profundidad con sombras en lugar de bordes.
@@ -193,7 +193,7 @@ timeline
 
 | | Vista | Contenido |
 |---|---|---|
-| <img src="docs/assets/icons/sparkles.svg" width="18"/> | **Portada** | Consola en directo, siguiente paso recomendado, tarjetas de estadísticas y los cinco turnos con su regleta. |
+| <img src="docs/assets/icons/sparkles.svg" width="18"/> | **Portada** | Escena del amanecer con la ventana del SOC, cuenta atrás del turno, consola en directo, siguiente paso recomendado, tarjetas de estadísticas y los cinco turnos con su regleta. |
 | <img src="docs/assets/icons/siren.svg" width="18"/> | **Turno** | Regleta, cola de alertas, alerta con registros filtrables y evidencias, ticket y corrección. Al completar el turno, informe de relevo. |
 | <img src="docs/assets/icons/gauge.svg" width="18"/> | **Historial** | Tickets cerrados, nota media, veredictos acertados, amenazas cerradas por error, competencias, turnos y tickets; exportar e importar. |
 | <img src="docs/assets/icons/terminal.svg" width="18"/> | **Búsqueda** (`Ctrl K`) | Secciones, alertas y glosario. Nunca desvela respuestas: busca por la regla, no por la técnica. |
@@ -263,6 +263,7 @@ Siguiendo los principios de Emil Kowalski y el diseño de Apple:
 | Tarjetas | Se elevan 5 px al pasar el ratón (solo con ratón y sin «reducir movimiento»); quietas mientras se trabaja con teclado dentro. |
 | Lateral | Píldora activa que se desliza; carril plegable que se despliega por encima; gesto propio en el icono de cada sección. |
 | Consola de la portada | Sube una línea cada 1,3 s y se pausa si la pestaña no está visible. Decorativa: no la lee el lector de pantalla. |
+| Escena del amanecer | SVG en el propio archivo, sin imágenes externas. Al cargar: sol (1,4 s), sede, ventanas escalonadas, etiqueta del SOC y burbuja. Solo se reproduce al entrar en la vista; con «reducir movimiento» aparece entera al instante. Decorativa (`aria-hidden`). |
 | Movimiento reducido | Sin desplazamientos ni bucles; las cifras aparecen ya contadas. |
 
 Paleta oscura sin negro ni blanco puros (superficies `#1D2127` / `#252930`, texto `#D1D7E0` / `#AAAEB6`, sombras con un brillo de 1 px arriba), tipografía **Outfit** en toda la interfaz y **Geist Mono** en registros e identificadores. Iconos solo de **Lucide**.

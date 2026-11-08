@@ -283,10 +283,22 @@ test('portada: consola en directo, cifras contadas y estático con movimiento re
   assert.equal(await p.locator('.stat-v [data-cuenta]').first().textContent(), '1');
   assert.match(await p.textContent('.stat-c.sube'), /1 hoy/);
   assert.match(await p.textContent('.portada .btn'), /turno 1/);
+  // Escena: la etiqueta del SOC queda sobre su ventana y la burbuja muestra un ticket real.
+  const pos = await p.evaluate(() => {
+    const c = document.querySelector('.escena-chip').getBoundingClientRect();
+    const v = document.querySelector('.ventana.soc').getBoundingClientRect();
+    return { dx: Math.abs(c.x + c.width / 2 - (v.x + v.width / 2)), hueco: v.top - c.bottom };
+  });
+  assert.ok(pos.dx < 2 && pos.hueco > 10 && pos.hueco < 26, `etiqueta del SOC sobre su ventana: ${JSON.stringify(pos)}`);
+  assert.match(await p.textContent('#escena-ticket'), /T\d-\d\d/);
+  assert.equal(await p.getAttribute('.escena', 'aria-hidden'), 'true');
+  assert.match(await p.textContent('#reloj'), /\d\d:\d\d|14:30/);
   await p.context().close();
   const q = await pagina({ reducedMotion: 'reduce' });
   await ir(q, 'turnos');
   const fija = await q.textContent('#flujo-lineas');
+  const vis = await q.evaluate(() => ['.escena-chip', '.escena-ticket', '.sol'].map((s) => getComputedStyle(document.querySelector(s)).opacity));
+  assert.deepEqual(vis, ['1', '1', '1'], 'con movimiento reducido la escena aparece entera sin esperas');
   await q.waitForTimeout(1500);
   assert.equal(await q.textContent('#flujo-lineas'), fija, 'con movimiento reducido la consola no se mueve');
   await q.context().close();

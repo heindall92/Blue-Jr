@@ -6,6 +6,8 @@ Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [versionad
 
 ### Añadido
 
+- Portada con escena ilustrada del amanecer en Norte Logística (inspirada en los carteles de risografía): el sol sale con trama de puntos, las ventanas de la sede se encienden una a una, la del SOC late con su etiqueta y la burbuja del último ticket, y un camión de reparto cruza la calle. Titular palabra a palabra y cuenta atrás hasta el turno de las 08:00.
+- Con «reducir movimiento» las animaciones pierden también su retardo: nada queda oculto esperando.
 - Portada nueva con una consola en directo: el ruido pasa, una línea se enciende como señal y se convierte en un ticket clasificado. Se pausa con la pestaña oculta y es estática con «reducir movimiento».
 - Tarjetas de estadísticas (tickets cerrados, nota media, veredictos acertados y turnos superados) con icono en degradado, cifra que se cuenta al llegar y cambio del día; se elevan 5 px al pasar el ratón.
 - Barra lateral plegable a un carril de iconos con el botón de la barra superior o la tecla `[`, persistente y desplegable por encima del contenido al pasar el ratón o con el teclado. Píldora de la sección activa que se desliza y gesto propio en el icono de cada sección.

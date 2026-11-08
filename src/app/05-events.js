@@ -12,7 +12,7 @@ function pintar() {
   $('.saltar').textContent = T('saltar');
   // La entrada solo se reproduce al cambiar de vista (y al arrancar), no en cada repintado.
   const clave = r.vista + (r.turno || '');
-  if (clave !== UI.vistaAnimada) { UI.vistaAnimada = clave; MOV.vista($('#main .vista')); MOV.contar($('#main')); }
+  if (clave !== UI.vistaAnimada) { UI.vistaAnimada = clave; $('#main .vista').classList.add('entrando'); MOV.vista($('#main .vista')); MOV.contar($('#main')); }
   else for (const el of $$('#main [data-cuenta]')) el.textContent = num(Number(el.dataset.cuenta)) + (el.dataset.sufijo || '');
   if (r.vista === 'turnos') iniciarFlujo();
 }

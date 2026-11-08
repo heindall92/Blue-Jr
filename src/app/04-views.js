@@ -41,18 +41,80 @@ function vTurnos() {
       <div class="tc-pie">${estado}${r.hechos ? `<span class="nota-media num">${esc(T('nota_media'))} <b>${r.media}</b></span>` : ''}<a class="btn${r.completo ? ' sec' : ''}" href="#${t.id}">${esc(boton)}${ic('chevron-right')}</a></div>
     </li>`;
   }).join('');
+  // El titular entra palabra a palabra (cada palabra sube desde su propia máscara).
+  const palabras = titulo.split(' ').map((p, i) => `<span class="pal"><span style="--i:${i}">${esc(p)}</span></span>`).join(' ');
   return `<section class="portada" aria-labelledby="portada-t">
       <div class="p-txt">
         <p class="ante">${ic('shield-half')}${esc(T('inicio_ante'))}</p>
-        <h1 id="portada-t">${esc(titulo)}</h1>
+        <h1 id="portada-t" aria-label="${esc(titulo)}"><span aria-hidden="true">${palabras}</span></h1>
         <p class="entradilla">${esc(T('hero_texto'))}</p>
-        <div class="p-cta">${cta}<button type="button" class="btn sec grande" data-ayuda>${ic('book-open')}${esc(T('hero_como'))}</button><span class="pildora">${ic('info')}${esc(T('inicio_aviso'))}</span></div>
+        <div class="p-cta">${cta}<button type="button" class="btn sec grande" data-ayuda>${ic('book-open')}${esc(T('hero_como'))}</button></div>
+        <p class="reloj num" role="timer" id="reloj">${esc(textoReloj())}</p>
       </div>
-      ${flujoHtml()}
+      ${escenaHtml()}
     </section>
-    <div class="stats">${stats}</div>
+    <div class="en-directo">
+      ${flujoHtml()}
+      <div class="stats">${stats}</div>
+    </div>
     <h2 class="sec-t">${ic('calendar-clock')}${esc(T('turnos_lista'))}</h2>
     <ol class="turnos-lista">${tarjetas}</ol>`;
+}
+
+/* Cuenta atrás hasta el turno de las 08:00 (o turno en curso hasta las 14:30), en hora local. */
+function textoReloj(ahora = new Date()) {
+  const m = ahora.getHours() * 60 + ahora.getMinutes();
+  if (m >= 8 * 60 && m < 14 * 60 + 30) return T('reloj_en_curso');
+  const inicio = new Date(ahora); inicio.setHours(8, 0, 0, 0);
+  if (m >= 8 * 60) inicio.setDate(inicio.getDate() + 1);
+  const s = Math.max(0, Math.floor((inicio - ahora) / 1000));
+  const hms = [Math.floor(s / 3600), Math.floor((s % 3600) / 60), s % 60].map((n) => String(n).padStart(2, '0')).join(':');
+  return T('reloj_falta', { t: hms });
+}
+
+/* Escena de la portada: amanece en Norte Logística. Al cargar, el sol sale, la sede sube y sus
+   ventanas se encienden una a una; la del SOC late y de ella sale la burbuja del último ticket.
+   Decorativa (aria-hidden): la información está en el texto de la portada. */
+const ESCENA = (() => {
+  const r = BJ.azar(2026);
+  const estrellas = Array.from({ length: 26 }, () => [Math.round(r() * 600), Math.round(r() * 300), (r() * 1.3 + 0.5).toFixed(1), (2 + r() * 3).toFixed(1), (r() * 3).toFixed(1)]);
+  const ventanas = [];
+  for (let f = 0; f < 7; f++) for (let c = 0; c < 6; c++) ventanas.push({ x: 176 + c * 42, y: 318 + f * 38, luz: r() < 0.42, soc: f === 3 && c === 1 });
+  return { estrellas, ventanas };
+})();
+function escenaHtml() {
+  const { estrellas, ventanas } = ESCENA;
+  let i = 0;
+  const vent = ventanas.map((w) => `<rect class="ventana${w.soc ? ' soc' : w.luz ? ' luz' : ''}" x="${w.x}" y="${w.y}" width="26" height="20" rx="3" style="--i:${w.luz || w.soc ? i++ : 0}"/>`).join('');
+  return `<div class="escena" aria-hidden="true">
+      <svg viewBox="0 80 600 560" preserveAspectRatio="xMidYMid meet" focusable="false">
+        <defs>
+          <linearGradient id="esc-cielo" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" class="c1"/><stop offset=".55" class="c2"/><stop offset="1" class="c3"/>
+          </linearGradient>
+          <pattern id="esc-trama" width="7" height="7" patternUnits="userSpaceOnUse"><circle cx="3.5" cy="3.5" r="2.1" class="punto-sol"/></pattern>
+          <radialGradient id="esc-halo"><stop offset="0" class="h1"/><stop offset="1" class="h2"/></radialGradient>
+        </defs>
+        <rect width="600" height="640" fill="url(#esc-cielo)"/>
+        <g class="estrellas">${estrellas.map(([x, y, rr, d, dl]) => `<circle cx="${x}" cy="${y}" r="${rr}" style="--d:${d}s;--dl:${dl}s"/>`).join('')}</g>
+        <g class="sol"><circle cx="445" cy="300" r="150" fill="url(#esc-halo)"/><circle cx="445" cy="300" r="92" fill="url(#esc-trama)"/></g>
+        <g class="ciudad">
+          <rect x="0" y="430" width="70" height="210"/><rect x="62" y="390" width="56" height="250"/><rect x="470" y="410" width="80" height="230"/><rect x="540" y="370" width="60" height="270"/>
+        </g>
+        <g class="sede">
+          <rect class="fachada" x="150" y="270" width="300" height="370" rx="6"/>
+          <rect class="remate" x="150" y="270" width="300" height="30" rx="6"/>
+          <text x="300" y="291" text-anchor="middle" class="rotulo">NORTE LOGÍSTICA</text>
+          ${vent}
+          <rect class="nave" x="430" y="520" width="170" height="120"/>
+          <rect class="puerta" x="452" y="560" width="54" height="80"/><rect class="puerta" x="522" y="560" width="54" height="80"/>
+        </g>
+        <rect class="calle" x="0" y="622" width="600" height="18"/>
+        <g class="camion"><rect x="0" y="592" width="62" height="30" rx="3" class="caja"/><rect x="62" y="600" width="24" height="22" rx="3" class="cabina"/><circle cx="16" cy="624" r="6" class="rueda"/><circle cx="72" cy="624" r="6" class="rueda"/><text x="31" y="612" text-anchor="middle" class="logo-camion">NL</text></g>
+      </svg>
+      <span class="escena-chip"><i></i>${esc(T('escena_soc'))}</span>
+      <div class="escena-ticket" id="escena-ticket">${ticketFlujo(FLUJO.casos[0])}</div>
+    </div>`;
 }
 
 /* Consola en directo de la portada: el ruido pasa, una línea se enciende como señal y se convierte
@@ -78,8 +140,12 @@ function flujoHtml() {
       <div class="flujo-pie" id="flujo-pie">${ticketFlujo(FLUJO.casos[0])}</div>
     </div>`;
 }
+let relojTimer = null;
 function iniciarFlujo() {
   clearInterval(flujoTimer); flujoTimer = null;
+  clearInterval(relojTimer); relojTimer = null;
+  const reloj = $('#reloj');
+  if (reloj) relojTimer = setInterval(() => { if (!document.contains(reloj)) { clearInterval(relojTimer); relojTimer = null; return; } reloj.textContent = textoReloj(); }, 1000);
   const lista = $('#flujo-lineas');
   if (!lista || MOV.reducido()) return;
   let n = 7, k = 0;
@@ -96,7 +162,11 @@ function iniciarFlujo() {
     // Toda la columna sube una línea con suavidad y la nueva aparece con un fundido.
     lista.animate?.([{ transform: 'translateY(22px)' }, { transform: 'translateY(0)' }], { duration: 480, easing: MOV.EASE });
     nueva.animate?.([{ opacity: 0 }, { opacity: 1 }], { duration: 480, easing: MOV.EASE });
-    if (senal) { k++; const c = CASOS[l.caso]; const pie = $('#flujo-pie'); if (pie) { pie.innerHTML = ticketFlujo(c); } }
+    if (senal) {
+      k++; const c = CASOS[l.caso];
+      const pie = $('#flujo-pie'); if (pie) pie.innerHTML = ticketFlujo(c);
+      const burbuja = $('#escena-ticket'); if (burbuja) burbuja.innerHTML = ticketFlujo(c);
+    }
     n++;
   }, 1300);
 }
