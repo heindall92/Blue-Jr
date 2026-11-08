@@ -9,7 +9,7 @@ function ruta() {
 }
 
 function logo() {
-  return `<span class="logo">${ic('shield-half')}</span>`;
+  return `<span class="logo">${ic('radar')}</span>`;
 }
 
 function pintarLateral() {

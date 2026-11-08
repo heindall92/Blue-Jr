@@ -285,22 +285,29 @@ test('portada: consola en directo, cifras contadas y estático con movimiento re
   assert.equal(await p.locator('.stat-v [data-cuenta]').first().textContent(), '1');
   assert.match(await p.textContent('.stat-c.sube'), /1 hoy/);
   assert.match(await p.textContent('.portada .btn'), /turno 1/);
-  // Escena: la etiqueta del SOC queda sobre su ventana y la burbuja muestra un ticket real.
-  const pos = await p.evaluate(() => {
-    const c = document.querySelector('.escena-chip').getBoundingClientRect();
-    const v = document.querySelector('.ventana.soc').getBoundingClientRect();
-    return { dx: Math.abs(c.x + c.width / 2 - (v.x + v.width / 2)), hueco: v.top - c.bottom };
+  // Ilustración: la del tema activo, incrustada (data:), decorativa, con el aro del ojo sobre el dibujo
+  // y el texto sin pisar la figura en escritorio.
+  const arte = () => p.evaluate(() => {
+    const f = document.querySelector('.p-fondo'), o = document.querySelector('.p-ojo').getBoundingClientRect(), r = f.getBoundingClientRect();
+    const t = document.querySelector('.p-txt').getBoundingClientRect();
+    return { img: getComputedStyle(f).backgroundImage.slice(0, 27), ox: (o.x + o.width / 2 - r.x) / r.width, oy: (o.y + o.height / 2 - r.y) / r.height, hueco: r.x + r.width * 0.5 - t.right };
   });
-  assert.ok(pos.dx < 2 && pos.hueco > 10 && pos.hueco < 26, `etiqueta del SOC sobre su ventana: ${JSON.stringify(pos)}`);
-  assert.match(await p.textContent('#escena-ticket'), /T\d-\d\d/);
-  assert.equal(await p.getAttribute('.escena', 'aria-hidden'), 'true');
+  const oscuro = await arte();
+  assert.equal(oscuro.img, 'url("data:image/webp;base64');
+  assert.ok(Math.abs(oscuro.ox - 0.584) < 0.01 && Math.abs(oscuro.oy - 0.244) < 0.01, `ojo sobre el aro: ${JSON.stringify(oscuro)}`);
+  assert.ok(oscuro.hueco > 0, `el texto no pisa la figura: ${oscuro.hueco}`);
+  assert.equal(await p.getAttribute('.p-arte', 'aria-hidden'), 'true');
+  const fondoOscuro = await p.evaluate(() => getComputedStyle(document.querySelector('.p-fondo')).backgroundImage);
+  await p.click('[data-tema]');
+  const fondoClaro = await p.evaluate(() => getComputedStyle(document.querySelector('.p-fondo')).backgroundImage);
+  assert.notEqual(fondoClaro, fondoOscuro, 'cada tema tiene su ilustración');
   assert.match(await p.textContent('#reloj'), /\d\d:\d\d|14:30/);
   await p.context().close();
   const q = await pagina({ reducedMotion: 'reduce' });
   await ir(q, 'turnos');
   const fija = await q.textContent('#flujo-lineas');
-  const vis = await q.evaluate(() => ['.escena-chip', '.escena-ticket', '.sol'].map((s) => getComputedStyle(document.querySelector(s)).opacity));
-  assert.deepEqual(vis, ['1', '1', '1'], 'con movimiento reducido la escena aparece entera sin esperas');
+  const vis = await q.evaluate(() => ['.p-fondo', '.p-ojo'].map((s) => getComputedStyle(document.querySelector(s)).opacity));
+  assert.deepEqual(vis, ['1', '1'], 'con movimiento reducido la ilustración aparece entera sin esperas');
   await q.waitForTimeout(1500);
   assert.equal(await q.textContent('#flujo-lineas'), fija, 'con movimiento reducido la consola no se mueve');
   await q.context().close();

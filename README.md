@@ -12,7 +12,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/badge/licencia-MIT-4169A1?style=flat"/></a>
-  <img alt="Versión 0.2.0" src="https://img.shields.io/badge/versi%C3%B3n-0.2.0-6B9BFF?style=flat"/>
+  <img alt="Versión 0.2.1" src="https://img.shields.io/badge/versi%C3%B3n-0.2.1-6B9BFF?style=flat"/>
   <img alt="40 alertas" src="https://img.shields.io/badge/alertas-40-7C4DFF?style=flat"/>
   <img alt="5 turnos" src="https://img.shields.io/badge/turnos-5-2E9E7A?style=flat"/>
   <img alt="MITRE ATT&CK" src="https://img.shields.io/badge/MITRE-ATT%26CK-E07B39?style=flat"/>
@@ -24,7 +24,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/capturas/portada-claro.png" alt="Portada en modo claro: «Te quedan 37 alertas esta semana», escena del amanecer en Norte Logística con la ventana del SOC encendida, cuenta atrás del turno, consola en directo y tarjetas de estadísticas" width="880"/>
+  <img src="docs/capturas/portada-claro.png" alt="Portada en modo claro: «Te quedan 37 alertas esta semana», ilustración del analista de guardia con el aro del ojo encendido, cuenta atrás del turno, consola en directo y tarjetas de estadísticas" width="880"/>
 </p>
 
 Para el primer empleo en ciberseguridad piden experiencia, y para tener experiencia hace falta el primer empleo. Las certificaciones y los CTF demuestran que *sabes*; no demuestran que *has trabajado*: qué haces el lunes a las 9 con una cola de alertas, mucho ruido y un ticket que escribir. **BlueJr te da esa semana:**
@@ -58,7 +58,7 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
         <img alt="HTML" src="https://img.shields.io/badge/HTML-E34F26?style=for-the-badge&logo=html5&logoColor=white"/>
         <img alt="CSS" src="https://img.shields.io/badge/CSS-1572B6?style=for-the-badge&logo=css3&logoColor=white"/>
         <img alt="Lucide" src="https://img.shields.io/badge/Lucide-F56565?style=for-the-badge&logo=lucide&logoColor=white"/><br>
-        <sub><code>sin framework · motor sin DOM · un único HTML de unos 300 KB · Web Animations API</code></sub>
+        <sub><code>sin framework · motor sin DOM · un único HTML de unos 470 KB · Web Animations API</code></sub>
       </td>
     </tr>
     <tr>
@@ -76,7 +76,7 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
     </tr>
     <tr>
       <td valign="top"><code>├─ ◈ pruebas:</code><br><br>
-        <img alt="Unitarias" src="https://img.shields.io/badge/unitarias-29-2E8B57?style=for-the-badge"/>
+        <img alt="Unitarias" src="https://img.shields.io/badge/unitarias-30-2E8B57?style=for-the-badge"/>
         <img alt="E2E" src="https://img.shields.io/badge/e2e-14-2E8B57?style=for-the-badge"/>
         <img alt="axe" src="https://img.shields.io/badge/axe-0%20infracciones-2E8B57?style=for-the-badge"/><br>
         <sub><code>cada caso se resuelve leyendo sus registros · red bloqueada en el e2e · claro y oscuro, 1440 y 390 px</code></sub>
@@ -91,7 +91,7 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
   </tbody>
   <tfoot>
     <tr>
-      <td colspan="2"><code>version: 0.2.0&nbsp;&nbsp;·&nbsp;&nbsp;nivel: SOC N1&nbsp;&nbsp;·&nbsp;&nbsp;empresa: Norte Logística (ficticia)&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
+      <td colspan="2"><code>version: 0.2.1&nbsp;&nbsp;·&nbsp;&nbsp;nivel: SOC N1&nbsp;&nbsp;·&nbsp;&nbsp;empresa: Norte Logística (ficticia)&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
     </tr>
   </tfoot>
 </table>
@@ -101,6 +101,12 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
 ---
 
 ## <img src="docs/assets/icons/sparkles.svg" width="20" height="20" valign="middle"/> Novedades
+
+### 0.2.1 · noviembre de 2026
+
+- **Portada ilustrada:** el analista de guardia, una figura encapuchada con casco, en versión clara y oscura según el tema. El texto va a la izquierda sobre el fondo plano. Al cargar, la ilustración entra con un leve desplazamiento y el aro del ojo se enciende y late. En tableta y móvil la figura pasa arriba y el texto debajo. Las dos imágenes van incrustadas en WebP (45 y 77 KB): ni una petición más.
+- **GitHub Pages abre la aplicación** sirva Pages `main` o `gh-pages`: la raíz de `main` lleva a `bluejr.html`.
+- **Marca nueva:** el escudo, el icono más gastado de la ciberseguridad, deja paso a un radar. Lo que hace un analista de nivel 1 es barrer el ruido hasta encontrar la señal. Cambia en la barra lateral, la portada, el favicon y la cabecera y el pie del README.
 
 ### 0.2.0 · noviembre de 2026
 
@@ -193,7 +199,7 @@ timeline
 
 | | Vista | Contenido |
 |---|---|---|
-| <img src="docs/assets/icons/sparkles.svg" width="18"/> | **Portada** | Escena del amanecer con la ventana del SOC, cuenta atrás del turno, consola en directo, siguiente paso recomendado, tarjetas de estadísticas y los cinco turnos con su regleta. |
+| <img src="docs/assets/icons/sparkles.svg" width="18"/> | **Portada** | Ilustración del analista de guardia (clara u oscura según el tema), cuenta atrás del turno, consola en directo, siguiente paso recomendado, tarjetas de estadísticas y los cinco turnos con su regleta. |
 | <img src="docs/assets/icons/siren.svg" width="18"/> | **Turno** | Regleta, cola de alertas, alerta con registros filtrables y evidencias, ticket y corrección. Al completar el turno, informe de relevo. |
 | <img src="docs/assets/icons/gauge.svg" width="18"/> | **Historial** | Tickets cerrados, nota media, veredictos acertados, amenazas cerradas por error, competencias, turnos y tickets; exportar e importar. |
 | <img src="docs/assets/icons/terminal.svg" width="18"/> | **Búsqueda** (`Ctrl K`) | Secciones, alertas y glosario. Nunca desvela respuestas: busca por la regla, no por la técnica. |
@@ -263,7 +269,7 @@ Siguiendo los principios de Emil Kowalski y el diseño de Apple:
 | Tarjetas | Se elevan 5 px al pasar el ratón (solo con ratón y sin «reducir movimiento»); quietas mientras se trabaja con teclado dentro. |
 | Lateral | Píldora activa que se desliza; carril plegable que se despliega por encima; gesto propio en el icono de cada sección. |
 | Consola de la portada | Sube una línea cada 1,3 s y se pausa si la pestaña no está visible. Decorativa: no la lee el lector de pantalla. |
-| Escena del amanecer | SVG en el propio archivo, sin imágenes externas. Al cargar: sol (1,4 s), sede, ventanas escalonadas, etiqueta del SOC y burbuja. Solo se reproduce al entrar en la vista; con «reducir movimiento» aparece entera al instante. Decorativa (`aria-hidden`). |
+| Portada ilustrada | La ilustración entra en 1,1 s con un leve desplazamiento y el aro del ojo se enciende a los 0,85 s y late cada 3,2 s. Solo al entrar en la vista; con «reducir movimiento» aparece entera al instante. Decorativa (`aria-hidden`). |
 | Movimiento reducido | Sin desplazamientos ni bucles; las cifras aparecen ya contadas. |
 
 Paleta oscura sin negro ni blanco puros (superficies `#1D2127` / `#252930`, texto `#D1D7E0` / `#AAAEB6`, sombras con un brillo de 1 px arriba), tipografía **Outfit** en toda la interfaz y **Geist Mono** en registros e identificadores. Iconos solo de **Lucide**.
@@ -317,7 +323,7 @@ flowchart LR
 - **Motor sin DOM** (`src/engine/`): funciones puras y deterministas que prueban las unitarias con `require()`.
 - **Datos separados**: añadir un turno es añadir un fichero en `src/data/`; `tests/casos.test.mjs` comprueba que se pueda resolver.
 
-## <img src="docs/assets/icons/shield-check.svg" width="20" height="20" valign="middle"/> Privacidad y seguridad
+## <img src="docs/assets/icons/lock-keyhole.svg" width="20" height="20" valign="middle"/> Privacidad y seguridad
 
 - **Local-first.** Todo se guarda en el `localStorage` de tu navegador. Sin cuentas, servidor ni telemetría.
 - **Cero peticiones.** CSP por hashes (`default-src 'none'`, `connect-src 'none'`), fuentes incrustadas e iconos en línea. El e2e bloquea cualquier URL que no sea `file:`, `data:` o `blob:` y la cuenta como fallo.
@@ -331,7 +337,7 @@ Detalle en [SECURITY.md](SECURITY.md).
 |---|---|---|
 | Motor | 16 | Corrección por criterio, normalización, MITRE, ruido determinista que nunca cita entidades del caso, historial, saneado de importaciones, CSV contra fórmulas |
 | Casos | 7 | Cada caso se resuelve leyendo sus registros, textos bilingües, solo IP de documentación y dominios `.example`, referencias cruzadas válidas |
-| Repositorio | 6 | HTML al día, CSP sin `unsafe-inline` en scripts, paridad de claves ES/EN, versión única, enlaces y cifras de este README |
+| Repositorio | 7 | HTML al día, CSP sin `unsafe-inline` en scripts, paridad de claves ES/EN, versión única, enlaces y cifras de este README, y la raíz que lleva a la aplicación en Pages |
 | E2E | 14 | Alerta de punta a punta, teclado, ayuda, inglés sin restos de español, exportar e importar, importación hostil, relevo, móvil, tema, movimiento (entrada antes de 450 ms), lateral plegable y portada |
 | Accesibilidad | 4 | axe en vistas, estados y todos los diálogos, en claro y oscuro, a 1440 y 390 px: 0 infracciones |
 
@@ -341,6 +347,7 @@ Detalle en [ROADMAP.md](ROADMAP.md).
 
 - [x] 0.1.0 · Primera semana: cinco turnos, corrección, relevo e historial
 - [x] 0.2.0 · Portada, movimiento, lateral plegable, modo oscuro y tipografía
+- [x] 0.2.1 · Radar como marca y prueba de movimiento estable en la CI
 - [ ] 0.3.0 · Turnos con reloj: SLA por severidad y alertas que llegan mientras trabajas
 - [ ] 0.4.0 · Segunda semana: nube y SaaS
 - [ ] 0.5.0 · Del ticket a la entrevista: historial en PDF y tickets como historias STAR para Astrolabio
@@ -383,7 +390,7 @@ bluejr/
 
 © 2026 Yoandy Ramírez Delgado. Código y contenido bajo licencia [MIT](LICENSE).
 
-Componentes de terceros: iconos de [Lucide](https://lucide.dev) (ISC) y fuentes Outfit y Geist Mono (SIL Open Font License, en `src/fonts/`). BlueJr es un proyecto independiente con fines formativos: no está afiliado ni respaldado por MITRE, ENISA ni ningún fabricante. MITRE ATT&CK® es marca registrada de The MITRE Corporation y las técnicas se citan solo por su ID. Empresa, personas, equipos, IP (RFC 5737) y dominios (`.example`) son inventados.
+Componentes de terceros: iconos de [Lucide](https://lucide.dev) (ISC) y fuentes Outfit y Geist Mono (SIL Open Font License, en `src/fonts/`). Las ilustraciones de la portada (`src/img/`) las aporta el autor. BlueJr es un proyecto independiente con fines formativos: no está afiliado ni respaldado por MITRE, ENISA ni ningún fabricante. MITRE ATT&CK® es marca registrada de The MITRE Corporation y las técnicas se citan solo por su ID. Empresa, personas, equipos, IP (RFC 5737) y dominios (`.example`) son inventados.
 
 ## <img src="docs/assets/icons/user-round.svg" width="20" height="20" valign="middle"/> Autor
 

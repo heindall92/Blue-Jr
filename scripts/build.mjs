@@ -48,6 +48,15 @@ export function buildFonts() {
   return FONTS.map((f) => `@font-face { font-family: "${f.family}"; font-style: normal; font-display: swap; font-weight: ${f.weight};\n  src: url(data:font/woff2;base64,${readFileSync(join(ROOT, 'src/fonts', f.file)).toString('base64')}) format("woff2"); unicode-range: ${LATIN}; }`).join('\n');
 }
 
+/* Ilustraciones de la portada (WebP, 1600 px), incrustadas como variables CSS: img-src solo admite data:. */
+export const IMAGENES = [
+  { file: 'portada-oscuro.webp', variable: '--portada-oscuro' },
+  { file: 'portada-claro.webp', variable: '--portada-claro' }
+];
+export function buildImagenes() {
+  return `:root { ${IMAGENES.map((i) => `${i.variable}: url(data:image/webp;base64,${readFileSync(join(ROOT, 'src/img', i.file)).toString('base64')});`).join(' ')} }`;
+}
+
 /* CSP por <meta>: hashes SHA-256 de cada <script>/<style> en línea del documento final.
  * Va en <meta> porque GitHub Pages y el uso desde disco no permiten cabeceras HTTP. */
 export function cspFor(html) {
@@ -59,7 +68,7 @@ export function cspFor(html) {
 
 export function build({ csp = true } = {}) {
   const tpl = rd('src/index.html');
-  const out = tpl.replace(/^[ \t]*<!-- @fonts -->$/m, () => buildFonts()).replace(/^[ \t]*(.*?)<!-- @(inline|data|modules) ([^>]+?) -->(.*)$/gm, (_, pre, kind, arg, post) => {
+  const out = tpl.replace(/^[ \t]*<!-- @fonts -->$/m, () => buildFonts()).replace(/^[ \t]*<!-- @imagenes -->$/m, () => buildImagenes()).replace(/^[ \t]*(.*?)<!-- @(inline|data|modules) ([^>]+?) -->(.*)$/gm, (_, pre, kind, arg, post) => {
     const a = arg.trim();
     let body;
     if (kind === 'inline') {

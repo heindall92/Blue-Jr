@@ -5,7 +5,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 
-export const ICONOS = ['shield-half', 'calendar-clock', 'siren', 'award', 'search', 'sun', 'moon', 'circle-help', 'panel-left', 'palette', 'user', 'x', 'check', 'circle-check', 'circle-x', 'arrow-up-right', 'lock', 'archive', 'file-text', 'download', 'upload', 'rotate-ccw', 'chevron-right', 'chevron-left', 'clock', 'server', 'filter', 'terminal', 'flag', 'keyboard', 'book-open', 'info', 'github', 'mail', 'play', 'list', 'triangle-alert', 'inbox', 'send', 'pin', 'target', 'scroll-text', 'shield-alert'];
+export const ICONOS = ['radar', 'calendar-clock', 'siren', 'award', 'search', 'sun', 'moon', 'circle-help', 'panel-left', 'palette', 'user', 'x', 'check', 'circle-check', 'circle-x', 'arrow-up-right', 'lock', 'archive', 'file-text', 'download', 'upload', 'rotate-ccw', 'chevron-right', 'chevron-left', 'clock', 'server', 'filter', 'terminal', 'flag', 'keyboard', 'book-open', 'info', 'github', 'mail', 'play', 'list', 'triangle-alert', 'inbox', 'send', 'pin', 'target', 'scroll-text'];
 const require = createRequire(import.meta.url);
 const dir = join(dirname(require.resolve('lucide-static/package.json')), 'icons');
 const out = {};
