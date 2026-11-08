@@ -1,4 +1,4 @@
-![Uploading Blue-Jr.jpeg…]()
+
 <p align="center">
   <img src="docs/assets/bluejr-header.svg" alt="BlueJr · Tu primer turno como analista SOC, antes de tu primer empleo. Consola en directo: los registros pasan, una línea se ilumina como señal y se convierte en un ticket" width="100%"/>
 </p>
