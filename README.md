@@ -1,5 +1,5 @@
-<img width="2025" height="558" alt="Blue-Jr" src="https://github.com/user-attachments/assets/64d5f71f-34fe-43e1-a724-02725e71f2b2" />
-<p align="center">
+<img width="2172" height="724" alt="Blue-Jr y anillo óptico" src="https://github.com/user-attachments/assets/f25e2a54-44c4-4d43-8620-d4085acf6312" />
+
   <b>Una semana de turnos de nivel 1 en el SOC de una empresa ficticia: 40 alertas con registros reales y ruido, decisiones que se corrigen al momento y un historial que puedes llevar a la entrevista. Un solo HTML, sin servidor, sin cuenta y sin una sola petición a Internet.</b>
 </p>
 
