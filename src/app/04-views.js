@@ -53,10 +53,7 @@ function vTurnos() {
         <p class="reloj num" role="timer" id="reloj">${esc(textoReloj())}</p>
       </div>
     </section>
-    <div class="en-directo">
-      ${flujoHtml()}
-      <div class="stats">${stats}</div>
-    </div>
+    <div class="stats">${stats}</div>
     <h2 class="sec-t">${ic('calendar-clock')}${esc(T('turnos_lista'))}</h2>
     <ol class="turnos-lista">${tarjetas}</ol>`;
 }
@@ -79,57 +76,11 @@ function arteHtml() {
   return `<div class="p-arte" aria-hidden="true"><div class="p-fondo"><i class="p-ojo"></i></div></div>`;
 }
 
-/* Consola en directo de la portada: el ruido pasa, una línea se enciende como señal y se convierte
-   en un ticket clasificado. Es decorativa (aria-hidden): la información está en el resto de la página. */
-const FLUJO = (() => {
-  const casos = ['T1-01', 'T2-02', 'T3-04', 'T4-04', 'T5-03', 'T2-04'].map((id) => CASOS[id]);
-  const lineas = [], senales = [];
-  for (const c of casos) for (const l of BJ.registros(c)) (l.senal ? senales : lineas).push({ ...l, caso: c.id });
-  return { casos, lineas, senales };
-})();
-let flujoTimer = null;
-function lineaFlujo(l, senal) {
-  return `<li class="fl${senal ? ' senal' : ''}"><span class="num">${l.t}</span><span class="fs">${esc(l.s)}</span><span class="fm">${esc(l.m)}</span>${senal ? `<em>${esc(T('flujo_senal'))}</em>` : ''}</li>`;
-}
-function ticketFlujo(c) {
-  return `<div class="fl-ticket s-${c.sev}"><span class="num">${c.id}</span>${sevChip(c.sev)}<b>${esc(L(c.titulo))}</b><span class="fl-dec">${esc(T('veredictos.' + c.veredicto))} · ${esc(T('acciones.' + c.accion))}</span></div>`;
-}
-function flujoHtml() {
-  const ini = FLUJO.lineas.slice(0, 7);
-  return `<div class="flujo" aria-hidden="true">
-      <div class="flujo-cab"><span class="vivo"></span><span>${esc(T('flujo_titulo'))}</span><span class="flujo-pts"><i></i><i></i><i></i></span></div>
-      <ol class="flujo-lineas" id="flujo-lineas">${ini.map((l) => lineaFlujo(l, false)).join('')}${lineaFlujo(FLUJO.senales[0], true)}</ol>
-      <div class="flujo-pie" id="flujo-pie">${ticketFlujo(FLUJO.casos[0])}</div>
-    </div>`;
-}
 let relojTimer = null;
 function iniciarFlujo() {
-  clearInterval(flujoTimer); flujoTimer = null;
   clearInterval(relojTimer); relojTimer = null;
   const reloj = $('#reloj');
   if (reloj) relojTimer = setInterval(() => { if (!document.contains(reloj)) { clearInterval(relojTimer); relojTimer = null; return; } reloj.textContent = textoReloj(); }, 1000);
-  const lista = $('#flujo-lineas');
-  if (!lista || MOV.reducido()) return;
-  let n = 7, k = 0;
-  flujoTimer = setInterval(() => {
-    if (!document.contains(lista)) { clearInterval(flujoTimer); flujoTimer = null; return; }
-    if (document.hidden) return;
-    const senal = n % 5 === 4;
-    const l = senal ? FLUJO.senales[(k + 1) % FLUJO.senales.length] : FLUJO.lineas[n % FLUJO.lineas.length];
-    const li = document.createElement('div');
-    li.innerHTML = lineaFlujo(l, senal);
-    const nueva = li.firstElementChild;
-    lista.append(nueva);
-    while (lista.children.length > 9) lista.firstElementChild.remove();
-    // Toda la columna sube una línea con suavidad y la nueva aparece con un fundido.
-    lista.animate?.([{ transform: 'translateY(22px)' }, { transform: 'translateY(0)' }], { duration: 480, easing: MOV.EASE });
-    nueva.animate?.([{ opacity: 0 }, { opacity: 1 }], { duration: 480, easing: MOV.EASE });
-    if (senal) {
-      k++; const c = CASOS[l.caso];
-      const pie = $('#flujo-pie'); if (pie) pie.innerHTML = ticketFlujo(c);
-    }
-    n++;
-  }, 1300);
 }
 
 /* ---------- Regleta del turno: la firma visual de BlueJr ----------

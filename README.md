@@ -1,10 +1,12 @@
-<img width="2172" height="724" alt="Blue-Jr y anillo óptico" src="https://github.com/user-attachments/assets/f25e2a54-44c4-4d43-8620-d4085acf6312" />
+<p align="center">
+  <img src="docs/assets/blue-jr-portada.jpg" alt="Blue-Jr · Simulador SOC · Nivel 1 · Tu primer turno como analista SOC" width="100%"/>
+</p>
 
   <b>Una semana de turnos de nivel 1 en el SOC de una empresa ficticia: 40 alertas con registros reales y ruido, decisiones que se corrigen al momento y un historial que puedes llevar a la entrevista. Un solo HTML, sin servidor, sin cuenta y sin una sola petición a Internet.</b>
 </p>
 
 <p align="center">
-  <a href="https://heindall92.github.io/bluejr/"><img alt="Abrir BlueJr" src="https://img.shields.io/badge/ABRIR-heindall92.github.io%2Fbluejr-6B9BFF?style=for-the-badge"/></a>
+  <a href="https://heindall92.github.io/Blue-Jr/"><img alt="Abrir BlueJr" src="https://img.shields.io/badge/ABRIR-heindall92.github.io%2FBlue--Jr-6B9BFF?style=for-the-badge"/></a>
 </p>
 
 <p align="center">
@@ -196,7 +198,7 @@ timeline
 
 | | Vista | Contenido |
 |---|---|---|
-| <img src="docs/assets/icons/sparkles.svg" width="18"/> | **Portada** | Ilustración del analista de guardia (clara u oscura según el tema), cuenta atrás del turno, consola en directo, siguiente paso recomendado, tarjetas de estadísticas y los cinco turnos con su regleta. |
+| <img src="docs/assets/icons/sparkles.svg" width="18"/> | **Portada** | Ilustración del analista de guardia (clara u oscura según el tema), cuenta atrás del turno, siguiente paso recomendado, tarjetas de estadísticas y los cinco turnos con su regleta. |
 | <img src="docs/assets/icons/siren.svg" width="18"/> | **Turno** | Regleta, cola de alertas, alerta con registros filtrables y evidencias, ticket y corrección. Al completar el turno, informe de relevo. |
 | <img src="docs/assets/icons/gauge.svg" width="18"/> | **Historial** | Tickets cerrados, nota media, veredictos acertados, amenazas cerradas por error, competencias, turnos y tickets; exportar e importar. |
 | <img src="docs/assets/icons/terminal.svg" width="18"/> | **Búsqueda** (`Ctrl K`) | Secciones, alertas y glosario. Nunca desvela respuestas: busca por la regla, no por la técnica. |
@@ -273,15 +275,15 @@ Paleta oscura sin negro ni blanco puros (superficies `#1D2127` / `#252930`, text
 
 ## <img src="docs/assets/icons/rocket.svg" width="20" height="20" valign="middle"/> Arranque rápido
 
-**En el navegador:** abre [heindall92.github.io/bluejr](https://heindall92.github.io/bluejr/).
+**En el navegador:** abre [heindall92.github.io/Blue-Jr](https://heindall92.github.io/Blue-Jr/).
 
 **Sin conexión:** descarga [bluejr.html](bluejr.html) y ábrelo con doble clic. Es el mismo fichero que se publica.
 
 **Desarrollo** (Node 20 o superior):
 
 ```bash
-git clone https://github.com/heindall92/bluejr.git
-cd bluejr
+git clone https://github.com/heindall92/Blue-Jr.git
+cd Blue-Jr
 npm ci
 npm run build      # src/ → dist/index.html y bluejr.html
 npm test           # motor, integridad de los 40 casos y coherencia del repositorio
@@ -359,7 +361,7 @@ Detalle en [ROADMAP.md](ROADMAP.md).
 ## <img src="docs/assets/icons/folder-tree.svg" width="20" height="20" valign="middle"/> Estructura
 
 ```
-bluejr/
+Blue-Jr/
 │
 ├── 🧩 src/
 │   ├── index.html                Plantilla del único HTML

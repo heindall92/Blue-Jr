@@ -274,14 +274,15 @@ test('lateral plegable: botón y tecla [, persistente y desplegable al pasar el 
   await p.context().close();
 });
 
-test('portada: consola en directo, cifras contadas y estático con movimiento reducido', async () => {
+test('portada: sin consola, cifras contadas y estático con movimiento reducido', async () => {
   const p = await pagina();
   const c = INDICE['T1-02'];
   await p.addInitScript(([id, r]) => { if (!localStorage.getItem('bluejr-v1')) localStorage.setItem('bluejr-v1', JSON.stringify({ respuestas: { [id]: { ...r, cerrado: true, cuando: new Date().toISOString() } } })); }, [c.id, respuestaPerfecta(c)]);
   await ir(p, 'turnos');
-  const primera = await p.textContent('#flujo-lineas li:last-child');
-  await p.waitForTimeout(1500);
-  assert.notEqual(await p.textContent('#flujo-lineas li:last-child'), primera, 'la consola avanza');
+  assert.equal(await p.locator('.flujo, .en-directo').count(), 0, 'la portada no muestra la consola de demostración');
+  assert.equal(await p.locator('.stats > .stat').count(), 4, 'las cuatro tarjetas ocupan la fila');
+  const caja = (s) => p.evaluate((s) => { const r = document.querySelector(s).getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; }, s);
+  assert.deepEqual(await caja('[data-tema]'), await caja('.idioma'), 'el interruptor de tema mide lo mismo que el selector de idioma');
   assert.equal(await p.locator('.stat-v [data-cuenta]').first().textContent(), '1');
   assert.match(await p.textContent('.stat-c.sube'), /1 hoy/);
   assert.match(await p.textContent('.portada .btn'), /turno 1/);
@@ -305,10 +306,7 @@ test('portada: consola en directo, cifras contadas y estático con movimiento re
   await p.context().close();
   const q = await pagina({ reducedMotion: 'reduce' });
   await ir(q, 'turnos');
-  const fija = await q.textContent('#flujo-lineas');
   const vis = await q.evaluate(() => ['.p-fondo', '.p-ojo'].map((s) => getComputedStyle(document.querySelector(s)).opacity));
   assert.deepEqual(vis, ['1', '1'], 'con movimiento reducido la ilustración aparece entera sin esperas');
-  await q.waitForTimeout(1500);
-  assert.equal(await q.textContent('#flujo-lineas'), fija, 'con movimiento reducido la consola no se mueve');
   await q.context().close();
 });

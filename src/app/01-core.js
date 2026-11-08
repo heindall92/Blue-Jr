@@ -5,7 +5,7 @@ const TURNOS = ['t1', 't2', 't3', 't4', 't5'].map((k) => DATOS[k]);
 const CASOS = Object.fromEntries(TURNOS.flatMap((t) => t.casos.map((c) => [c.id, { ...c, turno: t.id }])));
 const VERSION = '__APP_VERSION__';
 const ACENTOS = ['rosa', 'solar', 'glaciar', 'orquidea', 'verde', 'azul', 'rojo'];
-const REPO = 'https://github.com/heindall92/bluejr';
+const REPO = 'https://github.com/heindall92/Blue-Jr';
 const TEST = /[?&]test\b/.test(location.search);
 
 /* ---------- Almacenamiento: siempre envuelto, la app funciona aunque falle ---------- */
