@@ -4,6 +4,10 @@ Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [versionad
 
 ## [0.2.1] - 2026-11-08
 
+### Añadido
+- Portada ilustrada con el analista de guardia, en versión clara y oscura según el tema (WebP de 1600 px incrustados: 45 y 77 KB). Texto a la izquierda; al cargar, la ilustración entra y el aro del ojo se enciende y late. En tableta y móvil la figura pasa arriba. Sustituye a la escena SVG del amanecer.
+- `index.html` y `.nojekyll` en la raíz de `main`: GitHub Pages abre la aplicación aunque esté configurado para servir `main` en lugar de `gh-pages`. Prueba en `tests/repo.test.mjs`.
+
 ### Cambiado
 - El icono de la marca pasa de escudo a radar (Lucide `radar`) en la barra lateral, el antetítulo de la portada, el favicon y la cabecera y el pie animados del README. El apartado de privacidad del README usa un candado.
 - Se quita `shield-alert` de los iconos empaquetados: no se usaba.

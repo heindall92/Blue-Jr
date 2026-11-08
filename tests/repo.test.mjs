@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { createHash } from 'node:crypto';
 import { ROOT, BJ, I18N } from './_util.mjs';
 import { build, VERSION } from '../scripts/build.mjs';
 
@@ -44,4 +45,14 @@ test('el README enlaza ficheros que existen y sus cifras cuadran con el código'
 test('autoría y licencia', () => {
   assert.match(readFileSync(join(ROOT, 'LICENSE'), 'utf8'), /Yoandy Ramírez Delgado/);
   assert.match(JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).author, /Yoandy Ramírez Delgado/);
+});
+
+test('GitHub Pages: la raíz de main lleva a la aplicación aunque Pages sirva main en lugar de gh-pages', () => {
+  const idx = readFileSync(join(ROOT, 'index.html'), 'utf8');
+  assert.match(idx, /http-equiv="refresh" content="0; url=bluejr\.html"/);
+  assert.match(idx, /<a href="bluejr\.html">/);
+  assert.ok(existsSync(join(ROOT, 'bluejr.html')), 'bluejr.html existe');
+  assert.ok(existsSync(join(ROOT, '.nojekyll')), 'sin Jekyll: se sirve tal cual');
+  const style = idx.match(/<style>([\s\S]*?)<\/style>/)[1];
+  assert.ok(idx.includes(`'sha256-${createHash('sha256').update(style, 'utf8').digest('base64')}'`), 'CSP con el hash del estilo');
 });
