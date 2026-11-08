@@ -1,6 +1,6 @@
 {
   "name": "bluejr",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "BlueJr: tu primer turno como analista SOC antes de tu primer empleo. Simulador local-first de Blue Team con alertas, registros, tickets corregidos y un historial que puedes enseñar en una entrevista.",
   "private": true,
   "author": "Yoandy Ramírez Delgado <yoandyramirezdelgado@gmail.com>",

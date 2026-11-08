@@ -6,24 +6,169 @@ function cabecera(ante, icono, titulo, entradilla, extra = '') {
 const cerradas = () => Object.fromEntries(Object.entries(S.respuestas).filter(([, v]) => v.cerrado));
 const sevChip = (s) => `<span class="sev sev-${s}">${esc(T('sev.' + s))}</span>`;
 
-/* ---------- Inicio ---------- */
+/* ---------- Inicio: portada ---------- */
+const hoyIso = () => new Date().toISOString().slice(0, 10);
 function vTurnos() {
   const resp = cerradas();
-  const tarjetas = TURNOS.map((t, i) => {
+  const h = BJ.historial(TURNOS, resp);
+  const hoy = Object.values(S.respuestas).filter((r) => r.cerrado && r.cuando?.slice(0, 10) === hoyIso()).length;
+  const sig = TURNOS.find((t) => !BJ.resumenTurno(t, resp).completo);
+  const quedan = h.total - h.tickets;
+  const titulo = !h.tickets ? T('hero_titulo') : quedan ? T('hero_titulo_sigue', { n: quedan }) : T('hero_titulo_fin');
+  const cta = !h.tickets ? `<a class="btn grande" href="#T1">${ic('play')}${esc(T('hero_empezar'))}</a>`
+    : sig ? `<a class="btn grande" href="#${sig.id}">${ic('play')}${esc(T('hero_continuar', { n: numTurno(sig) }))}</a>`
+    : `<a class="btn grande" href="#historial">${ic('award')}${esc(T('hero_repasar'))}</a>`;
+  const superados = h.turnos.filter((r) => r.apto).length;
+  // Tarjetas de estadística (adaptadas de StatsCard: vidrio, icono con degradado y cambio).
+  const stat = (titulo, valor, cambio, subeOk, icono, tono, sufijo = '') => `<div class="stat tono-${tono}" data-entra>
+      <div><p class="stat-t">${esc(titulo)}</p><p class="stat-v num"><span data-cuenta="${valor}" data-sufijo="${esc(sufijo)}">${num(valor)}${esc(sufijo)}</span></p>
+      <p class="stat-c${subeOk ? ' sube' : ''}">${subeOk ? ic('arrow-up-right') : ''}${esc(cambio)}</p></div>
+      <span class="stat-ic" aria-hidden="true">${ic(icono)}</span></div>`;
+  const stats = stat(T('st_tickets'), h.tickets, hoy ? T('st_hoy', { n: hoy }) : T('st_sin_hoy'), hoy > 0, 'file-text', 'a')
+    + stat(T('st_media'), h.media, T('st_umbral', { n: BJ.UMBRAL_APTO }), h.tickets > 0 && h.media >= BJ.UMBRAL_APTO, 'target', 'b')
+    + stat(T('st_veredictos'), h.precisionVeredicto, T('st_de', { n: `${h.tickets}` }) , false, 'circle-check', 'c', ' %')
+    + stat(T('st_turnos'), superados, T('st_de', { n: 5 }), superados > 0, 'award', 'd');
+  const tarjetas = TURNOS.map((t) => {
     const r = BJ.resumenTurno(t, resp);
     const sev = BJ.SEVERIDADES.map((s) => [s, t.casos.filter((c) => c.sev === s).length]).filter(([, n]) => n);
     const boton = r.completo ? T('repasar') : r.hechos ? T('continuar') : T('empezar');
     const estado = r.completo ? `<span class="estado ${r.apto ? 'ok' : 'ko'}">${ic(r.apto ? 'circle-check' : 'circle-x')}${esc(r.apto ? T('apto') : T('no_apto', { n: BJ.UMBRAL_APTO }))}</span>` : `<span class="estado">${esc(T('progreso', { a: r.hechos, b: r.total }))}</span>`;
-    return `<li class="turno-card" style="--i:${i}">
-      <div class="tc-cab"><span class="tc-num num">${numTurno(t)}</span><div><p class="ante">${esc(diaDe(t))}</p><h2>${esc(L(t.tema))}</h2></div></div>
+    return `<li class="turno-card" data-entra>
+      <div class="tc-cab"><span class="tc-num num">${numTurno(t)}</span><div><p class="ante">${esc(diaDe(t))}</p><h3>${esc(L(t.tema))}</h3></div></div>
       ${regleta(t, true)}
       <div class="tc-sev">${sev.map(([s, n]) => `<span class="sev sev-${s}">${esc(T('sev.' + s))} <b class="num">${n}</b></span>`).join('')}</div>
       <div class="barra-prog" role="img" aria-label="${esc(T('progreso', { a: r.hechos, b: r.total }))}"><i style="width:${(r.hechos / r.total) * 100}%"></i></div>
-      <div class="tc-pie">${estado}${r.hechos ? `<span class="nota-media num">${esc(T('nota_media'))} <b>${r.media}</b></span>` : ''}<a class="btn${r.hechos && !r.completo ? '' : r.completo ? ' sec' : ''}" href="#${t.id}">${esc(boton)}${ic('chevron-right')}</a></div>
+      <div class="tc-pie">${estado}${r.hechos ? `<span class="nota-media num">${esc(T('nota_media'))} <b>${r.media}</b></span>` : ''}<a class="btn${r.completo ? ' sec' : ''}" href="#${t.id}">${esc(boton)}${ic('chevron-right')}</a></div>
     </li>`;
   }).join('');
-  return cabecera(T('inicio_ante'), 'calendar-clock', T('inicio_titulo'), T('inicio_entradilla'), `<span class="pildora">${ic('info')}${esc(T('inicio_aviso'))}</span>`)
-    + `<ol class="turnos-lista">${tarjetas}</ol>`;
+  // El titular entra palabra a palabra (cada palabra sube desde su propia máscara).
+  const palabras = titulo.split(' ').map((p, i) => `<span class="pal"><span style="--i:${i}">${esc(p)}</span></span>`).join(' ');
+  return `<section class="portada" aria-labelledby="portada-t">
+      <div class="p-txt">
+        <p class="ante">${ic('shield-half')}${esc(T('inicio_ante'))}</p>
+        <h1 id="portada-t" aria-label="${esc(titulo)}"><span aria-hidden="true">${palabras}</span></h1>
+        <p class="entradilla">${esc(T('hero_texto'))}</p>
+        <div class="p-cta">${cta}<button type="button" class="btn sec grande" data-ayuda>${ic('book-open')}${esc(T('hero_como'))}</button></div>
+        <p class="reloj num" role="timer" id="reloj">${esc(textoReloj())}</p>
+      </div>
+      ${escenaHtml()}
+    </section>
+    <div class="en-directo">
+      ${flujoHtml()}
+      <div class="stats">${stats}</div>
+    </div>
+    <h2 class="sec-t">${ic('calendar-clock')}${esc(T('turnos_lista'))}</h2>
+    <ol class="turnos-lista">${tarjetas}</ol>`;
+}
+
+/* Cuenta atrás hasta el turno de las 08:00 (o turno en curso hasta las 14:30), en hora local. */
+function textoReloj(ahora = new Date()) {
+  const m = ahora.getHours() * 60 + ahora.getMinutes();
+  if (m >= 8 * 60 && m < 14 * 60 + 30) return T('reloj_en_curso');
+  const inicio = new Date(ahora); inicio.setHours(8, 0, 0, 0);
+  if (m >= 8 * 60) inicio.setDate(inicio.getDate() + 1);
+  const s = Math.max(0, Math.floor((inicio - ahora) / 1000));
+  const hms = [Math.floor(s / 3600), Math.floor((s % 3600) / 60), s % 60].map((n) => String(n).padStart(2, '0')).join(':');
+  return T('reloj_falta', { t: hms });
+}
+
+/* Escena de la portada: amanece en Norte Logística. Al cargar, el sol sale, la sede sube y sus
+   ventanas se encienden una a una; la del SOC late y de ella sale la burbuja del último ticket.
+   Decorativa (aria-hidden): la información está en el texto de la portada. */
+const ESCENA = (() => {
+  const r = BJ.azar(2026);
+  const estrellas = Array.from({ length: 26 }, () => [Math.round(r() * 600), Math.round(r() * 300), (r() * 1.3 + 0.5).toFixed(1), (2 + r() * 3).toFixed(1), (r() * 3).toFixed(1)]);
+  const ventanas = [];
+  for (let f = 0; f < 7; f++) for (let c = 0; c < 6; c++) ventanas.push({ x: 176 + c * 42, y: 318 + f * 38, luz: r() < 0.42, soc: f === 3 && c === 1 });
+  return { estrellas, ventanas };
+})();
+function escenaHtml() {
+  const { estrellas, ventanas } = ESCENA;
+  let i = 0;
+  const vent = ventanas.map((w) => `<rect class="ventana${w.soc ? ' soc' : w.luz ? ' luz' : ''}" x="${w.x}" y="${w.y}" width="26" height="20" rx="3" style="--i:${w.luz || w.soc ? i++ : 0}"/>`).join('');
+  return `<div class="escena" aria-hidden="true">
+      <svg viewBox="0 80 600 560" preserveAspectRatio="xMidYMid meet" focusable="false">
+        <defs>
+          <linearGradient id="esc-cielo" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" class="c1"/><stop offset=".55" class="c2"/><stop offset="1" class="c3"/>
+          </linearGradient>
+          <pattern id="esc-trama" width="7" height="7" patternUnits="userSpaceOnUse"><circle cx="3.5" cy="3.5" r="2.1" class="punto-sol"/></pattern>
+          <radialGradient id="esc-halo"><stop offset="0" class="h1"/><stop offset="1" class="h2"/></radialGradient>
+        </defs>
+        <rect width="600" height="640" fill="url(#esc-cielo)"/>
+        <g class="estrellas">${estrellas.map(([x, y, rr, d, dl]) => `<circle cx="${x}" cy="${y}" r="${rr}" style="--d:${d}s;--dl:${dl}s"/>`).join('')}</g>
+        <g class="sol"><circle cx="445" cy="300" r="150" fill="url(#esc-halo)"/><circle cx="445" cy="300" r="92" fill="url(#esc-trama)"/></g>
+        <g class="ciudad">
+          <rect x="0" y="430" width="70" height="210"/><rect x="62" y="390" width="56" height="250"/><rect x="470" y="410" width="80" height="230"/><rect x="540" y="370" width="60" height="270"/>
+        </g>
+        <g class="sede">
+          <rect class="fachada" x="150" y="270" width="300" height="370" rx="6"/>
+          <rect class="remate" x="150" y="270" width="300" height="30" rx="6"/>
+          <text x="300" y="291" text-anchor="middle" class="rotulo">NORTE LOGÍSTICA</text>
+          ${vent}
+          <rect class="nave" x="430" y="520" width="170" height="120"/>
+          <rect class="puerta" x="452" y="560" width="54" height="80"/><rect class="puerta" x="522" y="560" width="54" height="80"/>
+        </g>
+        <rect class="calle" x="0" y="622" width="600" height="18"/>
+        <g class="camion"><rect x="0" y="592" width="62" height="30" rx="3" class="caja"/><rect x="62" y="600" width="24" height="22" rx="3" class="cabina"/><circle cx="16" cy="624" r="6" class="rueda"/><circle cx="72" cy="624" r="6" class="rueda"/><text x="31" y="612" text-anchor="middle" class="logo-camion">NL</text></g>
+      </svg>
+      <span class="escena-chip"><i></i>${esc(T('escena_soc'))}</span>
+      <div class="escena-ticket" id="escena-ticket">${ticketFlujo(FLUJO.casos[0])}</div>
+    </div>`;
+}
+
+/* Consola en directo de la portada: el ruido pasa, una línea se enciende como señal y se convierte
+   en un ticket clasificado. Es decorativa (aria-hidden): la información está en el resto de la página. */
+const FLUJO = (() => {
+  const casos = ['T1-01', 'T2-02', 'T3-04', 'T4-04', 'T5-03', 'T2-04'].map((id) => CASOS[id]);
+  const lineas = [], senales = [];
+  for (const c of casos) for (const l of BJ.registros(c)) (l.senal ? senales : lineas).push({ ...l, caso: c.id });
+  return { casos, lineas, senales };
+})();
+let flujoTimer = null;
+function lineaFlujo(l, senal) {
+  return `<li class="fl${senal ? ' senal' : ''}"><span class="num">${l.t}</span><span class="fs">${esc(l.s)}</span><span class="fm">${esc(l.m)}</span>${senal ? `<em>${esc(T('flujo_senal'))}</em>` : ''}</li>`;
+}
+function ticketFlujo(c) {
+  return `<div class="fl-ticket s-${c.sev}"><span class="num">${c.id}</span>${sevChip(c.sev)}<b>${esc(L(c.titulo))}</b><span class="fl-dec">${esc(T('veredictos.' + c.veredicto))} · ${esc(T('acciones.' + c.accion))}</span></div>`;
+}
+function flujoHtml() {
+  const ini = FLUJO.lineas.slice(0, 7);
+  return `<div class="flujo" aria-hidden="true">
+      <div class="flujo-cab"><span class="vivo"></span><span>${esc(T('flujo_titulo'))}</span><span class="flujo-pts"><i></i><i></i><i></i></span></div>
+      <ol class="flujo-lineas" id="flujo-lineas">${ini.map((l) => lineaFlujo(l, false)).join('')}${lineaFlujo(FLUJO.senales[0], true)}</ol>
+      <div class="flujo-pie" id="flujo-pie">${ticketFlujo(FLUJO.casos[0])}</div>
+    </div>`;
+}
+let relojTimer = null;
+function iniciarFlujo() {
+  clearInterval(flujoTimer); flujoTimer = null;
+  clearInterval(relojTimer); relojTimer = null;
+  const reloj = $('#reloj');
+  if (reloj) relojTimer = setInterval(() => { if (!document.contains(reloj)) { clearInterval(relojTimer); relojTimer = null; return; } reloj.textContent = textoReloj(); }, 1000);
+  const lista = $('#flujo-lineas');
+  if (!lista || MOV.reducido()) return;
+  let n = 7, k = 0;
+  flujoTimer = setInterval(() => {
+    if (!document.contains(lista)) { clearInterval(flujoTimer); flujoTimer = null; return; }
+    if (document.hidden) return;
+    const senal = n % 5 === 4;
+    const l = senal ? FLUJO.senales[(k + 1) % FLUJO.senales.length] : FLUJO.lineas[n % FLUJO.lineas.length];
+    const li = document.createElement('div');
+    li.innerHTML = lineaFlujo(l, senal);
+    const nueva = li.firstElementChild;
+    lista.append(nueva);
+    while (lista.children.length > 9) lista.firstElementChild.remove();
+    // Toda la columna sube una línea con suavidad y la nueva aparece con un fundido.
+    lista.animate?.([{ transform: 'translateY(22px)' }, { transform: 'translateY(0)' }], { duration: 480, easing: MOV.EASE });
+    nueva.animate?.([{ opacity: 0 }, { opacity: 1 }], { duration: 480, easing: MOV.EASE });
+    if (senal) {
+      k++; const c = CASOS[l.caso];
+      const pie = $('#flujo-pie'); if (pie) pie.innerHTML = ticketFlujo(c);
+      const burbuja = $('#escena-ticket'); if (burbuja) burbuja.innerHTML = ticketFlujo(c);
+    }
+    n++;
+  }, 1300);
 }
 
 /* ---------- Regleta del turno: la firma visual de BlueJr ----------
@@ -57,13 +202,13 @@ function vTurno(id) {
   const paneles = ['cola', 'caso', 'ticket'];
   return cabecera(T('turno_ante', { n: numTurno(t), dia: diaDe(t).toUpperCase() }), 'siren', L(t.tema), '', `<span class="pildora num">${esc(T('progreso', { a: r.hechos, b: r.total }))}</span>`)
     // En pantallas estrechas las marcas quedarían a menos de 24 px: la regleta es solo visual y se navega con la cola.
-    + regleta(t, matchMedia('(max-width: 900px)').matches)
+    + `<div data-entra>${regleta(t, matchMedia('(max-width: 900px)').matches)}</div>`
     + relevo
     + `<div class="seg-movil" role="group" aria-label="${esc(T('paneles'))}">${paneles.map((p) => `<button type="button" data-panel="${p}" aria-pressed="${UI.panel === p}">${esc(T(p === 'cola' ? 'cola' : p === 'caso' ? 'caso' : 'ticket'))}</button>`).join('')}</div>`
     + `<div class="puesto" data-panel-activo="${UI.panel}">
-        <section class="panel cola" aria-labelledby="cola-t"><h2 id="cola-t" class="panel-t">${ic('inbox')}${esc(T('cola'))}</h2><ol class="cola-lista">${t.casos.map(itemCola).join('')}</ol></section>
-        <section class="panel caso" id="caso" aria-labelledby="caso-t">${panelCaso(CASOS[UI.caso])}</section>
-        <section class="panel ticket" id="ticket" aria-labelledby="ticket-t">${panelTicket(CASOS[UI.caso])}</section>
+        <section class="panel cola" data-entra aria-labelledby="cola-t"><h2 id="cola-t" class="panel-t">${ic('inbox')}${esc(T('cola'))}</h2><ol class="cola-lista">${t.casos.map(itemCola).join('')}</ol></section>
+        <section class="panel caso" data-entra id="caso" aria-labelledby="caso-t">${panelCaso(CASOS[UI.caso])}</section>
+        <section class="panel ticket" data-entra id="ticket" aria-labelledby="ticket-t">${panelTicket(CASOS[UI.caso])}</section>
       </div>`;
 }
 
@@ -146,15 +291,15 @@ function resultadoHtml(c) {
 /* ---------- Historial ---------- */
 function vHistorial() {
   const h = BJ.historial(TURNOS, cerradas());
-  const kpi = (t, v, cls = '') => `<div class="kpi ${cls}"><span>${esc(t)}</span><b class="num">${v}</b></div>`;
+  const kpi = (t, v, cls = '') => `<div class="kpi ${cls}" data-entra><span>${esc(t)}</span><b class="num">${v}</b></div>`;
   const comp = h.competencias.map((c) => `<li><span class="c-nom">${esc(T('comp.' + c.id))}</span><span class="c-barra" role="img" aria-label="${esc(T('comp.' + c.id))}: ${c.media == null ? esc(T('sin_datos')) : c.media + '/100'}"><i style="width:${c.media ?? 0}%"></i></span><span class="num c-val">${c.media == null ? '—' : c.media}</span><small class="num">${esc(T('comp_casos', { a: c.casos, b: c.total }))}</small></li>`).join('');
   const turnos = h.turnos.map((r) => { const t = turnoDe(r.id); return `<li><a href="#${t.id}"><span class="tc-num num">${numTurno(t)}</span><span><b>${esc(diaDe(t))}</b> · ${esc(L(t.tema))}</span><span class="num">${esc(T('progreso', { a: r.hechos, b: r.total }))}</span><span class="estado ${r.completo ? (r.apto ? 'ok' : 'ko') : ''}">${r.hechos ? r.media : '—'}</span></a></li>`; }).join('');
   const tickets = Object.values(CASOS).filter((c) => cerrado(c.id));
   return cabecera(T('hist_ante'), 'award', T('hist_titulo'), T('hist_entradilla'))
     + `<div class="kpis">${kpi(T('kpi_tickets'), `${h.tickets}<small>/${h.total}</small>`)}${kpi(T('kpi_media'), h.tickets ? h.media : '—')}${kpi(T('kpi_veredicto'), h.tickets ? pct(h.precisionVeredicto) : '—')}${kpi(T('kpi_errores'), h.cerradosPorError, h.cerradosPorError ? 'aviso' : '')}</div>
     <div class="hist-rej">
-      <section class="panel" aria-labelledby="comp-t"><h2 id="comp-t" class="panel-t">${ic('target')}${esc(T('competencias_titulo'))}</h2><p class="nota">${esc(T('competencias_nota'))}</p><ul class="competencias">${comp}</ul></section>
-      <section class="panel" aria-labelledby="ht-t"><h2 id="ht-t" class="panel-t">${ic('calendar-clock')}${esc(T('turnos_titulo'))}</h2><ul class="hist-turnos">${turnos}</ul>
+      <section class="panel" data-entra aria-labelledby="comp-t"><h2 id="comp-t" class="panel-t">${ic('target')}${esc(T('competencias_titulo'))}</h2><p class="nota">${esc(T('competencias_nota'))}</p><ul class="competencias">${comp}</ul></section>
+      <section class="panel" data-entra aria-labelledby="ht-t"><h2 id="ht-t" class="panel-t">${ic('calendar-clock')}${esc(T('turnos_titulo'))}</h2><ul class="hist-turnos">${turnos}</ul>
         <h2 class="panel-t sep">${ic('archive')}${esc(T('datos_titulo'))}</h2>
         <div class="acciones-datos"><button type="button" class="btn" data-exportar-md>${ic('download')}${esc(T('exportar_md'))}</button><button type="button" class="btn sec" data-exportar-json>${ic('download')}${esc(T('exportar_json'))}</button><button type="button" class="btn sec" data-importar>${ic('upload')}${esc(T('importar'))}</button><button type="button" class="btn peligro" data-borrar>${ic('rotate-ccw')}${esc(UI.borrarArmado ? T('borrar_confirmar') : T('borrar'))}</button></div>
       </section>

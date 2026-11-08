@@ -15,26 +15,31 @@ function logo() {
 function pintarLateral() {
   const r = ruta();
   const actual = (v) => (v ? ' aria-current="page"' : '');
-  const turnos = TURNOS.map((t) => {
-    const res = BJ.resumenTurno(t, Object.fromEntries(Object.entries(S.respuestas).filter(([, v]) => v.cerrado)));
+  const cerr = Object.fromEntries(Object.entries(S.respuestas).filter(([, v]) => v.cerrado));
+  const turnos = TURNOS.map((t, i) => {
+    const res = BJ.resumenTurno(t, cerr);
     const estado = res.completo ? (res.apto ? 'ok' : 'ko') : res.hechos ? 'medio' : '';
-    return `<li><a href="#${t.id}" class="sub"${actual(r.vista === 'turno' && r.turno === t.id)}><span class="punto ${estado}" aria-hidden="true"></span><span class="txt">${esc(T('turno_n', { n: numTurno(t) }))} · ${esc(diaDe(t))}</span><span class="cuenta num">${res.hechos}/${res.total}</span></a></li>`;
+    const nombre = `${T('turno_n', { n: numTurno(t) })} · ${diaDe(t)}`;
+    return `<li style="--i:${i + 1}"><a href="#${t.id}" class="sub" title="${esc(nombre)}"${actual(r.vista === 'turno' && r.turno === t.id)}><span class="punto ${estado}" aria-hidden="true"><b class="num">${numTurno(t)}</b></span><span class="txt">${esc(nombre)}</span><span class="cuenta num">${res.hechos}/${res.total}</span></a></li>`;
   }).join('');
+  // Cada sección tiene su propio gesto en el icono al pasar el ratón (data-anim).
   $('#lateral').innerHTML = `
     <div class="lat-cab">${logo()}<div class="marca-txt"><b>BlueJr</b><span>${esc(T('submarca'))}</span></div></div>
     <nav aria-label="${esc(T('nav_secciones'))}" class="lat-nav">
-      <a href="#turnos"${actual(r.vista === 'turnos')}>${ic('calendar-clock')}<span class="txt">${esc(T('nav_turnos'))}</span></a>
+      <span class="lat-ind" aria-hidden="true"></span>
+      <a href="#turnos" data-anim="reloj" style="--i:0" title="${esc(T('nav_turnos'))}"${actual(r.vista === 'turnos')}>${ic('calendar-clock')}<span class="txt">${esc(T('nav_turnos'))}</span></a>
       <ul>${turnos}</ul>
-      <a href="#historial"${actual(r.vista === 'historial')}>${ic('award')}<span class="txt">${esc(T('nav_historial'))}</span></a>
+      <a href="#historial" data-anim="medalla" style="--i:6" title="${esc(T('nav_historial'))}"${actual(r.vista === 'historial')}>${ic('award')}<span class="txt">${esc(T('nav_historial'))}</span></a>
     </nav>
     <div class="lat-pie">
       <div class="acentos" role="group" aria-label="${esc(T('acento'))}">${ACENTOS.map((a) => `<button type="button" class="acento-b" data-accent-pick="${a}" aria-pressed="${P.accent === a}" title="${esc(T('acentos.' + a))}" aria-label="${esc(T('acentos.' + a))}"></button>`).join('')}</div>
-      <button type="button" class="cuenta-b" data-perfil>
+      <button type="button" class="cuenta-b" data-perfil title="${esc(S.perfil.nombre || T('perfil_sin'))}">
         <span class="avatar" aria-hidden="true">${S.perfil.nombre ? esc(iniciales(S.perfil.nombre)) : ic('user')}</span>
         <span class="cuenta-txt"><b>${esc(S.perfil.nombre || T('perfil_sin'))}</b><small>${esc(T('perfil_rol'))}</small></span>
       </button>
     </div>`;
-  document.body.classList.toggle('lateral-oculto', !P.lateral);
+  document.body.classList.toggle('lateral-compacto', !P.lateral);
+  requestAnimationFrame(MOV.indicador);
 }
 const iniciales = (n) => n.trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join('').toUpperCase();
 
@@ -42,7 +47,7 @@ function pintarBarra() {
   const mac = /Mac|iPhone|iPad/.test(navigator.platform || '');
   $('#barra').innerHTML = `
     <div class="barra-in">
-      <button type="button" class="icono-b solo-escritorio" data-alternar-lateral aria-label="${esc(T('lateral_alternar'))}" aria-expanded="${P.lateral}">${ic('panel-left')}</button>
+      <button type="button" class="icono-b solo-escritorio" data-alternar-lateral aria-label="${esc(T('lateral_alternar'))}" aria-expanded="${P.lateral}" title="${esc(T('lateral_alternar'))} ( [ )">${ic('panel-left')}</button>
       <a href="#turnos" class="marca-movil">${logo()}<b>BlueJr</b></a>
       <span class="hueco"></span>
       <button type="button" class="buscar-b" data-buscar aria-label="${esc(T('buscar'))}">${ic('search')}<span class="txt">${esc(T('buscar'))}</span><kbd>${mac ? '⌘K' : 'Ctrl K'}</kbd></button>

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="170" viewBox="0 0 1280 170" role="img" aria-labelledby="t">
+  <title id="t">BlueJr · separa la señal del ruido</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0f1320"/><stop offset=".5" stop-color="#16244d"/><stop offset="1" stop-color="#2a2f8f"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6b9bff"/><stop offset="1" stop-color="#7c4dff"/></linearGradient>
+    <clipPath id="frame"><rect width="1280" height="170"/></clipPath>
+  </defs>
+  <style>
+    .ico { fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .t { font: 600 18px 'Outfit','Segoe UI Variable Text','SF Pro Text',-apple-system,'Segoe UI',system-ui,sans-serif; fill: rgba(255,255,255,.92); }
+    .s { font: 700 11px ui-monospace,'SF Mono','Cascadia Code',Consolas,monospace; letter-spacing: 3px; fill: #a9c2ff; }
+    .r { font: 500 12px ui-monospace,'SF Mono','Cascadia Code',Consolas,monospace; fill: #ffffff; fill-opacity: .16; }
+    .r b, .r .x { fill: #8fb4ff; fill-opacity: .9; }
+    .w1 { animation: drift 26s linear infinite; }
+    .w2 { animation: drift 34s linear infinite reverse; }
+    @keyframes drift { to { transform: translateX(-640px) } }
+    @media (prefers-reduced-motion: reduce) { .w1, .w2 { animation: none } }
+  </style>
+  <g clip-path="url(#frame)">
+    <rect width="1280" height="170" fill="url(#bg)"/>
+    <!-- Ruido que pasa; de vez en cuando, una señal -->
+    <g class="w1">
+      <text class="r" y="34">ALLOW tcp 10.20.2.9 -&gt; 192.0.2.71:443 · EventID=4624 LogonType=3 · query A maps.example · <tspan class="x">login OK r.ibanez · SEÑAL</tspan> · delivered spf=pass · process=Teams.exe · ALLOW tcp 10.20.2.9 -&gt; 192.0.2.71:443 · EventID=4624 LogonType=3 · query A maps.example · <tspan class="x">login OK r.ibanez · SEÑAL</tspan> · delivered spf=pass · process=Teams.exe</text>
+    </g>
+    <g class="w2">
+      <text class="r" y="150" x="-320">GET erp.nortelogistica.example 200 · EventID=4769 TicketEncryptionType=0x12 · <tspan class="x">TicketEncryptionType=0x17 · SEÑAL</tspan> · login OK l.moreno · GET intranet 200 · GET erp.nortelogistica.example 200 · EventID=4769 TicketEncryptionType=0x12 · <tspan class="x">TicketEncryptionType=0x17 · SEÑAL</tspan> · login OK l.moreno · GET intranet 200</text>
+    </g>
+    <g transform="translate(456 64)">
+      <rect width="42" height="42" rx="12" fill="url(#mark)"/>
+      <g transform="translate(9 9)" class="ico">
+        <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M12 22V2"/>
+      </g>
+      <text x="58" y="18" class="t">BlueJr · separa la señal del ruido</text>
+      <text x="58" y="38" class="s">YOANDY RAMÍREZ DELGADO · 2026</text>
+    </g>
+  </g>
+</svg>

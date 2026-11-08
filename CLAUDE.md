@@ -20,4 +20,4 @@
 
 ## Diseño
 
-- Sistema visual de Yoandy: Geist incrustada, iconos solo Lucide (`npm run iconos`), un acento, claro y oscuro, siete acentos, ES/EN completos, WCAG 2.2 AA verificada con axe, sin peticiones externas y CSP por hashes.
+- Sistema visual de Yoandy: Outfit (interfaz) y Geist Mono (código) incrustadas; oscuro sin negro ni blanco puros (superficies #1D2127 y #252930, texto #D1D7E0 y #AAAEB6), iconos solo Lucide (`npm run iconos`), un acento, claro y oscuro, siete acentos, ES/EN completos, WCAG 2.2 AA verificada con axe, sin peticiones externas y CSP por hashes.
