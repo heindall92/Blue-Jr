@@ -1,0 +1,165 @@
+/* Eventos y arranque. Un único delegado por tipo de evento: la interfaz se repinta por zonas. */
+
+function pintar() {
+  const r = ruta();
+  aplicarTema();
+  pintarLateral(); pintarBarra(); pintarAbajo();
+  if (r.vista === 'turno') { UI.ultimoTurno = r.turno; escribir('bluejr-ultimo', r.turno); }
+  const main = $('#main');
+  main.innerHTML = `<div class="vista">${r.vista === 'turno' ? vTurno(r.turno) : r.vista === 'historial' ? vHistorial() : vTurnos()}</div>`;
+  const titulo = r.vista === 'turno' ? `${T('turno_n', { n: r.turno.slice(1) })} · ${diaDe(turnoDe(r.turno))}` : r.vista === 'historial' ? T('nav_historial') : T('nav_turnos');
+  document.title = `${titulo} · BlueJr`;
+  $('.saltar').textContent = T('saltar');
+}
+
+/* Repintados parciales del puesto de trabajo: no se pierde el foco ni el desplazamiento de los registros. */
+function pintarCaso() {
+  const c = CASOS[UI.caso];
+  $('#caso').innerHTML = panelCaso(c);
+  $('#ticket').innerHTML = panelTicket(c);
+  $$('.cola-item').forEach((b) => { const a = b.dataset.caso === UI.caso; b.classList.toggle('activa', a); a ? b.setAttribute('aria-current', 'true') : b.removeAttribute('aria-current'); });
+  $$('.regleta .marca[data-caso]').forEach((b) => (b.dataset.caso === UI.caso ? b.setAttribute('aria-current', 'true') : b.removeAttribute('aria-current')));
+}
+function pintarLineas() { const c = CASOS[UI.caso]; $('#logs').innerHTML = lineasHtml(c); }
+function pintarTicket() { $('#ticket').innerHTML = panelTicket(CASOS[UI.caso]); }
+
+function abrirCaso(id, foco = true) {
+  if (!CASOS[id]) return;
+  UI.caso = id; UI.filtro = ''; UI.fuente = null; UI.panel = 'caso';
+  if (ruta().turno !== CASOS[id].turno) { location.hash = CASOS[id].turno; return; }
+  pintarCaso();
+  $('.puesto')?.setAttribute('data-panel-activo', 'caso');
+  $$('[data-panel]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.panel === 'caso'));
+  const h = $('#caso-t');
+  if (foco && h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+}
+
+function cerrarTicket() {
+  const c = CASOS[UI.caso];
+  const r = respuesta(c.id);
+  if (!r.veredicto || !r.accion) return;
+  r.cerrado = true;
+  r.cuando = new Date().toISOString();
+  r.nota = BJ.corregir(c, r).nota;
+  guardar();
+  const scroll = scrollY;
+  pintar();
+  scrollTo(0, scroll);
+  avisar(T('ticket_cerrado', { id: c.id, n: r.nota }));
+  UI.panel = 'ticket';
+  $('.puesto')?.setAttribute('data-panel-activo', 'ticket');
+  $$('[data-panel]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.panel === 'ticket'));
+  $('#resultado')?.focus({ preventScroll: true });
+}
+
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('button, a');
+  if (!b) { if (e.target.tagName === 'DIALOG') cerrarDialogo(e.target); return; }
+  const d = b.dataset;
+  if ('cerrarDlg' in d) return cerrarDialogo(b.closest('dialog'));
+  if ('ayuda' in d) return abrirAyuda();
+  if ('buscar' in d) return abrirBusqueda();
+  if ('perfil' in d) return abrirPerfil();
+  if (d.tab) { tabAyuda = d.tab; pintarAyuda(); return $('#tab-' + d.tab).focus(); }
+  if (d.lang) { P.lang = d.lang; guardarPrefs(); return pintar(); }
+  if ('tema' in d) { P.theme = temaActual() === 'dark' ? 'light' : 'dark'; guardarPrefs(); aplicarTema(); return b.setAttribute('aria-checked', temaActual() === 'dark'); }
+  if (d.accentPick) { P.accent = d.accentPick; guardarPrefs(); aplicarTema(); return $$('[data-accent-pick]').forEach((x) => x.setAttribute('aria-pressed', x.dataset.accentPick === P.accent)); }
+  if ('alternarLateral' in d) { P.lateral = !P.lateral; guardarPrefs(); document.body.classList.toggle('lateral-oculto', !P.lateral); return b.setAttribute('aria-expanded', P.lateral); }
+  if (d.q !== undefined) return elegirBusqueda(+d.q);
+  if (d.casoIr) { UI.caso = d.casoIr; return; }
+  if (d.caso) return abrirCaso(d.caso);
+  if (d.panel) { UI.panel = d.panel; $('.puesto').setAttribute('data-panel-activo', d.panel); return $$('[data-panel]').forEach((x) => x.setAttribute('aria-pressed', x.dataset.panel === d.panel)); }
+  if (d.fuente !== undefined) { UI.fuente = d.fuente || null; $$('.chips [data-fuente]').forEach((x) => x.setAttribute('aria-pressed', (x.dataset.fuente || null) === UI.fuente)); return pintarLineas(); }
+  if (d.linea !== undefined) {
+    const r = respuesta(UI.caso); const n = +d.linea;
+    r.evidencias = r.evidencias.includes(n) ? r.evidencias.filter((x) => x !== n) : [...r.evidencias, n].slice(0, BJ.LIMITES.evidencias);
+    guardar(); pintarLineas(); pintarTicket();
+    return $(`[data-linea="${n}"]`)?.focus();
+  }
+  if (d.veredicto || d.accion) {
+    const k = d.veredicto ? 'veredicto' : 'accion';
+    respuesta(UI.caso)[k] = d[k]; guardar(); pintarTicket();
+    return $(`[data-${k}="${d[k]}"]`)?.focus();
+  }
+  if ('cerrarTicket' in d) return cerrarTicket();
+  if (d.reintentar) {
+    const r = respuesta(d.reintentar); delete r.cerrado; delete r.nota; guardar();
+    pintar(); return $('[data-veredicto]')?.focus();
+  }
+  if (d.guardarRelevo) { S.relevos[d.guardarRelevo] = $('#relevo').value.slice(0, BJ.LIMITES.relevo); guardar(); return avisar(T('relevo_guardado')); }
+  if ('exportarMd' in d) return descargar(`bluejr-historial-${new Date().toISOString().slice(0, 10)}.md`, historialMd(), 'text/markdown;charset=utf-8');
+  if ('exportarJson' in d) return descargar(`bluejr-copia-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({ app: 'bluejr', version: VERSION, ...S }, null, 2), 'application/json');
+  if ('importar' in d) return $('#archivo').click();
+  if ('borrar' in d) {
+    if (!UI.borrarArmado) { UI.borrarArmado = true; b.lastChild.textContent = T('borrar_confirmar'); setTimeout(() => { UI.borrarArmado = false; if (document.contains(b)) b.lastChild.textContent = T('borrar'); }, 4000); return; }
+    UI.borrarArmado = false; S = BJ.sanearEstado(null, CASOS); guardar(); pintar(); return avisar(T('borrado'));
+  }
+});
+
+/* Desde el historial, el enlace de un ticket abre su turno con esa alerta seleccionada. */
+document.addEventListener('click', (e) => { const a = e.target.closest('[data-caso-ir]'); if (a) UI.caso = a.dataset.casoIr; }, true);
+
+document.addEventListener('input', (e) => {
+  const t = e.target;
+  if (t.id === 'q') return buscar(t.value);
+  if (t.id === 'filtro') { UI.filtro = t.value; return pintarLineas(); }
+  if (t.dataset.campo) { respuesta(UI.caso).campos[t.dataset.campo] = t.value.slice(0, BJ.LIMITES.campo); return guardar(); }
+  if (t.id === 'texto-ticket') { respuesta(UI.caso).ticket = t.value.slice(0, BJ.LIMITES.ticket); guardar(); $('#cuenta-ticket').textContent = T('caracteres', { n: t.value.trim().length, m: BJ.TICKET_MIN }); }
+});
+
+document.addEventListener('submit', (e) => {
+  if (e.target.id === 'f-perfil') { S.perfil.nombre = String(new FormData(e.target).get('nombre') || '').trim().slice(0, BJ.LIMITES.nombre); guardar(); pintarLateral(); }
+});
+
+$('#archivo').addEventListener('change', async (e) => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  if (f.size > 2 * 1024 * 1024) return avisar(T('import_error'));
+  const r = BJ.safeParse(await f.text());
+  if (!r.ok || !r.valor || r.valor.app !== 'bluejr') return avisar(T('import_error'));
+  S = BJ.sanearEstado(r.valor, CASOS); guardar(); pintar();
+  avisar(T('importado', { n: Object.values(S.respuestas).filter((x) => x.cerrado).length }));
+});
+
+document.addEventListener('keydown', (e) => {
+  const enCampo = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable;
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); return abrirBusqueda(); }
+  if (e.target.id === 'q') {
+    if (e.key === 'ArrowDown') { e.preventDefault(); return moverBusqueda(1); }
+    if (e.key === 'ArrowUp') { e.preventDefault(); return moverBusqueda(-1); }
+    if (e.key === 'Enter') { e.preventDefault(); return elegirBusqueda(activo); }
+  }
+  // Pestañas de la ayuda: flechas, Inicio y Fin.
+  if (e.target.getAttribute('role') === 'tab' && ['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(e.key)) {
+    e.preventDefault();
+    const i = TABS.indexOf(tabAyuda);
+    tabAyuda = TABS[e.key === 'Home' ? 0 : e.key === 'End' ? TABS.length - 1 : (i + (e.key === 'ArrowRight' ? 1 : -1) + TABS.length) % TABS.length];
+    pintarAyuda(); return $('#tab-' + tabAyuda).focus();
+  }
+  // Grupos de radio (veredicto y acción): flechas para moverse y elegir.
+  if (e.target.getAttribute('role') === 'radio' && ['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp'].includes(e.key)) {
+    e.preventDefault();
+    const k = e.target.dataset.veredicto ? 'veredicto' : 'accion';
+    const lista = k === 'veredicto' ? BJ.VEREDICTOS : BJ.ACCIONES;
+    const i = lista.indexOf(e.target.dataset[k]);
+    const v = lista[(i + (['ArrowRight', 'ArrowDown'].includes(e.key) ? 1 : -1) + lista.length) % lista.length];
+    respuesta(UI.caso)[k] = v; guardar(); pintarTicket();
+    return $(`[data-${k}="${v}"]`)?.focus();
+  }
+  if (enCampo || e.ctrlKey || e.metaKey || e.altKey || document.querySelector('dialog[open]')) return;
+  if (e.key === '?') { e.preventDefault(); return abrirAyuda(); }
+  if (e.key === '/' && $('#filtro')) { e.preventDefault(); return $('#filtro').focus(); }
+  if ((e.key === 'j' || e.key === 'k') && ruta().vista === 'turno') {
+    const casos = turnoDe(ruta().turno).casos;
+    const i = casos.findIndex((c) => c.id === UI.caso);
+    const sig = casos[Math.min(casos.length - 1, Math.max(0, i + (e.key === 'j' ? 1 : -1)))];
+    if (sig) { abrirCaso(sig.id, false); $(`.cola-item[data-caso="${sig.id}"]`)?.focus(); }
+  }
+});
+
+addEventListener('hashchange', () => { pintar(); $('#main').focus({ preventScroll: true }); scrollTo(0, 0); });
+matchMedia('(prefers-color-scheme: light)').addEventListener?.('change', () => { if (!P.theme) pintar(); });
+matchMedia('(max-width: 900px)').addEventListener?.('change', () => { if (ruta().vista === 'turno') pintar(); });
+
+if (TEST) window.__BJ__ = { S: () => S, UI, CASOS, BJ, pintar };
+pintar();

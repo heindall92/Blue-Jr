@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es" data-accent="azul" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- @csp -->
+<title>BlueJr</title>
+<meta name="description" content="BlueJr: tu primer turno como analista SOC antes de tu primer empleo. Alertas, registros, tickets corregidos y un historial para la entrevista. Local-first, sin servidor.">
+<meta name="author" content="Yoandy Ramírez Delgado">
+<meta name="color-scheme" content="dark light">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b9bff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3Cpath d='M12 22V2'/%3E%3C/svg%3E">
+<style>
+<!-- @fonts -->
+<!-- @inline src/styles/bluejr.css -->
+</style>
+</head>
+<body>
+<a class="saltar" href="#main">Saltar al contenido</a>
+<div class="app">
+  <aside class="lateral" id="lateral"></aside>
+  <div class="columna">
+    <header class="barra" id="barra"></header>
+    <main id="main" tabindex="-1"></main>
+  </div>
+</div>
+<nav class="abajo" id="abajo" aria-label="Secciones"></nav>
+<dialog id="dlg-ayuda" class="dlg grande"></dialog>
+<dialog id="dlg-buscar" class="dlg buscar"></dialog>
+<dialog id="dlg-perfil" class="dlg peq"></dialog>
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+<input type="file" id="archivo" class="sr-only" accept=".json,application/json" tabindex="-1" aria-hidden="true">
+<script type="application/json" id="datos"><!-- @data empresa t1 t2 t3 t4 t5 --></script>
+<script>
+<!-- @inline src/engine/bluejr-engine.js -->
+<!-- @modules src/app -->
+</script>
+</body>
+</html>

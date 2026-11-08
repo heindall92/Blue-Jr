@@ -1,0 +1,26 @@
+{
+  "nombre": "Norte Logística, S.L.",
+  "dominio": "nortelogistica.example",
+  "aviso": {
+    "es": "Empresa, personas, equipos e IP inventados. Las IP públicas son de los rangos de documentación RFC 5737 y los dominios usan .example.",
+    "en": "Company, people, hosts and IPs are made up. Public IPs come from the RFC 5737 documentation ranges and domains use .example."
+  },
+  "inventario": [
+    { "host": "SRV-DC01", "ip": "10.20.0.10", "rol": { "es": "Controlador de dominio", "en": "Domain controller" } },
+    { "host": "SRV-FS01", "ip": "10.20.0.20", "rol": { "es": "Servidor de ficheros", "en": "File server" } },
+    { "host": "SRV-SQL01", "ip": "10.20.0.30", "rol": { "es": "Base de datos de pedidos", "en": "Orders database" } },
+    { "host": "SRV-BKP01", "ip": "10.20.0.40", "rol": { "es": "Copias de seguridad", "en": "Backups" } },
+    { "host": "SRV-WEB01", "ip": "10.20.1.15", "rol": { "es": "Portal de clientes (público en 192.0.2.10)", "en": "Customer portal (public at 192.0.2.10)" } },
+    { "host": "PC-ALM-014", "ip": "10.20.2.14", "rol": { "es": "Almacén · a.garcia", "en": "Warehouse · a.garcia" } },
+    { "host": "PC-ALM-021", "ip": "10.20.2.21", "rol": { "es": "Almacén · l.moreno", "en": "Warehouse · l.moreno" } },
+    { "host": "PC-FIN-003", "ip": "10.20.3.33", "rol": { "es": "Finanzas · m.ortega", "en": "Finance · m.ortega" } },
+    { "host": "PC-FIN-007", "ip": "10.20.3.41", "rol": { "es": "Finanzas · p.sanz", "en": "Finance · p.sanz" } },
+    { "host": "PC-MKT-002", "ip": "10.20.4.12", "rol": { "es": "Marketing · j.romero", "en": "Marketing · j.romero" } },
+    { "host": "SCAN-01", "ip": "10.20.5.15", "rol": { "es": "Escáner de vulnerabilidades de IT", "en": "IT vulnerability scanner" } }
+  ],
+  "personas": [
+    { "usuario": "adm.rvela", "rol": { "es": "Administrador de sistemas", "en": "Systems administrator" } },
+    { "usuario": "h.diaz", "rol": { "es": "Soporte (helpdesk)", "en": "Helpdesk" } },
+    { "usuario": "d.vela", "rol": { "es": "Director general", "en": "Managing director" } }
+  ]
+}

@@ -1,0 +1,238 @@
+{
+  "id": "T5",
+  "dia": { "es": "Viernes", "en": "Friday" },
+  "tema": { "es": "Identidades y directorio activo", "en": "Identities and Active Directory" },
+  "casos": [
+    {
+      "id": "T5-01",
+      "hora": "08:05",
+      "sev": "alta",
+      "fuente": "SIEM",
+      "regla": { "es": "Muchos tickets de servicio con cifrado débil", "en": "Many service tickets with weak encryption" },
+      "titulo": { "es": "Una cuenta pide tickets para todos los servicios en un minuto", "en": "One account requests tickets for every service in a minute" },
+      "resumen": { "es": "Eventos 4769 con TicketEncryptionType 0x17 para 23 SPN distintos.", "en": "4769 events with TicketEncryptionType 0x17 for 23 different SPNs." },
+      "logs": [
+        ["08:02:10", "dc", "EventID=4769 ServiceName=MSSQLSvc/SRV-SQL01:1433 TargetUserName=l.moreno IpAddress=10.20.2.21 TicketEncryptionType=0x17"],
+        ["08:02:10", "dc", "EventID=4769 ServiceName=svc_backup TargetUserName=l.moreno IpAddress=10.20.2.21 TicketEncryptionType=0x17"],
+        ["08:02:11", "dc", "EventID=4769 ServiceName=HTTP/intranet TargetUserName=l.moreno IpAddress=10.20.2.21 TicketEncryptionType=0x17"],
+        ["08:02:58", "dc", "summary TargetUserName=l.moreno distinct_spn=23 window=48s enc=0x17(RC4)"],
+        ["08:03:00", "baseline", "l.moreno solicita normalmente 2-3 tickets al dia, siempre con 0x12 (AES256)"]
+      ],
+      "ruido": { "fuentes": ["dc", "win"], "n": 12 },
+      "veredicto": "vp",
+      "accion": "contener",
+      "campos": [
+        { "id": "cifrado", "label": { "es": "Tipo de cifrado pedido", "en": "Encryption type requested" }, "ok": ["0x17", "rc4", "rc4-hmac"] },
+        { "id": "equipo", "label": { "es": "IP de origen", "en": "Source IP" }, "ok": ["10.20.2.21"] }
+      ],
+      "mitre": "T1558.003",
+      "claves": ["l.moreno", "0x17", "10.20.2.21"],
+      "competencias": ["triaje", "identidad", "logs", "respuesta"],
+      "explica": {
+        "es": "Pedir tickets de 23 servicios en 48 segundos y forzar RC4 (0x17) es Kerberoasting: el atacante se lleva los tickets para romper offline las contraseñas de las cuentas de servicio. Viene de PC-ALM-021, el equipo con la baliza del jueves. Contener: aislar el equipo, deshabilitar l.moreno y escalar para rotar las contraseñas de svc_backup y del resto de servicios.",
+        "en": "Requesting tickets for 23 services in 48 seconds and forcing RC4 (0x17) is Kerberoasting: the attacker takes the tickets to crack service account passwords offline. It comes from PC-ALM-021, Thursday's beaconing PC. Contain: isolate the host, disable l.moreno and escalate so svc_backup and the other service passwords get rotated."
+      }
+    },
+    {
+      "id": "T5-02",
+      "hora": "08:50",
+      "sev": "alta",
+      "fuente": "SIEM",
+      "regla": { "es": "Un origen falla contra muchas cuentas", "en": "One source fails against many accounts" },
+      "titulo": { "es": "Un intento por cuenta contra 60 usuarios", "en": "One attempt per account against 60 users" },
+      "resumen": { "es": "4625 desde un mismo origen contra 60 cuentas distintas, una vez cada una.", "en": "4625 from one source against 60 different accounts, once each." },
+      "logs": [
+        ["08:44:01", "dc", "EventID=4625 TargetUserName=a.garcia IpAddress=10.20.3.41 Status=0xC000006A"],
+        ["08:44:02", "dc", "EventID=4625 TargetUserName=m.ortega IpAddress=10.20.3.41 Status=0xC000006A"],
+        ["08:44:03", "dc", "EventID=4625 TargetUserName=h.diaz IpAddress=10.20.3.41 Status=0xC000006A"],
+        ["08:46:40", "dc", "summary IpAddress=10.20.3.41 distinct_users=60 failures=59 password='Noviembre2026!'"],
+        ["08:46:41", "dc", "EventID=4624 TargetUserName=j.romero IpAddress=10.20.3.41 LogonType=3"]
+      ],
+      "ruido": { "fuentes": ["dc"], "n": 12 },
+      "veredicto": "vp",
+      "accion": "contener",
+      "campos": [
+        { "id": "usuario", "label": { "es": "Cuenta que cae", "en": "Account that falls" }, "ok": ["j.romero"] },
+        { "id": "origen", "label": { "es": "IP de origen", "en": "Source IP" }, "ok": ["10.20.3.41"] }
+      ],
+      "mitre": "T1110.003",
+      "claves": ["j.romero", "10.20.3.41"],
+      "competencias": ["triaje", "identidad", "logs", "respuesta"],
+      "explica": {
+        "es": "Una contraseña probada contra muchas cuentas, una vez cada una para no bloquearlas: rociado de contraseñas. Acierta con j.romero («Noviembre2026!»). El origen es PC-FIN-007 otra vez. Contener: cambiar la contraseña de j.romero, revisar su sesión y escalar; además, proponer que se prohíban contraseñas con el mes y el año.",
+        "en": "One password tried against many accounts, once each to avoid lockouts: password spraying. It hits j.romero («Noviembre2026!»). The source is PC-FIN-007 again. Contain: reset j.romero's password, review her session and escalate; also propose banning passwords built from month and year."
+      }
+    },
+    {
+      "id": "T5-03",
+      "hora": "09:30",
+      "sev": "critica",
+      "fuente": "SIEM",
+      "regla": { "es": "Replicación de directorio desde un equipo que no es DC", "en": "Directory replication from a non-DC host" },
+      "titulo": { "es": "Un puesto de trabajo pide replicar el directorio", "en": "A workstation asks to replicate the directory" },
+      "resumen": { "es": "Evento 4662 con los permisos de replicación desde una IP de usuario.", "en": "Event 4662 with replication rights from a user IP." },
+      "logs": [
+        ["09:27:12", "dc", "EventID=4662 SubjectUserName=soporte$ ObjectType=domainDNS Properties='{1131f6aa-9c07-11d1-f79f-00c04fc2dcd2} {1131f6ad-9c07-11d1-f79f-00c04fc2dcd2}' IpAddress=10.20.3.41"],
+        ["09:27:13", "dc", "EventID=4624 TargetUserName=soporte$ IpAddress=10.20.3.41 LogonType=3"],
+        ["09:27:40", "ad", "soporte$ miembro de: Domain Admins (añadido 2026-11-05 03:12, sin cambio asociado)"],
+        ["09:28:00", "ad", "controladores de dominio legitimos: SRV-DC01 (10.20.0.10)"]
+      ],
+      "ruido": { "fuentes": ["dc"], "n": 12 },
+      "veredicto": "vp",
+      "accion": "contener",
+      "campos": [
+        { "id": "cuenta", "label": { "es": "Cuenta que replica", "en": "Account replicating" }, "ok": ["soporte$"] },
+        { "id": "origen", "label": { "es": "IP de origen", "en": "Source IP" }, "ok": ["10.20.3.41"] }
+      ],
+      "mitre": "T1003.006",
+      "claves": ["soporte$", "10.20.3.41", "DCSync"],
+      "competencias": ["triaje", "identidad", "respuesta"],
+      "explica": {
+        "es": "Los GUID 1131f6aa y 1131f6ad son los permisos «replicar cambios del directorio»: solo los controladores de dominio deberían usarlos. Que lo haga soporte$ desde PC-FIN-007 es DCSync: el atacante obtiene el hash de cualquier cuenta, incluida krbtgt. El dominio entero está comprometido: contener y activar el plan de crisis.",
+        "en": "GUIDs 1131f6aa and 1131f6ad are the «replicate directory changes» rights: only domain controllers should use them. soporte$ doing it from PC-FIN-007 is DCSync: the attacker gets the hash of any account, krbtgt included. The whole domain is compromised: contain and trigger the crisis plan."
+      }
+    },
+    {
+      "id": "T5-04",
+      "hora": "10:10",
+      "sev": "alta",
+      "fuente": "SIEM",
+      "regla": { "es": "Envenenamiento LLMNR/NBT-NS", "en": "LLMNR/NBT-NS poisoning" },
+      "titulo": { "es": "Respuestas LLMNR falsas desde un equipo desconocido", "en": "Spoofed LLMNR answers from an unknown host" },
+      "resumen": { "es": "10.20.9.50 responde a consultas LLMNR de toda la red.", "en": "10.20.9.50 answers LLMNR queries from the whole network." },
+      "logs": [
+        ["08:00:00", "itsm", "CHG-2101 aprobado: prueba de intrusión interna · empresa Auditoria Ejemplo · equipo 10.20.9.50 · 10-14 nov · 08:00-18:00"],
+        ["10:05:20", "ids", "alert 'LLMNR response from non-DNS host' src=10.20.9.50 dst=10.20.2.0/24"],
+        ["10:06:02", "edr", "unmanaged device 10.20.9.50 hostname=kali-auditoria mac=00:00:5e:00:53:01"],
+        ["10:07:15", "itsm", "CHG-2101 nota del auditor: 'iniciada fase de captura de hashes (Responder)'"]
+      ],
+      "ruido": { "fuentes": ["dns", "win"], "n": 12 },
+      "veredicto": "benigno",
+      "accion": "cerrar",
+      "campos": [
+        { "id": "cambio", "label": { "es": "Cambio que lo autoriza", "en": "Change that authorises it" }, "ok": ["CHG-2101"] }
+      ],
+      "mitre": null,
+      "claves": ["CHG-2101", "10.20.9.50"],
+      "competencias": ["triaje", "red", "comunicacion"],
+      "explica": {
+        "es": "Es una técnica de ataque real, pero la hace el equipo del pentest autorizado en CHG-2101, con IP, fechas y fase anotadas. Benigno: se cierra citando el cambio. Y es una buena noticia: la detección funciona. Si el equipo de pruebas fuese otro o estuviera fuera de horario, habría que escalar.",
+        "en": "It is a real attack technique, but it is the authorised pentest team under CHG-2101, with IP, dates and phase on record. Benign: close it citing the change. And it is good news: detection works. If the testing host were a different one or outside hours, you would escalate."
+      }
+    },
+    {
+      "id": "T5-05",
+      "hora": "10:50",
+      "sev": "critica",
+      "fuente": "Entra ID",
+      "regla": { "es": "Nuevo administrador global", "en": "New global administrator" },
+      "titulo": { "es": "Alguien añade una cuenta como administrador global de la nube", "en": "Someone adds an account as cloud global admin" },
+      "resumen": { "es": "Cambio de rol privilegiado en el inquilino de la empresa.", "en": "Privileged role change in the company tenant." },
+      "logs": [
+        ["10:44:10", "entra", "AuditLog action='Add user' target=backup.admin@nortelogistica.example initiatedBy=l.moreno ip=198.51.100.140"],
+        ["10:44:52", "entra", "AuditLog action='Add member to role' role='Global Administrator' target=backup.admin@nortelogistica.example initiatedBy=l.moreno ip=198.51.100.140"],
+        ["10:45:30", "entra", "SignIn result=success user=backup.admin@nortelogistica.example ip=198.51.100.140 mfa=none"],
+        ["10:46:00", "ad", "l.moreno rol: Almacen · no tiene funciones de administracion"]
+      ],
+      "ruido": { "fuentes": ["entra"], "n": 12 },
+      "veredicto": "vp",
+      "accion": "contener",
+      "campos": [
+        { "id": "cuenta", "label": { "es": "Cuenta creada", "en": "Account created" }, "ok": ["backup.admin@nortelogistica.example", "backup.admin"] },
+        { "id": "ip", "label": { "es": "IP de origen", "en": "Source IP" }, "ok": ["198.51.100.140"] }
+      ],
+      "mitre": "T1098.003",
+      "claves": ["backup.admin", "198.51.100.140", "Global Administrator"],
+      "competencias": ["triaje", "identidad", "respuesta"],
+      "explica": {
+        "es": "La IP es la del ataque de fatiga de MFA del martes (T2-04) y la cuenta que actúa es l.moreno, de Almacén. Crear un administrador global con un nombre creíble y sin MFA es la forma de quedarse con la nube aunque se recupere todo lo demás. Contener: quitar el rol, deshabilitar backup.admin y escalar como incidente crítico.",
+        "en": "The IP is Tuesday's MFA fatigue attacker (T2-04) and the acting account is l.moreno, from the Warehouse. Creating a believable global admin without MFA is how they keep the cloud even after everything else is recovered. Contain: remove the role, disable backup.admin and escalate as a critical incident."
+      }
+    },
+    {
+      "id": "T5-06",
+      "hora": "11:35",
+      "sev": "media",
+      "fuente": "Entra ID",
+      "regla": { "es": "MFA desactivada para un usuario", "en": "MFA disabled for a user" },
+      "titulo": { "es": "Soporte quita los métodos de MFA a un usuario", "en": "Helpdesk removes a user's MFA methods" },
+      "resumen": { "es": "h.diaz elimina los métodos de autenticación de a.garcia.", "en": "h.diaz deletes a.garcia's authentication methods." },
+      "logs": [
+        ["11:20:00", "itsm", "INC-5602 abierto por a.garcia en persona en el mostrador de IT: 'perdí el móvil, no puedo entrar' · identidad verificada con DNI por h.diaz"],
+        ["11:31:40", "entra", "AuditLog action='Delete authentication method' target=a.garcia initiatedBy=h.diaz ip=192.0.2.1"],
+        ["11:33:05", "entra", "AuditLog action='Register security info' user=a.garcia method=authenticator_app ip=192.0.2.1 device=PC-SOP-002"],
+        ["11:33:30", "itsm", "INC-5602 cerrado: 'nuevo móvil registrado con el usuario presente'"]
+      ],
+      "ruido": { "fuentes": ["entra"], "n": 12 },
+      "veredicto": "benigno",
+      "accion": "cerrar",
+      "campos": [
+        { "id": "ticket", "label": { "es": "Ticket que lo justifica", "en": "Ticket that explains it" }, "ok": ["INC-5602"] }
+      ],
+      "mitre": null,
+      "claves": ["INC-5602", "h.diaz"],
+      "competencias": ["triaje", "identidad", "comunicacion"],
+      "explica": {
+        "es": "Comparado con T2-04, la diferencia está en el proceso: la persona fue en persona, se verificó su identidad, todo ocurre desde la oficina y el nuevo método se registra al momento delante de soporte. Benigno, con INC-5602. Esta alerta merece revisarse siempre: el restablecimiento de MFA es una vía de ataque clásica.",
+        "en": "Compared with T2-04, the difference is the process: the user came in person, identity was verified, everything happens from the office and the new method is registered on the spot in front of helpdesk. Benign, with INC-5602. This alert always deserves a look: MFA resets are a classic attack path."
+      }
+    },
+    {
+      "id": "T5-07",
+      "hora": "12:20",
+      "sev": "alta",
+      "fuente": "SIEM",
+      "regla": { "es": "TGT sin preautenticación", "en": "TGT without pre-authentication" },
+      "titulo": { "es": "Se pide un TGT de una cuenta sin preautenticación", "en": "A TGT is requested for an account without pre-auth" },
+      "resumen": { "es": "Evento 4768 con PreAuthType 0 para una cuenta de servicio antigua.", "en": "Event 4768 with PreAuthType 0 for a legacy service account." },
+      "logs": [
+        ["12:16:30", "dc", "EventID=4768 TargetUserName=svc_legacy IpAddress=10.20.3.41 PreAuthType=0 TicketEncryptionType=0x17"],
+        ["12:16:31", "dc", "EventID=4768 TargetUserName=svc_legacy IpAddress=10.20.3.41 PreAuthType=0 TicketEncryptionType=0x17"],
+        ["12:17:00", "ad", "svc_legacy userAccountControl=DONT_REQ_PREAUTH · creada 2015 para la aplicación de nóminas antigua (retirada en 2022)"],
+        ["12:17:05", "baseline", "svc_legacy sin actividad en los últimos 400 días"]
+      ],
+      "ruido": { "fuentes": ["dc"], "n": 12 },
+      "veredicto": "vp",
+      "accion": "contener",
+      "campos": [
+        { "id": "cuenta", "label": { "es": "Cuenta atacada", "en": "Targeted account" }, "ok": ["svc_legacy"] },
+        { "id": "preauth", "label": { "es": "Valor de PreAuthType", "en": "PreAuthType value" }, "ok": ["0"] }
+      ],
+      "mitre": "T1558.004",
+      "claves": ["svc_legacy", "PreAuthType=0", "10.20.3.41"],
+      "competencias": ["triaje", "identidad", "logs", "respuesta"],
+      "explica": {
+        "es": "Sin preautenticación, cualquiera puede pedir un TGT de esa cuenta y romper su contraseña offline: AS-REP Roasting. svc_legacy lleva 400 días muerta y el origen vuelve a ser PC-FIN-007. Contener: deshabilitar svc_legacy (no la usa nada) y escalar; y proponer revisar qué otras cuentas tienen DONT_REQ_PREAUTH.",
+        "en": "Without pre-authentication anyone can request a TGT for that account and crack its password offline: AS-REP Roasting. svc_legacy has been dead for 400 days and the source is PC-FIN-007 again. Contain: disable svc_legacy (nothing uses it) and escalate; and propose reviewing which other accounts have DONT_REQ_PREAUTH."
+      }
+    },
+    {
+      "id": "T5-08",
+      "hora": "13:10",
+      "sev": "media",
+      "fuente": "SIEM",
+      "regla": { "es": "Inicio de sesión interactivo de cuenta de servicio", "en": "Interactive logon by a service account" },
+      "titulo": { "es": "svc_backup inicia sesión en el servidor de copias", "en": "svc_backup logs on to the backup server" },
+      "resumen": { "es": "La regla marca un inicio de sesión de svc_backup como interactivo en SRV-BKP01.", "en": "The rule marks an svc_backup logon on SRV-BKP01 as interactive." },
+      "logs": [
+        ["13:05:00", "win-SRV-BKP01", "EventID=7036 ServiceName='Veeam Backup Service' state=running"],
+        ["13:05:01", "win-SRV-BKP01", "EventID=4624 LogonType=5 TargetUserName=svc_backup ProcessName=C:\\Windows\\System32\\services.exe"],
+        ["13:05:02", "siem", "regla 'Inicio interactivo de cuenta de servicio' condicion: LogonType IN (2,5,10)  <-- incluye 5 por error"],
+        ["13:05:40", "baseline", "este evento ocurre cada dia a las 13:05 desde hace 2 años (reinicio programado del servicio)"]
+      ],
+      "ruido": { "fuentes": ["win"], "n": 12 },
+      "veredicto": "fp",
+      "accion": "cerrar",
+      "campos": [
+        { "id": "logontype", "label": { "es": "LogonType real del evento", "en": "Actual LogonType of the event" }, "ok": ["5"] }
+      ],
+      "mitre": null,
+      "claves": ["LogonType", "5", "svc_backup"],
+      "competencias": ["triaje", "logs", "comunicacion"],
+      "explica": {
+        "es": "LogonType 5 es «servicio»: el propio services.exe arranca el servicio de copias con su cuenta, como todos los días. La regla incluye el 5 por error, así que se dispara sin que haya ningún inicio interactivo. Falso positivo: se cierra y se pide corregir la condición de la regla (2 y 10). Leer el campo, no el título de la alerta.",
+        "en": "LogonType 5 means «service»: services.exe itself starts the backup service with its account, as every day. The rule includes 5 by mistake, so it fires without any interactive logon. False positive: close it and ask for the rule condition to be fixed (2 and 10). Read the field, not the alert title."
+      }
+    }
+  ]
+}
