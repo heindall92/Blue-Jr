@@ -1,9 +1,4 @@
 <img width="2025" height="558" alt="Blue-Jr" src="https://github.com/user-attachments/assets/64d5f71f-34fe-43e1-a724-02725e71f2b2" />
-
-<p align="center">
-  <img src="docs/assets/bluejr-header.svg" alt="BlueJr · Tu primer turno como analista SOC, antes de tu primer empleo. Consola en directo: los registros pasan, una línea se ilumina como señal y se convierte en un ticket" width="100%"/>
-</p>
-
 <p align="center">
   <b>Una semana de turnos de nivel 1 en el SOC de una empresa ficticia: 40 alertas con registros reales y ruido, decisiones que se corrigen al momento y un historial que puedes llevar a la entrevista. Un solo HTML, sin servidor, sin cuenta y sin una sola petición a Internet.</b>
 </p>
