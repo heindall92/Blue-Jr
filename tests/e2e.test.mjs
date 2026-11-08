@@ -219,15 +219,23 @@ test('móvil 390 px: sin desbordes, barra inferior y paneles del turno', async (
 });
 
 test('tema, acento y movimiento reducido', async () => {
+  // Sistema en oscuro y oscuro guardado de una visita anterior: la carga empieza igualmente en claro.
   const p = await pagina({ reducedMotion: 'reduce' });
+  await p.addInitScript(() => { if (!sessionStorage.getItem('ya')) { sessionStorage.setItem('ya', '1'); localStorage.setItem('bluejr-prefs', JSON.stringify({ lang: 'es', theme: 'dark', accent: 'azul', lateral: true })); } });
   await ir(p, 'turnos');
-  assert.equal(await p.getAttribute('html', 'data-theme'), 'dark');
+  assert.equal(await p.evaluate(() => JSON.parse(localStorage.getItem('bluejr-prefs') || '{}').theme), 'dark', 'la preferencia oscura estaba guardada');
+  assert.equal(await p.getAttribute('html', 'data-theme'), 'light', 'empieza en claro');
+  assert.equal(await p.getAttribute('[data-tema]', 'aria-checked'), 'false');
   await p.click('[data-tema]');
-  assert.equal(await p.getAttribute('html', 'data-theme'), 'light');
+  assert.equal(await p.getAttribute('html', 'data-theme'), 'dark', 'el interruptor pasa a oscuro');
+  await p.evaluate(() => { location.hash = '#historial'; }); await p.waitForSelector('.vista');
+  assert.equal(await p.getAttribute('html', 'data-theme'), 'dark', 'navegar dentro de la aplicación conserva la elección');
+  await p.evaluate(() => { location.hash = '#turnos'; }); await p.waitForSelector('.portada');
   await p.click('[data-accent-pick="verde"]');
   assert.equal(await p.getAttribute('html', 'data-accent'), 'verde');
   await p.reload(); await p.waitForSelector('.vista');
-  assert.equal(await p.getAttribute('html', 'data-theme'), 'light');
+  assert.equal(await p.getAttribute('html', 'data-theme'), 'light', 'al recargar vuelve a claro');
+  assert.equal(await p.getAttribute('html', 'data-accent'), 'verde', 'el acento se conserva');
   const dur = await p.evaluate(() => getComputedStyle(document.querySelector('.turno-card')).animationDuration);
   assert.ok(parseFloat(dur) < 0.01, dur);
   await p.context().close();

@@ -24,7 +24,8 @@ const guardar = () => escribir(CLAVE, JSON.stringify(S));
 const prefsIni = (() => { const r = BJ.safeParse(leer(CLAVE_PREFS)); return r.ok && r.valor && typeof r.valor === 'object' ? r.valor : {}; })();
 const P = {
   lang: prefsIni.lang === 'en' || prefsIni.lang === 'es' ? prefsIni.lang : (navigator.language || 'es').toLowerCase().startsWith('es') ? 'es' : 'en',
-  theme: prefsIni.theme === 'light' || prefsIni.theme === 'dark' ? prefsIni.theme : null,
+  // Cada carga empieza en claro, sin mirar el sistema ni la sesión anterior; el interruptor cambia el tema durante la visita.
+  theme: 'light',
   accent: ACENTOS.includes(prefsIni.accent) ? prefsIni.accent : 'azul',
   lateral: prefsIni.lateral !== false
 };

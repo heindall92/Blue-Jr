@@ -34,10 +34,12 @@ for (const [ancho, alto] of [[1440, 900], [390, 844]]) {
       await p.addInitScript((s) => { localStorage.setItem('bluejr-v1', JSON.stringify(s)); }, ESTADO);
       for (const h of ['turnos', 'T1', 'historial']) {
         await p.goto(`${URL_APP}?test#${h}`); await p.waitForSelector('.vista');
+        if (await p.getAttribute('html', 'data-theme') !== tema) await p.click('[data-tema]'); // la carga empieza en claro
         await auditar(p, `${h} ${ancho} ${tema}`);
       }
       // Resultado de un ticket fallado (colores de error) y panel del ticket en móvil.
       await p.goto(`${URL_APP}?test#T1`); await p.waitForSelector('.vista');
+      if (await p.getAttribute('html', 'data-theme') !== tema) await p.click('[data-tema]');
       if (ancho < 900) await p.click('[data-panel="cola"]');
       await p.click('.cola [data-caso="T1-05"]');
       if (ancho < 900) await p.click('[data-panel="ticket"]');
