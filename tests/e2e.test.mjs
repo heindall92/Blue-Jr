@@ -283,6 +283,7 @@ test('portada: sin consola, cifras contadas y estático con movimiento reducido'
   assert.equal(await p.locator('.stats > .stat').count(), 4, 'las cuatro tarjetas ocupan la fila');
   const caja = (s) => p.evaluate((s) => { const r = document.querySelector(s).getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; }, s);
   assert.deepEqual(await caja('[data-tema]'), await caja('.idioma'), 'el interruptor de tema mide lo mismo que el selector de idioma');
+  await p.waitForTimeout(1500); // las cifras terminan de contarse
   assert.equal(await p.locator('.stat-v [data-cuenta]').first().textContent(), '1');
   assert.match(await p.textContent('.stat-c.sube'), /1 hoy/);
   assert.match(await p.textContent('.portada .btn'), /turno 1/);
