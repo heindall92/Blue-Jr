@@ -1,4 +1,5 @@
-![Blue-Jr](https://github.com/heindall92/bluejr/assets/...)
+<img width="2025" height="558" alt="Blue-Jr" src="https://github.com/user-attachments/assets/64d5f71f-34fe-43e1-a724-02725e71f2b2" />
+
 <p align="center">
   <img src="docs/assets/bluejr-header.svg" alt="BlueJr · Tu primer turno como analista SOC, antes de tu primer empleo. Consola en directo: los registros pasan, una línea se ilumina como señal y se convierte en un ticket" width="100%"/>
 </p>
