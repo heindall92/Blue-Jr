@@ -1,0 +1,26 @@
+{
+  "name": "bluejr",
+  "version": "0.1.0",
+  "description": "BlueJr: tu primer turno como analista SOC antes de tu primer empleo. Simulador local-first de Blue Team con alertas, registros, tickets corregidos y un historial que puedes enseñar en una entrevista.",
+  "private": true,
+  "author": "Yoandy Ramírez Delgado <yoandyramirezdelgado@gmail.com>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "node scripts/build.mjs --check",
+    "iconos": "node scripts/iconos.mjs",
+    "test": "node --test tests/engine.test.mjs tests/casos.test.mjs tests/repo.test.mjs",
+    "test:e2e": "node --test tests/e2e.test.mjs tests/a11y.test.mjs",
+    "test:all": "npm run build && npm test && npm run test:e2e",
+    "capturas": "node scripts/capturas.mjs"
+  },
+  "devDependencies": {
+    "axe-core": "4.10.2",
+    "lucide-static": "0.469.0",
+    "playwright": "1.56.1"
+  },
+  "keywords": ["soc", "blue-team", "siem", "triage", "junior", "cybersecurity", "training", "mitre-attack", "ecsf", "local-first"]
+}

