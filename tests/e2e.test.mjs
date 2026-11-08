@@ -238,6 +238,8 @@ test('movimiento: la entrada termina antes de 450 ms y solo al cambiar de vista'
   await ir(p, 'turnos');
   const fin = () => p.evaluate(() => Math.max(0, ...document.getAnimations().filter((a) => a.effect?.getTiming().iterations !== Infinity && a.effect?.target?.closest?.('#main') && !a.effect.target.closest('.flujo')).map((a) => a.effect.getComputedTiming().endTime)));
   await p.click('.lat-nav a[href="#historial"]');
+  // Mide cuando el historial ya ha sustituido a la portada (en una máquina lenta la ruta tarda más).
+  await p.waitForFunction(() => UI.vistaAnimada === 'historial');
   const t = await fin();
   assert.ok(t > 0 && t <= 450, `termina a los ${t} ms`);
   assert.equal(await p.evaluate(() => MOV.ENTRADA_MAX_MS <= 450), true);
