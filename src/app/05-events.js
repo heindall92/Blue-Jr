@@ -4,6 +4,8 @@ function pintar() {
   const r = ruta();
   aplicarTema();
   pintarLateral(); pintarBarra(); pintarAbajo();
+  // En la portada los controles van sobre la ilustración y la barra superior no se muestra (escritorio).
+  document.body.classList.toggle('en-portada', r.vista === 'turnos');
   if (r.vista === 'turno') { UI.ultimoTurno = r.turno; escribir('bluejr-ultimo', r.turno); }
   const main = $('#main');
   main.innerHTML = `<div class="vista">${r.vista === 'turno' ? vTurno(r.turno) : r.vista === 'historial' ? vHistorial() : r.vista === 'revision' ? vRevision() : r.vista === 'rapido' ? vRapido() : vTurnos()}</div>`;
@@ -69,7 +71,7 @@ document.addEventListener('click', (e) => {
   if ('perfil' in d) return abrirPerfil();
   if (d.tab) { tabAyuda = d.tab; pintarAyuda(); return $('#tab-' + d.tab).focus(); }
   if (d.lang) { P.lang = d.lang; guardarPrefs(); return pintar(); }
-  if ('tema' in d) { P.theme = temaActual() === 'dark' ? 'light' : 'dark'; guardarPrefs(); aplicarTema(); return b.setAttribute('aria-checked', temaActual() === 'dark'); }
+  if ('tema' in d) { P.theme = temaActual() === 'dark' ? 'light' : 'dark'; guardarPrefs(); aplicarTema(); return $$('[data-tema]').forEach((x) => x.setAttribute('aria-checked', temaActual() === 'dark')); }
   if (d.accentPick) { P.accent = d.accentPick; guardarPrefs(); aplicarTema(); return $$('[data-accent-pick]').forEach((x) => x.setAttribute('aria-pressed', x.dataset.accentPick === P.accent)); }
   if ('alternarLateral' in d) return alternarLateral(b);
   if (d.q !== undefined) return elegirBusqueda(+d.q);
@@ -137,10 +139,10 @@ document.addEventListener('click', (e) => {
   }
 });
 
-function alternarLateral(b = $('[data-alternar-lateral]')) {
+function alternarLateral() {
   P.lateral = !P.lateral; guardarPrefs();
   document.body.classList.toggle('lateral-compacto', !P.lateral);
-  b?.setAttribute('aria-expanded', P.lateral);
+  $$('[data-alternar-lateral]').forEach((x) => x.setAttribute('aria-expanded', P.lateral));
   setTimeout(MOV.indicador, 320);
 }
 

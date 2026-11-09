@@ -34,12 +34,12 @@ for (const [ancho, alto] of [[1440, 900], [390, 844]]) {
       await p.addInitScript((s) => { localStorage.setItem('bluejr-v1', JSON.stringify(s)); }, ESTADO);
       for (const h of ['turnos', 'T1', 'historial', 'revision', 'rapido']) {
         await p.goto(`${URL_APP}?test#${h}`); await p.waitForSelector('.vista');
-        if (await p.getAttribute('html', 'data-theme') !== tema) await p.click('[data-tema]'); // la carga empieza en claro
+        if (await p.getAttribute('html', 'data-theme') !== tema) await p.click('[data-tema] >> visible=true'); // la carga empieza en claro
         await auditar(p, `${h} ${ancho} ${tema}`);
       }
       // Resultado de un ticket fallado (colores de error) y panel del ticket en móvil.
       await p.goto(`${URL_APP}?test#T1`); await p.waitForSelector('.vista');
-      if (await p.getAttribute('html', 'data-theme') !== tema) await p.click('[data-tema]');
+      if (await p.getAttribute('html', 'data-theme') !== tema) await p.click('[data-tema] >> visible=true');
       if (ancho < 900) await p.click('[data-panel="cola"]');
       await p.click('.cola [data-caso="T1-05"]');
       if (ancho < 900) await p.click('[data-panel="ticket"]');
@@ -48,7 +48,7 @@ for (const [ancho, alto] of [[1440, 900], [390, 844]]) {
       await p.fill('#filtro', 'vpn'); await auditar(p, `filtro ${ancho} ${tema}`);
       // Comunícalo (con la lista corregida) y Pregunta al N2 con respuestas.
       await p.goto(`${URL_APP}?test#T1`); await p.waitForSelector('.vista');
-      if (await p.getAttribute('html', 'data-theme') !== tema) await p.click('[data-tema]');
+      if (await p.getAttribute('html', 'data-theme') !== tema) await p.click('[data-tema] >> visible=true');
       if (ancho < 900) await p.click('[data-panel="cola"]');
       await p.click('.cola [data-caso="T1-01"]');
       if (ancho < 900) await p.click('[data-panel="ticket"]');
@@ -64,7 +64,7 @@ for (const [ancho, alto] of [[1440, 900], [390, 844]]) {
       await auditar(p, `pregunta al N2 ${ancho} ${tema}`);
       // Revisión de IA: rechazo con motivo y acción, y resultado.
       await p.goto(`${URL_APP}?test#revision`); await p.waitForSelector('.vista');
-      if (await p.getAttribute('html', 'data-theme') !== tema) await p.click('[data-tema]');
+      if (await p.getAttribute('html', 'data-theme') !== tema) await p.click('[data-tema] >> visible=true');
       if (ancho < 900) await p.click('[data-panel="ticket"]');
       await p.click('[data-dictamen="rechazar"]');
       await auditar(p, `revisión abierta ${ancho} ${tema}`);
@@ -76,7 +76,7 @@ for (const [ancho, alto] of [[1440, 900], [390, 844]]) {
       await auditar(p, `triaje rápido ${ancho} ${tema}`);
       // Diálogos.
       await p.goto(`${URL_APP}?test#T1`); await p.waitForSelector('.vista');
-      await p.click('[data-ayuda] >> nth=0');
+      await p.click('[data-ayuda] >> visible=true');
       for (const tab of ['guia', 'decidir', 'metodo', 'datos', 'atajos', 'glosario', 'acerca']) {
         await p.click(`[data-tab="${tab}"]`);
         await auditar(p, `ayuda/${tab} ${ancho} ${tema}`, '#dlg-ayuda');
