@@ -43,7 +43,8 @@ async function captura(nombre, { ancho = 1440, alto = 900, tema = 'light', hash 
   await ctx.close();
   console.log(`✓ docs/capturas/${nombre}`);
 }
-await captura('portada-claro.png', {});
+// La portada del README es la de alguien que llega por primera vez: sin tickets.
+await captura('portada-claro.png', { estado: { perfil: {}, respuestas: {}, relevos: {} } });
 await captura('portada-oscuro.png', { tema: 'dark' });
 await captura('turno-claro.png', { hash: 'T1', caso: 'T1-04' });
 await captura('turno-oscuro.png', { tema: 'dark', hash: 'T1', caso: 'T1-04' });
