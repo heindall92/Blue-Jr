@@ -43,7 +43,7 @@ test('el README enlaza ficheros que existen y sus cifras cuadran con el código'
 });
 
 test('README: las etiquetas <p> están emparejadas (sin aperturas ni cierres huérfanos)', () => {
-  const md = readFileSync(join(ROOT, 'README.md'), 'utf8').replace(/```[\s\S]*?```/g, '');
+  const md = readFileSync(join(ROOT, 'README.md'), 'utf8').replace(/```[\s\S]*?```/g, '').replace(/`[^`\n]*`/g, ''); // el código no son etiquetas
   let abiertos = 0;
   for (const [i, linea] of md.split('\n').entries()) {
     for (const m of linea.matchAll(/<(\/?)p(?=[\s>])/g)) {
