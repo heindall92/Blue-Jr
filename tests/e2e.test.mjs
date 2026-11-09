@@ -234,7 +234,7 @@ test('barra superior en 320, 390 y 430 px: botones de 40 px, la marca entera y c
       return {
         // Botones sueltos de la barra (los ES/EN del selector miden 36 × 32 por diseño).
         botones: [...document.querySelectorAll('.barra-in > button')].filter((e) => e.offsetParent).map((e) => Math.round(Math.min(e.getBoundingClientRect().width, e.getBoundingClientRect().height))),
-        idioma: [...document.querySelectorAll('.idioma button')].map((e) => Math.round(e.getBoundingClientRect().width)),
+        idioma: [...document.querySelectorAll('.barra .idioma button')].map((e) => Math.round(e.getBoundingClientRect().width)),
         alto: r.height, linea: parseFloat(getComputedStyle(b).lineHeight) || parseFloat(getComputedStyle(b).fontSize) * 1.5,
         visible: r.width > 1,
       };
@@ -259,8 +259,8 @@ test('tema, acento y movimiento reducido', async () => {
   await p.reload(); await p.waitForSelector('.portada');
   assert.equal(await p.evaluate(() => JSON.parse(localStorage.getItem('bluejr-prefs') || '{}').theme), 'dark', 'la preferencia oscura estaba guardada');
   assert.equal(await p.getAttribute('html', 'data-theme'), 'light', 'empieza en claro');
-  assert.equal(await p.getAttribute('[data-tema]', 'aria-checked'), 'false');
-  await p.click('[data-tema]');
+  assert.equal(await p.getAttribute('[data-tema] >> visible=true', 'aria-checked'), 'false');
+  await p.click('[data-tema] >> visible=true');
   assert.equal(await p.getAttribute('html', 'data-theme'), 'dark', 'el interruptor pasa a oscuro');
   await p.evaluate(() => { location.hash = '#historial'; }); await p.waitForSelector('.vista');
   assert.equal(await p.getAttribute('html', 'data-theme'), 'dark', 'navegar dentro de la aplicación conserva la elección');
@@ -287,7 +287,7 @@ test('movimiento: la entrada termina antes de 450 ms y solo al cambiar de vista'
   assert.equal(await p.evaluate(() => MOV.ENTRADA_MAX_MS <= 450), true);
   // Repintar sin cambiar de vista (p. ej. cambiar el idioma) no vuelve a animar la entrada.
   await p.waitForTimeout(500);
-  await p.click('[data-lang="en"]');
+  await p.click('[data-lang="en"] >> visible=true');
   assert.equal(await fin(), 0);
   await p.context().close();
 });
@@ -301,7 +301,7 @@ test('lateral plegable: botón y tecla [, persistente y desplegable al pasar el 
   await p.mouse.move(900, 600);
   await p.waitForTimeout(450);
   assert.ok(await ancho() < 100, 'en carril');
-  assert.equal(await p.getAttribute('[data-alternar-lateral]', 'aria-expanded'), 'false');
+  assert.equal(await p.getAttribute('[data-alternar-lateral] >> visible=true', 'aria-expanded'), 'false');
   await p.reload(); await p.waitForSelector('.vista');
   await p.mouse.move(900, 600);
   await p.waitForTimeout(450);
@@ -311,7 +311,7 @@ test('lateral plegable: botón y tecla [, persistente y desplegable al pasar el 
   await p.mouse.move(40, 300); await p.waitForTimeout(450);
   assert.ok(await ancho() > 200, 'se despliega al pasar el ratón');
   await p.mouse.move(900, 600); await p.waitForTimeout(450);
-  await p.click('[data-alternar-lateral]'); await p.mouse.move(900, 600); await p.waitForTimeout(450);
+  await p.click('[data-alternar-lateral] >> visible=true'); await p.mouse.move(900, 600); await p.waitForTimeout(450);
   assert.ok(Math.abs(await ancho() - lleno) < 2, 'vuelve a completo');
   await p.context().close();
 });
@@ -323,7 +323,8 @@ test('portada: sin consola, cifras contadas y estático con movimiento reducido'
   await ir(p, 'turnos');
   assert.equal(await p.locator('.flujo, .en-directo').count(), 0, 'la portada no muestra la consola de demostración');
   assert.equal(await p.locator('.stats > .stat').count(), 4, 'las cuatro tarjetas ocupan la fila');
-  const caja = (s) => p.evaluate((s) => { const r = document.querySelector(s).getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; }, s);
+  // El control visible: en la portada de escritorio, el que va sobre la ilustración.
+  const caja = async (s) => { const r = await p.locator(s).filter({ visible: true }).first().boundingBox(); return [Math.round(r.width), Math.round(r.height)]; };
   assert.deepEqual(await caja('[data-tema]'), await caja('.idioma'), 'el interruptor de tema mide lo mismo que el selector de idioma');
   await p.waitForTimeout(1500); // las cifras terminan de contarse
   assert.equal(await p.locator('.stat-v [data-cuenta]').first().textContent(), '1');
@@ -340,9 +341,9 @@ test('portada: sin consola, cifras contadas y estático con movimiento reducido'
   assert.equal(oscuro.img, 'url("data:image/webp;base64');
   assert.ok(Math.abs(oscuro.ox - 0.584) < 0.01 && Math.abs(oscuro.oy - 0.244) < 0.01, `ojo sobre el aro: ${JSON.stringify(oscuro)}`);
   assert.ok(oscuro.hueco > 0, `el texto no pisa la figura: ${oscuro.hueco}`);
-  assert.equal(await p.getAttribute('.p-arte', 'aria-hidden'), 'true');
+  assert.equal(await p.getAttribute('.p-fondo', 'aria-hidden'), 'true');
   const fondoOscuro = await p.evaluate(() => getComputedStyle(document.querySelector('.p-fondo')).backgroundImage);
-  await p.click('[data-tema]');
+  await p.click('[data-tema] >> visible=true');
   const fondoClaro = await p.evaluate(() => getComputedStyle(document.querySelector('.p-fondo')).backgroundImage);
   assert.notEqual(fondoClaro, fondoOscuro, 'cada tema tiene su ilustración');
   assert.match(await p.textContent('#reloj'), /\d\d:\d\d|14:30/);
@@ -686,7 +687,7 @@ test('portada: cambia de imagen con el interruptor de tema y con cada color de a
   const huella = (a, t) => readFileSync(new URL(`../src/img/portada-${a}-${t}.webp`, import.meta.url)).toString('base64').slice(0, 160);
   const fondo = () => p.evaluate(() => getComputedStyle(document.querySelector('.p-fondo')).backgroundImage);
   for (const tema of ['light', 'dark']) {
-    if (await p.getAttribute('html', 'data-theme') !== tema) await p.click('[data-tema]');
+    if (await p.getAttribute('html', 'data-theme') !== tema) await p.click('[data-tema] >> visible=true');
     for (const a of ['rosa', 'solar', 'glaciar', 'orquidea', 'verde', 'azul', 'rojo']) {
       await p.click(`[data-accent-pick="${a}"]`);
       assert.ok((await fondo()).includes(huella(a, tema === 'light' ? 'claro' : 'oscuro')), `${a} en ${tema}`);
@@ -722,4 +723,43 @@ test('móvil: «Ajustes» en la barra inferior cambia el color de acento y la po
     assert.deepEqual(p.fallos, []);
     await p.context().close();
   }
+});
+
+test('portada sin barra: barra lateral y lupa a la izquierda del todo; idioma, tema y ayuda a la derecha de la cabeza', async () => {
+  for (const ancho of [1440, 1280, 1101]) {
+    const p = await pagina({ viewport: { width: ancho, height: 900 }, colorScheme: 'light' });
+    await ir(p, 'turnos');
+    assert.equal(await p.locator('#barra').isVisible(), false, `${ancho} px: sin barra superior en la portada`);
+    const r = (s) => p.locator(s).boundingBox();
+    const [portada, ojo, lat, lupa, der, txt] = await Promise.all(['.portada', '.p-ojo', '.p-lateral', '.p-lupa', '.p-der', '.p-txt'].map(r));
+    const dentro = (b) => b.x >= portada.x && b.x + b.width <= portada.x + portada.width && b.y >= portada.y;
+    for (const [n, b] of [['lateral', lat], ['lupa', lupa], ['ajustes', der]]) assert.ok(dentro(b), `${ancho} px: ${n} dentro de la portada`);
+    assert.ok(lat.x - portada.x < 40 && lupa.x > lat.x && lupa.x - (lat.x + lat.width) <= 12 && Math.abs(lupa.y - lat.y) < 2, `${ancho} px: la lupa, junto a la barra lateral a la izquierda del todo`);
+    // La cabeza acaba unos seis anchos de ojo a la derecha del aro.
+    assert.ok(der.x >= ojo.x + ojo.width * 5, `${ancho} px: idioma, tema y ayuda quedan a la derecha de la cabeza`);
+    for (const b of [lat, lupa, der]) assert.ok(b.y + b.height <= txt.y, `${ancho} px: los controles no tocan el título`);
+    // La lupa abre el buscador.
+    await p.click('.p-lupa');
+    await p.waitForSelector('#dlg-buscar[open]');
+    assert.equal(await p.evaluate(() => document.activeElement.id), 'q');
+    await p.keyboard.press('Escape');
+    // Los controles de la portada funcionan y la barra de las otras vistas queda sincronizada.
+    await p.click('.p-mandos [data-tema]');
+    assert.equal(await p.getAttribute('html', 'data-theme'), 'dark');
+    await p.click('.p-lateral');
+    assert.equal(await p.evaluate(() => document.body.classList.contains('lateral-compacto')), true);
+    await p.click('.p-lateral');
+    await ir(p, 'T1');
+    assert.equal(await p.locator('#barra').isVisible(), true, 'en las demás vistas la barra sigue');
+    assert.equal(await p.getAttribute('#barra [data-tema]', 'aria-checked'), 'true');
+    assert.equal(await p.getAttribute('#barra [data-alternar-lateral]', 'aria-expanded'), 'true');
+    assert.deepEqual(p.fallos, []);
+    await p.context().close();
+  }
+  // Entre 901 y 1100 px la ilustración va encima del texto: ahí se usa la barra de siempre.
+  const p = await pagina({ viewport: { width: 1000, height: 900 } });
+  await ir(p, 'turnos');
+  assert.equal(await p.locator('#barra').isVisible(), true);
+  assert.equal(await p.locator('.p-mandos').isVisible(), false);
+  await p.context().close();
 });

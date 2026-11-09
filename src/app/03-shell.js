@@ -47,21 +47,27 @@ function pintarLateral() {
 }
 const iniciales = (n) => n.trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join('').toUpperCase();
 
-function pintarBarra() {
-  const mac = /Mac|iPhone|iPad/.test(navigator.platform || '');
-  $('#barra').innerHTML = `
-    <div class="barra-in">
-      <button type="button" class="icono-b solo-escritorio" data-alternar-lateral aria-label="${esc(T('lateral_alternar'))}" aria-expanded="${P.lateral}" title="${esc(T('lateral_alternar'))} ( [ )">${ic('panel-left')}</button>
-      <a href="#turnos" class="marca-movil">${logo()}<b>Blue-Jr</b></a>
-      <span class="hueco"></span>
-      <button type="button" class="buscar-b" data-buscar aria-label="${esc(T('buscar'))}">${ic('search')}<span class="txt">${esc(T('buscar'))}</span><kbd>${mac ? '⌘K' : 'Ctrl K'}</kbd></button>
-      <div class="idioma" role="group" aria-label="${esc(T('idioma'))}">
+/* Controles de la barra superior. En la portada (escritorio) van sobre la ilustración, sin barra:
+ * la barra lateral a la izquierda del todo, la búsqueda a la izquierda de la cabeza y el resto a su derecha. */
+const MANDO = {
+  lateral: (cls = 'icono-b solo-escritorio') => `<button type="button" class="${cls}" data-alternar-lateral aria-label="${esc(T('lateral_alternar'))}" aria-expanded="${P.lateral}" title="${esc(T('lateral_alternar'))} ( [ )">${ic('panel-left')}</button>`,
+  buscar: () => `<button type="button" class="buscar-b" data-buscar aria-label="${esc(T('buscar'))}">${ic('search')}<span class="txt">${esc(T('buscar'))}</span><kbd>${/Mac|iPhone|iPad/.test(navigator.platform || '') ? '⌘K' : 'Ctrl K'}</kbd></button>`,
+  ajustes: () => `<div class="idioma" role="group" aria-label="${esc(T('idioma'))}">
         <button type="button" data-lang="es" aria-pressed="${P.lang === 'es'}">ES</button><button type="button" data-lang="en" aria-pressed="${P.lang === 'en'}">EN</button>
       </div>
       <button type="button" class="interruptor" role="switch" aria-checked="${temaActual() === 'dark'}" aria-label="${esc(T('tema'))}" data-tema>
         <span class="pista">${ic('sun')}${ic('moon')}</span><span class="perilla"></span>
       </button>
-      <button type="button" class="icono-b" data-ayuda aria-label="${esc(T('ayuda'))}">${ic('circle-help')}</button>
+      <button type="button" class="icono-b" data-ayuda aria-label="${esc(T('ayuda'))}">${ic('circle-help')}</button>`
+};
+function pintarBarra() {
+  $('#barra').innerHTML = `
+    <div class="barra-in">
+      ${MANDO.lateral()}
+      <a href="#turnos" class="marca-movil">${logo()}<b>Blue-Jr</b></a>
+      <span class="hueco"></span>
+      ${MANDO.buscar()}
+      ${MANDO.ajustes()}
     </div>`;
 }
 

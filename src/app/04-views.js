@@ -77,7 +77,13 @@ function textoReloj(ahora = new Date()) {
    El aro del ojo se enciende al cargar y late mientras la portada está abierta.
    Decorativa (aria-hidden): la información está en el texto de la izquierda. */
 function arteHtml() {
-  return `<div class="p-arte" aria-hidden="true"><div class="p-fondo"><i class="p-ojo"></i></div></div>`;
+  // .p-mandos tiene la misma caja que la ilustración: los controles se colocan respecto a la cabeza del robot.
+  // A la izquierda del todo, la barra lateral y la lupa (abre el buscador, como Ctrl K); a la derecha de la cabeza, el resto.
+  const atajo = /Mac|iPhone|iPad/.test(navigator.platform || '') ? '⌘K' : 'Ctrl K';
+  return `<div class="p-lado">${MANDO.lateral('icono-b p-lateral')}<button type="button" class="icono-b p-lupa" data-buscar aria-label="${esc(T('buscar'))}" title="${esc(T('buscar'))} (${atajo})">${ic('search')}</button></div>
+    <div class="p-arte"><div class="p-fondo" aria-hidden="true"><i class="p-ojo"></i></div>
+      <div class="p-mandos" role="toolbar" aria-label="${esc(T('mandos'))}"><div class="p-der">${MANDO.ajustes()}</div></div>
+    </div>`;
 }
 
 let relojTimer = null;

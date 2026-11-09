@@ -2,6 +2,19 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [versionado semántico](https://semver.org/lang/es/).
 
+## [0.6.4] - 2026-11-09
+
+### Cambiado
+- Portada sin barra superior (escritorio, a partir de 1101 px, donde la ilustración va a la derecha del texto). Los controles van sobre la ilustración: a la izquierda del todo, la barra lateral y una lupa que abre el buscador (`.p-lado`); el idioma, el tema y la ayuda en la esquina de `.p-mandos`, que tiene la misma caja que el dibujo y queda a la derecha de la cabeza en todos los anchos. El texto baja lo justo para no tocarlos.
+- La ilustración pasa a ser `aria-hidden` solo en `.p-fondo`: los controles de encima sí se anuncian (`role="toolbar"`).
+- Los controles se generan con las mismas funciones (`MANDO`) en la barra y en la portada.
+
+### Corregido
+- El interruptor de tema y el botón de la barra lateral solo actualizaban su propio estado (`aria-checked`, `aria-expanded`); ahora actualizan todos los que hay en la página.
+
+### Pruebas
+- e2e nueva a 1440, 1280 y 1101 px (sin barra, barra lateral y lupa a la izquierda del todo, la lupa abre el buscador, el resto a la derecha de la cabeza, nada encima del título, controles sincronizados con la barra de las demás vistas) y a 1000 px (barra de siempre). Las pruebas pulsan el control visible, como una persona.
+
 ## [0.6.3] - 2026-11-09
 
 ### Añadido

@@ -836,3 +836,19 @@ dialog.buscar { width: min(620px, calc(100% - 24px)); margin-top: 12dvh; }
   body.imprimiendo .hoja-pie span:last-child { white-space: nowrap; }
   body.imprimiendo .hoja-pie { margin-top: auto; display: flex; justify-content: space-between; gap: 12pt; padding-top: 6pt; border-top: 0.5pt solid #ccc; font-size: 7.5pt; color: #555; }
 }
+
+/* ---------- Portada sin barra: los controles sobre la ilustración (0.6.4) ----------
+ * A la izquierda del todo, la barra lateral y la lupa. .p-mandos copia la caja de .p-fondo (misma altura,
+ * proporción y anclaje a la derecha); el idioma, el tema y la ayuda van en su esquina, que en todos los
+ * anchos queda a la derecha de la cabeza del robot. El texto baja lo justo para no tocarlos. */
+.p-lado, .p-mandos { display: none; }
+@media (min-width: 1101px) {
+  body.en-portada .barra { display: none; }
+  body.en-portada .portada { padding-top: 84px; }
+  .p-lado { display: flex; gap: 8px; position: absolute; top: 20px; left: 20px; z-index: 2; }
+  .p-mandos { display: block; position: absolute; top: 0; right: 0; height: 100%; aspect-ratio: 1600 / 901; pointer-events: none; }
+  .p-der { position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 8px; pointer-events: auto; }
+  /* Cristal sobre la ilustración: se lee en claro y en oscuro sin tapar el dibujo. */
+  .p-mandos :is(.idioma, .interruptor, .icono-b), .p-lado .icono-b { background: color-mix(in srgb, var(--surface) 62%, transparent); border: 1px solid var(--hair-2); backdrop-filter: blur(14px) saturate(1.3); -webkit-backdrop-filter: blur(14px) saturate(1.3); }
+  .p-mandos .icono-b, .p-lado .icono-b { border-radius: 50%; }
+}

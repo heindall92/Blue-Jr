@@ -31,7 +31,7 @@ async function captura(nombre, { ancho = 1440, alto = 900, tema = 'light', hash 
   const p = await ctx.newPage();
   await p.addInitScript(([s, pr]) => { localStorage.setItem('bluejr-v1', JSON.stringify(s)); localStorage.setItem('bluejr-prefs', JSON.stringify(pr)); }, [estado, { lang, theme: tema, accent: acento, lateral: !compacto }]);
   await p.goto(`${URL_APP}#${hash}`); await p.waitForSelector('.vista');
-  if (tema === 'dark' && (await p.getAttribute('html', 'data-theme')) !== 'dark') await p.click('[data-tema]');
+  if (tema === 'dark' && (await p.getAttribute('html', 'data-theme')) !== 'dark') await p.click('[data-tema] >> visible=true');
   if (caso) { if (movil) await p.click('[data-panel="cola"]'); await p.click(`.cola [data-caso="${caso}"]`); }
   if (panel) await p.click(`[data-panel="${panel}"]`);
   if (antes) await antes(p);
