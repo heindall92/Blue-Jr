@@ -8,7 +8,7 @@ function pintar() {
   const main = $('#main');
   main.innerHTML = `<div class="vista">${r.vista === 'turno' ? vTurno(r.turno) : r.vista === 'historial' ? vHistorial() : r.vista === 'revision' ? vRevision() : r.vista === 'rapido' ? vRapido() : vTurnos()}</div>`;
   const titulo = r.vista === 'turno' ? `${T('turno_n', { n: r.turno.slice(1) })} · ${diaDe(turnoDe(r.turno))}` : r.vista === 'historial' ? T('nav_historial') : r.vista === 'revision' ? T('rev_corto') : r.vista === 'rapido' ? T('rap_titulo') : T('nav_turnos');
-  document.title = `${titulo} · BlueJr`;
+  document.title = `${titulo} · Blue-Jr`;
   $('.saltar').textContent = T('saltar');
   // La entrada solo se reproduce al cambiar de vista (y al arrancar), no en cada repintado.
   const clave = r.vista + (r.turno || '');

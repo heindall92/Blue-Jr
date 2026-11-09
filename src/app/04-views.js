@@ -84,7 +84,7 @@ function iniciarFlujo() {
   if (reloj) relojTimer = setInterval(() => { if (!document.contains(reloj)) { clearInterval(relojTimer); relojTimer = null; return; } reloj.textContent = textoReloj(); }, 1000);
 }
 
-/* ---------- Regleta del turno: la firma visual de BlueJr ----------
+/* ---------- Regleta del turno: la firma visual de Blue-Jr ----------
  * Una línea de tiempo de 08:00 a 14:30 con una marca por alerta. El tamaño dice la severidad,
  * el relleno dice si está cerrada y su nota; cada marca es un botón de 24 px que abre la alerta. */
 const INI = 8 * 60, FIN = 14.5 * 60;
@@ -231,9 +231,9 @@ function historialMd() {
   const fecha = new Date().toLocaleDateString(locale(), { day: 'numeric', month: 'long', year: 'numeric' });
   const es = P.lang === 'es';
   const o = [];
-  o.push(es ? '# Historial de turnos SOC · BlueJr' : '# SOC shift record · BlueJr', '');
+  o.push(es ? '# Historial de turnos SOC · Blue-Jr' : '# SOC shift record · Blue-Jr', '');
   o.push(`**${S.perfil.nombre || (es ? 'Analista' : 'Analyst')}** · ${T('perfil_rol')} · ${fecha}`, '');
-  o.push(`> ${es ? 'Simulación formativa de BlueJr con una empresa ficticia (Norte Logística). Las decisiones y los textos son del analista; la corrección es automática.' : 'BlueJr training simulation with a made-up company (Norte Logística). Decisions and texts are the analyst\'s; grading is automatic.'} ${REPO}`, '');
+  o.push(`> ${es ? 'Simulación formativa de Blue-Jr con una empresa ficticia (Norte Logística). Las decisiones y los textos son del analista; la corrección es automática.' : 'Blue-Jr training simulation with a made-up company (Norte Logística). Decisions and texts are the analyst\'s; grading is automatic.'} ${REPO}`, '');
   o.push(`| ${T('kpi_tickets')} | ${T('kpi_media')} | ${T('kpi_veredicto')} | ${T('kpi_errores')} |`, '|---|---|---|---|', `| ${h.tickets}/${h.total} | ${h.media} | ${h.precisionVeredicto} % | ${h.cerradosPorError} |`, '');
   o.push(`## ${T('competencias_titulo')}`, '', `| ${es ? 'Competencia' : 'Competence'} | ${T('kpi_media')} | ${es ? 'Casos' : 'Cases'} |`, '|---|---|---|');
   for (const c of h.competencias) o.push(`| ${T('comp.' + c.id)} | ${c.media ?? '—'} | ${c.casos}/${c.total} |`);

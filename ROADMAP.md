@@ -1,6 +1,6 @@
 # Hoja de ruta
 
-BlueJr resuelve un problema: **la paradoja de la experiencia** del primer empleo en un SOC. Cada versión se mide por si acerca a un junior a poder decir «esto lo he hecho».
+Blue-Jr resuelve un problema: **la paradoja de la experiencia** del primer empleo en un SOC. Cada versión se mide por si acerca a un junior a poder decir «esto lo he hecho».
 
 ## 0.1.0 · Primera semana (hecho)
 

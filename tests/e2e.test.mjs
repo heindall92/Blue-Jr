@@ -28,7 +28,7 @@ test('carga sin errores ni peticiones externas en todas las vistas', async () =>
   for (const h of ['turnos', 'T1', 'T3', 'T5', 'historial']) {
     await ir(p, h);
     assert.equal(await p.locator('h1').count(), 1, `${h}: un h1`);
-    assert.match(await p.title(), /BlueJr$/);
+    assert.match(await p.title(), /Blue-Jr$/);
   }
   assert.deepEqual(p.fallos, []);
   await p.context().close();
@@ -220,6 +220,32 @@ test('móvil 390 px: sin desbordes, barra inferior y paneles del turno', async (
   const fuera = await p.evaluate(() => [...document.querySelectorAll('main *')].filter((e) => { const r = e.getBoundingClientRect(); return r.width && e.offsetParent && (r.right > innerWidth + 1 || r.left < -1); }).length);
   assert.equal(fuera, 0);
   await p.context().close();
+});
+
+test('barra superior en 320, 390 y 430 px: botones de 40 px, la marca entera y con nombre accesible', async () => {
+  for (const ancho of [320, 390, 430]) {
+    const p = await pagina({ viewport: { width: ancho, height: 700 }, isMobile: true, hasTouch: true });
+    await ir(p, 'turnos');
+    assert.ok(await desborda(p) <= 0, `${ancho} px desborda`);
+    const m = await p.evaluate(() => {
+      const b = document.querySelector('.marca-movil b');
+      const r = b.getBoundingClientRect();
+      return {
+        // Botones sueltos de la barra (los ES/EN del selector miden 36 × 32 por diseño).
+        botones: [...document.querySelectorAll('.barra-in > button')].filter((e) => e.offsetParent).map((e) => Math.round(Math.min(e.getBoundingClientRect().width, e.getBoundingClientRect().height))),
+        idioma: [...document.querySelectorAll('.idioma button')].map((e) => Math.round(e.getBoundingClientRect().width)),
+        alto: r.height, linea: parseFloat(getComputedStyle(b).lineHeight) || parseFloat(getComputedStyle(b).fontSize) * 1.5,
+        visible: r.width > 1,
+      };
+    });
+    assert.ok(m.botones.length && m.botones.every((w) => w >= 40), `${ancho} px: botones encogidos ${m.botones}`);
+    assert.deepEqual(m.idioma, [36, 36], `${ancho} px: el selector de idioma se encoge`);
+    assert.equal(m.visible, ancho >= 430, `${ancho} px: la marca escrita se muestra solo cuando cabe`);
+    if (m.visible) assert.ok(m.alto < m.linea * 1.5, 'la marca no se parte por el guion');
+    assert.equal(await p.getByRole('link', { name: 'Blue-Jr' }).count(), 1);
+    assert.deepEqual(p.fallos, []);
+    await p.context().close();
+  }
 });
 
 test('tema, acento y movimiento reducido', async () => {

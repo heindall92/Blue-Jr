@@ -1,6 +1,6 @@
 # Qué les falta a los juniors de SOC (noviembre de 2026)
 
-Investigación que orienta la hoja de ruta de BlueJr desde la 0.4.0. Pregunta: ¿qué necesita un junior para su primer empleo en un SOC que no le dan los laboratorios y plataformas que ya existen?
+Investigación que orienta la hoja de ruta de Blue-Jr desde la 0.4.0. Pregunta: ¿qué necesita un junior para su primer empleo en un SOC que no le dan los laboratorios y plataformas que ya existen?
 
 ## Lo que ya cubren otras plataformas
 
@@ -21,7 +21,7 @@ Colas con verdaderos y falsos positivos, SLA, etiquetas MITRE e historias enlaza
 3. **Experiencia demostrable.** La mayoría de ofertas junior piden experiencia práctica; las certificaciones y los CTF no la demuestran en la entrevista.
 4. **Bloqueo en el primer empleo.** Quienes empiezan cuentan que les cuesta investigar sin ayuda, no saben cuándo preguntar ni cuándo escalar y acusan la fatiga de alertas.
 
-## Lo que BlueJr aporta, por orden
+## Lo que Blue-Jr aporta, por orden
 
 | Versión | Qué | Por qué |
 |---|---|---|

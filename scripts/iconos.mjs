@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* Regenera src/app/02-icons.js con el trazo interior de los iconos Lucide que usa BlueJr.
+/* Regenera src/app/02-icons.js con el trazo interior de los iconos Lucide que usa Blue-Jr.
  * Fuente: el paquete lucide-static (devDependency, licencia ISC). Uso: node scripts/iconos.mjs */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';

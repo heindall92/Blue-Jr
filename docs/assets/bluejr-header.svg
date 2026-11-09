@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="320" viewBox="0 0 1280 320" role="img" aria-labelledby="t d">
-  <title id="t">BlueJr</title>
+  <title id="t">Blue-Jr</title>
   <desc id="d">Tu primer turno como analista SOC antes de tu primer empleo. Consola en directo: los registros pasan, una línea se ilumina como señal y se convierte en un ticket.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
@@ -82,7 +82,7 @@
       <text x="74" y="22" class="t3">SIMULADOR SOC · NIVEL 1</text>
       <text x="74" y="44" class="t3" fill-opacity=".7" style="letter-spacing:2px">BLUE TEAM · LOCAL-FIRST</text>
     </g>
-    <text x="60" y="196" class="t1" fill="url(#title)">BlueJr</text>
+    <text x="60" y="196" class="t1" fill="url(#title)">Blue-Jr</text>
     <text x="64" y="238" class="t2">Tu primer turno como analista SOC,</text>
     <text x="64" y="268" class="t2">antes de tu primer empleo.</text>
 

@@ -1,4 +1,4 @@
-/* BlueJr · estilos
+/* Blue-Jr · estilos
  * Tokens del sistema de Yoandy (oscuro por defecto, claro con data-theme, siete acentos con data-accent).
  * Movimiento: ease-out fuerte, sin rebote, escala 0,97 al pulsar; con movimiento reducido, solo fundidos. */
 :root {
@@ -140,6 +140,9 @@ body.ya-cargado .lat-nav > a, body.ya-cargado .lat-nav li { animation: none; }
 .hueco { flex: 1; }
 .marca-movil { display: none; align-items: center; gap: 8px; color: var(--ink); text-decoration: none; font-size: 1.05rem; }
 .marca-movil .logo { width: 30px; height: 30px; border-radius: 10px; }
+.marca-movil b, .marca-txt b { white-space: nowrap; }
+@media (max-width: 429px) { .marca-movil b { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); } }
+.barra-in > :not(.hueco) { flex-shrink: 0; }
 .icono-b { display: inline-grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 50%; background: none; color: var(--ink-2); transition: background-color 160ms var(--ease-out), transform 140ms var(--ease-out); }
 .icono-b:hover { background: var(--surface-2); color: var(--ink); }
 .icono-b:active { transform: scale(0.94); }

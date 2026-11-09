@@ -5,12 +5,12 @@
 </p>
 
 <p align="center">
-  <a href="https://heindall92.github.io/Blue-Jr/"><img alt="Abrir BlueJr" src="https://img.shields.io/badge/ABRIR-heindall92.github.io%2FBlue--Jr-6B9BFF?style=for-the-badge"/></a>
+  <a href="https://heindall92.github.io/Blue-Jr/"><img alt="Abrir Blue-Jr" src="https://img.shields.io/badge/ABRIR-heindall92.github.io%2FBlue--Jr-6B9BFF?style=for-the-badge"/></a>
 </p>
 
 <p align="center">
   <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/badge/licencia-MIT-4169A1?style=flat"/></a>
-  <img alt="Versión 0.5.0" src="https://img.shields.io/badge/versi%C3%B3n-0.5.0-6B9BFF?style=flat"/>
+  <img alt="Versión 0.5.1" src="https://img.shields.io/badge/versi%C3%B3n-0.5.1-6B9BFF?style=flat"/>
   <img alt="40 alertas" src="https://img.shields.io/badge/alertas-40-7C4DFF?style=flat"/>
   <img alt="5 turnos" src="https://img.shields.io/badge/turnos-5-2E9E7A?style=flat"/>
   <img alt="MITRE ATT&CK" src="https://img.shields.io/badge/MITRE-ATT%26CK-E07B39?style=flat"/>
@@ -25,7 +25,7 @@
   <img src="docs/capturas/portada-claro.png" alt="Portada en modo claro: «Tu primer turno empieza a las 08:00», ilustración del analista de guardia, cuenta atrás del turno, cuatro tarjetas de estadísticas y los cinco turnos" width="880"/>
 </p>
 
-Para el primer empleo en ciberseguridad piden experiencia, y para tener experiencia hace falta el primer empleo. Las certificaciones y los CTF demuestran que *sabes*; no demuestran que *has trabajado*: qué haces el lunes a las 9 con una cola de alertas, mucho ruido y un ticket que escribir. **BlueJr te da esa semana:**
+Para el primer empleo en ciberseguridad piden experiencia, y para tener experiencia hace falta el primer empleo. Las certificaciones y los CTF demuestran que *sabes*; no demuestran que *has trabajado*: qué haces el lunes a las 9 con una cola de alertas, mucho ruido y un ticket que escribir. **Blue-Jr te da esa semana:**
 
 - **40 alertas** en cinco turnos, de lunes a viernes, en **Norte Logística**, una empresa inventada con su inventario, sus personas y su red;
 - **registros de verdad** (eventos de Windows, cortafuegos, proxy, correo, EDR, DNS, Entra ID, WAF) mezclados con **ruido determinista** que nunca cita a las personas ni a los equipos del caso;
@@ -75,7 +75,7 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
     <tr>
       <td valign="top"><code>├─ ◈ pruebas:</code><br><br>
         <img alt="Unitarias" src="https://img.shields.io/badge/unitarias-51-2E8B57?style=for-the-badge"/>
-        <img alt="E2E" src="https://img.shields.io/badge/e2e-21-2E8B57?style=for-the-badge"/>
+        <img alt="E2E" src="https://img.shields.io/badge/e2e-22-2E8B57?style=for-the-badge"/>
         <img alt="axe" src="https://img.shields.io/badge/axe-0%20infracciones-2E8B57?style=for-the-badge"/><br>
         <sub><code>cada caso se resuelve leyendo sus registros · red bloqueada en el e2e · claro y oscuro, 1440 y 390 px</code></sub>
       </td>
@@ -89,7 +89,7 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
   </tbody>
   <tfoot>
     <tr>
-      <td colspan="2"><code>version: 0.5.0&nbsp;&nbsp;·&nbsp;&nbsp;nivel: SOC N1&nbsp;&nbsp;·&nbsp;&nbsp;empresa: Norte Logística (ficticia)&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
+      <td colspan="2"><code>version: 0.5.1&nbsp;&nbsp;·&nbsp;&nbsp;nivel: SOC N1&nbsp;&nbsp;·&nbsp;&nbsp;empresa: Norte Logística (ficticia)&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
     </tr>
   </tfoot>
 </table>
@@ -99,6 +99,10 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
 ---
 
 ## <img src="docs/assets/icons/sparkles.svg" width="20" height="20" valign="middle"/> Novedades
+
+### 0.5.1 · noviembre de 2026 · Se llama Blue-Jr
+
+- El nombre es **Blue-Jr** en la aplicación (marca, título de la pestaña, ayuda, exportación), en la documentación y en los gráficos. El repositorio es [heindall92/Blue-Jr](https://github.com/heindall92/Blue-Jr) y la web, [heindall92.github.io/Blue-Jr](https://heindall92.github.io/Blue-Jr/). El progreso guardado en el navegador se conserva.
 
 ### 0.5.0 · noviembre de 2026 · Comunicar y pedir ayuda
 
@@ -118,7 +122,7 @@ Salida de una [investigación sobre lo que les falta a los juniors](docs/investi
 
 ### 0.3.0 · noviembre de 2026 · El entrenador
 
-BlueJr deja de ser solo un examen y pasa a enseñar cómo se trabaja en un SOC, con las mismas piezas que usan los SIEM de verdad:
+Blue-Jr deja de ser solo un examen y pasa a enseñar cómo se trabaja en un SOC, con las mismas piezas que usan los SIEM de verdad:
 
 - **Guía de investigación en cada alerta**, como las de Elastic Security: triaje (comprobaciones rápidas y falsos positivos habituales), análisis y respuesta con todas las salidas («si ves esto, contener y escalar, porque…»). Hay una por familia de detección (identidad, correo, equipos, red, web, fuga de datos y directorio activo): enseña a razonar sin dar la respuesta del caso, y una prueba lo garantiza.
 - **«¿Escalo o no?»**: un árbol de decisión de tres preguntas que lleva a las cinco salidas de un nivel 1, cada una con su porqué y un ejemplo que no está en ningún turno. Se abre desde el ticket.
@@ -217,7 +221,7 @@ Un junior no aprende con una nota: aprende cuando entiende **por qué** se escal
 
 ```mermaid
 mindmap
-  root((BlueJr))
+  root((Blue-Jr))
     Turnos
       Lunes · Fundamentos del triaje
       Martes · Correo y suplantación
@@ -315,11 +319,11 @@ Un turno se supera con sus ocho alertas cerradas y una nota media de **70** o m�
 </table>
 
 <p align="center">
-  <img src="docs/capturas/movil-claro.png" alt="BlueJr en el móvil, modo claro" width="240"/>
+  <img src="docs/capturas/movil-claro.png" alt="Blue-Jr en el móvil, modo claro" width="240"/>
   &nbsp;
-  <img src="docs/capturas/movil-oscuro.png" alt="BlueJr en el móvil, modo oscuro" width="240"/>
+  <img src="docs/capturas/movil-oscuro.png" alt="Blue-Jr en el móvil, modo oscuro" width="240"/>
   &nbsp;
-  <img src="docs/capturas/movil-en.png" alt="BlueJr en el móvil, en inglés" width="240"/>
+  <img src="docs/capturas/movil-en.png" alt="Blue-Jr en el móvil, en inglés" width="240"/>
 </p>
 
 ## <img src="docs/assets/icons/wand-sparkles.svg" width="20" height="20" valign="middle"/> Movimiento y diseño
@@ -401,7 +405,7 @@ Detalle en [SECURITY.md](SECURITY.md).
 | Motor | 31 | Corrección por criterio, normalización, MITRE, ruido determinista que nunca cita entidades del caso, historial, saneado de importaciones, CSV contra fórmulas, XP, racha (con el corte de un día sin práctica), niveles, insignias y entidades; corrección de la revisión de IA, repaso espaciado, selección del triaje rápido y saneado de revisiones, repaso y triaje importados; corrección de los mensajes (cada criterio con su texto bueno y su texto malo), ejemplos que cumplen su propia corrección, pistas del N2 y saneado de mensajes y preguntas |
 | Casos | 13 | Cada caso se resuelve leyendo sus registros, textos bilingües, solo IP de documentación y dominios `.example`, referencias cruzadas válidas; cada caso en una sola guía, su acción correcta siempre entre las salidas de la guía, ninguna guía cita datos de un caso y el árbol de decisión cubre las tres acciones y los tres veredictos; el turno de revisión cubre los cinco tipos de error y el agente solo cita lo que existe en los registros, salvo cuando alucina |
 | Repositorio | 7 | HTML al día, CSP sin `unsafe-inline` en scripts, paridad de claves ES/EN, versión única, enlaces y cifras de este README, y la raíz que lleva a la aplicación en Pages |
-| E2E | 21 | Alerta de punta a punta, teclado, ayuda, inglés sin restos de español, exportar e importar, importación hostil, relevo, móvil, tema, movimiento (entrada antes de 450 ms), lateral plegable y portada; guía por pestañas, pivote por entidad, tareas que se marcan solas, XP y racha al cerrar, las cinco salidas del árbol de decisión e insignias; revisión de IA (aprobar, cazar un error, nota recalculada) y triaje rápido (bloqueo, teclas, XP solo en la primera ronda, repaso); Pregunta al N2 (límite por turno, coste en XP, respuesta congelada) y Comunícalo (corrección, XP y exportación) |
+| E2E | 22 | Alerta de punta a punta, teclado, ayuda, inglés sin restos de español, exportar e importar, importación hostil, relevo, móvil, tema, movimiento (entrada antes de 450 ms), lateral plegable y portada; guía por pestañas, pivote por entidad, tareas que se marcan solas, XP y racha al cerrar, las cinco salidas del árbol de decisión e insignias; revisión de IA (aprobar, cazar un error, nota recalculada) y triaje rápido (bloqueo, teclas, XP solo en la primera ronda, repaso); Pregunta al N2 (límite por turno, coste en XP, respuesta congelada) y Comunícalo (corrección, XP y exportación); barra superior del móvil en 320, 390 y 430 px |
 | Accesibilidad | 4 | axe en vistas, estados y todos los diálogos, en claro y oscuro, a 1440 y 390 px: 0 infracciones |
 
 ## <img src="docs/assets/icons/calendar-clock.svg" width="20" height="20" valign="middle"/> Hoja de ruta
@@ -458,7 +462,7 @@ Blue-Jr/
 
 © 2026 Yoandy Ramírez Delgado. Código y contenido bajo licencia [MIT](LICENSE).
 
-Componentes de terceros: iconos de [Lucide](https://lucide.dev) (ISC) y fuentes Outfit y Geist Mono (SIL Open Font License, en `src/fonts/`). Las ilustraciones de la portada (`src/img/`) las aporta el autor. BlueJr es un proyecto independiente con fines formativos: no está afiliado ni respaldado por MITRE, ENISA ni ningún fabricante. MITRE ATT&CK® es marca registrada de The MITRE Corporation y las técnicas se citan solo por su ID. Empresa, personas, equipos, IP (RFC 5737) y dominios (`.example`) son inventados.
+Componentes de terceros: iconos de [Lucide](https://lucide.dev) (ISC) y fuentes Outfit y Geist Mono (SIL Open Font License, en `src/fonts/`). Las ilustraciones de la portada (`src/img/`) las aporta el autor. Blue-Jr es un proyecto independiente con fines formativos: no está afiliado ni respaldado por MITRE, ENISA ni ningún fabricante. MITRE ATT&CK® es marca registrada de The MITRE Corporation y las técnicas se citan solo por su ID. Empresa, personas, equipos, IP (RFC 5737) y dominios (`.example`) son inventados.
 
 ## <img src="docs/assets/icons/user-round.svg" width="20" height="20" valign="middle"/> Autor
 
@@ -467,7 +471,7 @@ Componentes de terceros: iconos de [Lucide](https://lucide.dev) (ISC) y fuentes 
 <td align="center" width="100%" valign="top">
 <img src="https://avatars.githubusercontent.com/u/238087465?v=4" alt="Yoandy Ramírez Delgado" width="110"/><br/>
 <b>Yoandy Ramírez Delgado</b><br/>
-<sub><b>Diseño y desarrollo de BlueJr</b></sub><br/>
+<sub><b>Diseño y desarrollo de Blue-Jr</b></sub><br/>
 <sub>Junior Pentester · eJPTv2 · AI Governance (ISO 42001) · SysAdmin</sub><br/><br/>
 <a href="https://www.linkedin.com/in/yoandyrd92/"><img alt="LinkedIn" src="https://img.shields.io/badge/LinkedIn-0A66C2?style=flat&logo=linkedin&logoColor=white"/></a>
 <a href="https://github.com/heindall92"><img alt="GitHub" src="https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white"/></a>
@@ -482,5 +486,5 @@ Otras herramientas del autor: [Rosetta](https://github.com/heindall92/rosetta_mu
 Errores o propuestas: abre una *issue* o escribe a <a href="mailto:yoandyramirezdelgado@gmail.com">yoandyramirezdelgado@gmail.com</a>.
 
 <p align="center">
-  <img src="docs/assets/bluejr-footer.svg" alt="BlueJr · separa la señal del ruido" width="100%"/>
+  <img src="docs/assets/bluejr-footer.svg" alt="Blue-Jr · separa la señal del ruido" width="100%"/>
 </p>

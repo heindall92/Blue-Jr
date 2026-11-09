@@ -1,4 +1,4 @@
-/* BlueJr · motor
+/* Blue-Jr · motor
  * Funciones puras y deterministas, sin DOM: generan los registros de cada caso, corrigen los tickets
  * y resumen el historial. La interfaz solo las consume; las pruebas unitarias las cargan con require(). */
 const BJ = (() => {
@@ -168,7 +168,7 @@ const BJ = (() => {
   const corta = (v, n) => String(v ?? '').slice(0, n);
   const HORA = /^\d{2}:\d{2}:\d{2}$/;
 
-  /** Deja solo lo que BlueJr sabe leer, con tipos, longitudes y listas permitidas. Recalcula la nota. */
+  /** Deja solo lo que Blue-Jr sabe leer, con tipos, longitudes y listas permitidas. Recalcula la nota. */
   function sanearEstado(bruto, indice, indiceRev = {}) {
     const out = { v: 1, perfil: { nombre: '' }, respuestas: {}, relevos: {}, revisiones: {}, repaso: {}, rapido: {}, mensajes: {}, n2: {} };
     if (!bruto || typeof bruto !== 'object') return out;
