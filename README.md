@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/badge/licencia-MIT-4169A1?style=flat"/></a>
-  <img alt="Versión 0.5.1" src="https://img.shields.io/badge/versi%C3%B3n-0.5.1-6B9BFF?style=flat"/>
+  <img alt="Versión 0.6.0" src="https://img.shields.io/badge/versi%C3%B3n-0.6.0-6B9BFF?style=flat"/>
   <img alt="40 alertas" src="https://img.shields.io/badge/alertas-40-7C4DFF?style=flat"/>
   <img alt="5 turnos" src="https://img.shields.io/badge/turnos-5-2E9E7A?style=flat"/>
   <img alt="MITRE ATT&CK" src="https://img.shields.io/badge/MITRE-ATT%26CK-E07B39?style=flat"/>
@@ -74,8 +74,8 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
     </tr>
     <tr>
       <td valign="top"><code>├─ ◈ pruebas:</code><br><br>
-        <img alt="Unitarias" src="https://img.shields.io/badge/unitarias-51-2E8B57?style=for-the-badge"/>
-        <img alt="E2E" src="https://img.shields.io/badge/e2e-22-2E8B57?style=for-the-badge"/>
+        <img alt="Unitarias" src="https://img.shields.io/badge/unitarias-59-2E8B57?style=for-the-badge"/>
+        <img alt="E2E" src="https://img.shields.io/badge/e2e-25-2E8B57?style=for-the-badge"/>
         <img alt="axe" src="https://img.shields.io/badge/axe-0%20infracciones-2E8B57?style=for-the-badge"/><br>
         <sub><code>cada caso se resuelve leyendo sus registros · red bloqueada en el e2e · claro y oscuro, 1440 y 390 px</code></sub>
       </td>
@@ -89,7 +89,7 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
   </tbody>
   <tfoot>
     <tr>
-      <td colspan="2"><code>version: 0.5.1&nbsp;&nbsp;·&nbsp;&nbsp;nivel: SOC N1&nbsp;&nbsp;·&nbsp;&nbsp;empresa: Norte Logística (ficticia)&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
+      <td colspan="2"><code>version: 0.6.0&nbsp;&nbsp;·&nbsp;&nbsp;nivel: SOC N1&nbsp;&nbsp;·&nbsp;&nbsp;empresa: Norte Logística (ficticia)&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
     </tr>
   </tfoot>
 </table>
@@ -99,6 +99,14 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
 ---
 
 ## <img src="docs/assets/icons/sparkles.svg" width="20" height="20" valign="middle"/> Novedades
+
+### 0.6.0 · noviembre de 2026 · Del ticket a la entrevista
+
+Practicar no basta si luego no sabes contarlo. En una entrevista de SOC te preguntan por qué decidiste lo que decidiste ([investigación](docs/investigacion-juniors.md)).
+
+- **Defiende tu ticket.** Al cerrar un ticket, Daniel Vega, responsable del SOC, te hace tres preguntas sobre **tu** decisión: por qué ese veredicto y no el otro, por qué esa acción (por ejemplo, «lo escalaste: ¿por qué no lo contuviste tú?») y qué línea del registro le darías al N2. Si te equivocaste, la pregunta cambia: reconoce el error, di qué dato se te pasó y qué harías ahora. Se corrige en local con una lista de criterios, hay una respuesta de ejemplo construida con el caso y las tres completas suman 15 XP. Insignia «Lista para la entrevista».
+- **Historias STAR para [Astrolabio](https://github.com/heindall92/astrolabio).** Cada ticket cerrado se exporta como historia STAR (situación, tarea, acción, resultado y lección) con tu resumen, tu defensa y tus errores contados con honestidad. El formato es el sobre compartido del ecosistema (`yrd-ecosistema`, tipo `historias`) y Astrolabio 0.8.2 la **suma** a tus historias sin borrar nada. El mismo archivo de ejemplo, generado por el motor, se prueba en los dos repositorios.
+- **Historial en PDF.** «Imprimir o guardar en PDF» saca una página A4 por turno con tickets: decisiones, notas, aciertos, tickets defendidos y relevo. Sin librerías ni servidor: la hoja de impresión del navegador. La prueba lo comprueba con `pdfinfo` y `pdftotext`.
 
 ### 0.5.1 · noviembre de 2026 · Se llama Blue-Jr
 
@@ -196,6 +204,8 @@ Un junior no aprende con una nota: aprende cuando entiende **por qué** se escal
 | Triaje rápido (0.4.0) | Repaso espaciado de Atlas GRC | Decidir en segundos y no olvidar lo fallado |
 | Comunícalo (0.5.0) | Las plantillas de escalado y de aviso a dirección de un SOC | Que el N2 pueda actuar con tu mensaje y que dirección entienda qué decidir |
 | Pregunta al N2 (0.5.0) | El analista de guardia al que se consulta en un turno | Cuándo merece la pena pedir ayuda, y que tiene un coste |
+| Defiende tu ticket (0.6.0) | Las preguntas de una entrevista técnica de SOC | Explicar una decisión frente a la alternativa y reconocer un error sin rodeos |
+| Historias STAR (0.6.0) | Astrolabio, del mismo autor | Convertir la práctica en experiencia que se puede contar |
 
 <table>
 <tr>
@@ -211,11 +221,15 @@ Un junior no aprende con una nota: aprende cuando entiende **por qué** se escal
 <td width="50%"><img src="docs/capturas/n2-oscuro.png" alt="Pregunta al N2 en oscuro: la mentora responde por dónde empezar y si el veredicto va bien, con el coste en XP"/><br/><sub><b>Pregunta al N2</b> · tres preguntas por turno, con coste</sub></td>
 </tr>
 <tr>
+<td width="50%"><img src="docs/capturas/defiende-claro.png" alt="Defiende tu ticket: la pregunta «Lo cerraste. ¿Y si era real? ¿Por qué no lo escalaste?» con la respuesta revisada y los cuatro criterios cumplidos"/><br/><sub><b>Defiende tu ticket</b> · la entrevista sobre tu decisión</sub></td>
+<td width="50%"><img src="docs/capturas/pdf-claro.png" alt="Historial en PDF: una página del turno 1 con las alertas, la hora, el veredicto, la acción y la nota, con los errores en rojo"/><br/><sub><b>Historial en PDF</b> · una página por turno</sub></td>
+</tr>
+<tr>
 <td colspan="2"><img src="docs/capturas/guia-oscuro.png" alt="Guía de investigación de la familia Equipos y procesos en modo oscuro, con las tareas del incidente en el ticket"/><br/><sub><b>Guía y tareas del incidente</b> · en oscuro</sub></td>
 </tr>
 </table>
 
-**Niveles.** Becario (0 XP) · Analista en prácticas (400) · Analista N1 (1200) · Analista N1 sénior (2400) · Listo para N2 (3400). Cada ticket suma su nota (hasta 100). **Insignias:** primer ticket, ticket perfecto, sin falsas alarmas, contención a tiempo, turno superado, constancia (tres días seguidos) y semana completa.
+**Niveles.** Becario (0 XP) · Analista en prácticas (400) · Analista N1 (1200) · Analista N1 sénior (2400) · Listo para N2 (3400). Cada ticket suma su nota (hasta 100). **Insignias:** primer ticket, ticket perfecto, sin falsas alarmas, contención a tiempo, turno superado, constancia (tres días seguidos), revisor de IA, triaje rápido perfecto, comunicador, lista para la entrevista y semana completa.
 
 ## <img src="docs/assets/icons/brain-circuit.svg" width="20" height="20" valign="middle"/> Mapa mental
 
@@ -404,8 +418,9 @@ Detalle en [SECURITY.md](SECURITY.md).
 |---|---|---|
 | Motor | 31 | Corrección por criterio, normalización, MITRE, ruido determinista que nunca cita entidades del caso, historial, saneado de importaciones, CSV contra fórmulas, XP, racha (con el corte de un día sin práctica), niveles, insignias y entidades; corrección de la revisión de IA, repaso espaciado, selección del triaje rápido y saneado de revisiones, repaso y triaje importados; corrección de los mensajes (cada criterio con su texto bueno y su texto malo), ejemplos que cumplen su propia corrección, pistas del N2 y saneado de mensajes y preguntas |
 | Casos | 13 | Cada caso se resuelve leyendo sus registros, textos bilingües, solo IP de documentación y dominios `.example`, referencias cruzadas válidas; cada caso en una sola guía, su acción correcta siempre entre las salidas de la guía, ninguna guía cita datos de un caso y el árbol de decisión cubre las tres acciones y los tres veredictos; el turno de revisión cubre los cinco tipos de error y el agente solo cita lo que existe en los registros, salvo cuando alucina |
+| Entrevista | 8 | Preguntas según lo decidido (defender o reconocer el error), cada criterio con su texto bueno y su texto malo, 2160 respuestas de ejemplo que cumplen su corrección, historias STAR dentro de lo que acepta Astrolabio en los 40 casos y con textos al límite, saneado y el ejemplo compartido con Astrolabio al día |
 | Repositorio | 7 | HTML al día, CSP sin `unsafe-inline` en scripts, paridad de claves ES/EN, versión única, enlaces y cifras de este README, y la raíz que lleva a la aplicación en Pages |
-| E2E | 22 | Alerta de punta a punta, teclado, ayuda, inglés sin restos de español, exportar e importar, importación hostil, relevo, móvil, tema, movimiento (entrada antes de 450 ms), lateral plegable y portada; guía por pestañas, pivote por entidad, tareas que se marcan solas, XP y racha al cerrar, las cinco salidas del árbol de decisión e insignias; revisión de IA (aprobar, cazar un error, nota recalculada) y triaje rápido (bloqueo, teclas, XP solo en la primera ronda, repaso); Pregunta al N2 (límite por turno, coste en XP, respuesta congelada) y Comunícalo (corrección, XP y exportación); barra superior del móvil en 320, 390 y 430 px |
+| E2E | 25 | Alerta de punta a punta, teclado, ayuda, inglés sin restos de español, exportar e importar, importación hostil, relevo, móvil, tema, movimiento (entrada antes de 450 ms), lateral plegable y portada; guía por pestañas, pivote por entidad, tareas que se marcan solas, XP y racha al cerrar, las cinco salidas del árbol de decisión e insignias; revisión de IA (aprobar, cazar un error, nota recalculada) y triaje rápido (bloqueo, teclas, XP solo en la primera ronda, repaso); Pregunta al N2 (límite por turno, coste en XP, respuesta congelada) y Comunícalo (corrección, XP y exportación); barra superior del móvil en 320, 390 y 430 px; Defiende tu ticket (XP, error y reinicio al reabrir), historias STAR de un ticket o de todos y PDF de una página por turno comprobado con `pdfinfo` |
 | Accesibilidad | 4 | axe en vistas, estados y todos los diálogos, en claro y oscuro, a 1440 y 390 px: 0 infracciones |
 
 ## <img src="docs/assets/icons/calendar-clock.svg" width="20" height="20" valign="middle"/> Hoja de ruta
@@ -418,7 +433,7 @@ Detalle en [ROADMAP.md](ROADMAP.md).
 - [x] 0.3.0 · El entrenador: guías de investigación, ¿escalo o no?, entidades, tareas y práctica diaria
 - [x] 0.4.0 · El nivel 1 en la era de la IA: revisión del agente de IA y triaje rápido diario
 - [x] 0.5.0 · Comunicar y pedir ayuda: mensajes a N2 y a dirección corregidos en local y «Pregunta al N2»
-- [ ] 0.6.0 · Del ticket a la entrevista: «Defiende tu ticket» e historias STAR para Astrolabio
+- [x] 0.6.0 · Del ticket a la entrevista: «Defiende tu ticket», historias STAR para Astrolabio e historial en PDF
 - [ ] 0.7.0 · Contexto español: RGPD, ENS e INCIBE-CERT en los casos
 
 ## <img src="docs/assets/icons/triangle-alert.svg" width="20" height="20" valign="middle"/> Limitaciones conocidas
@@ -446,12 +461,13 @@ Blue-Jr/
 │   │   ├── 04b-entreno.js        Guía, entidades, tareas, ¿escalo o no?, práctica e insignias
 │   │   ├── 04c-revision.js       Revisión del agente de IA y triaje rápido
 │   │   ├── 04d-comunicar.js      Comunícalo y Pregunta al N2
+│   │   ├── 04e-entrevista.js     Defiende tu ticket, historias STAR e historial imprimible
 │   │   └── 05-events.js          Eventos, teclado y arranque
 │   ├── data/                     empresa.json, t1…t5.json (40 casos), guias.json y revision.json
 │   ├── styles/bluejr.css         Tokens, claro y oscuro, siete acentos, móvil
 │   └── fonts/                    Outfit y Geist Mono (OFL)
 │
-├── 🛠️ scripts/                   build.mjs · iconos.mjs · capturas.mjs
+├── 🛠️ scripts/                   build.mjs · iconos.mjs · capturas.mjs · ejemplo-star.mjs
 ├── 🧪 tests/                     Motor, casos, repositorio, e2e y accesibilidad
 ├── 📄 docs/                      Capturas, cabecera, pie e iconos del README
 ├── 🌐 bluejr.html · dist/        El HTML compilado (descargable y publicado)

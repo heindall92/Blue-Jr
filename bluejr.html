@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-I4WR2n2ilbJKCiZ2PKAd1bvNCcEAtBQkHq4BIovi+fE='; style-src 'sha256-3rjgRvdkWVGv6yAor9RQh/vi8VE+s2dr1NyvrIbWBuU='; style-src-attr 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; manifest-src 'none'; worker-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-3QG1mLhbzZETLHMfidEHjs2Q19NJKpFCViZ35LM65b4='; style-src 'sha256-CX2Ns9+yk0ZqoinQa8OYacg9+enmsOJ5yrlzMDzn/x4='; style-src-attr 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; manifest-src 'none'; worker-src 'none'">
 <title>Blue-Jr</title>
 <meta name="description" content="Blue-Jr: tu primer turno como analista SOC antes de tu primer empleo. Alertas, registros, tickets corregidos y un historial para la entrevista. Local-first, sin servidor.">
 <meta name="author" content="Yoandy Ramírez Delgado">
@@ -806,6 +806,40 @@ dialog.buscar { width: min(620px, calc(100% - 24px)); margin-top: 12dvh; }
 @media (prefers-reduced-transparency: reduce) {
   .barra-in, .abajo, dialog.dlg { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--surface); }
 }
+
+/* ---------- Defiende tu ticket (0.6.0) ---------- */
+.defiende { display: grid; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--hair); }
+.defiende h3 { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.defiende h3 .ic { width: 17px; height: 17px; color: var(--accent); }
+.defiende .g-tabs .ic.ok { color: var(--ok); }
+.def-av { background: linear-gradient(135deg, #6a4fd8, #2f5fd0); }
+.def-q { padding: 10px 12px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--hair); font-weight: 600; line-height: 1.45; }
+.def-pie { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+
+/* ---------- Historial imprimible: una página por turno ---------- */
+#impresion { display: none; }
+@media print {
+  @page { size: A4; margin: 14mm 14mm 12mm; }
+  html, body { background: #fff !important; color: #111 !important; }
+  body > *:not(#impresion) { display: none !important; }
+  #impresion { display: block; font: 10.5pt/1.4 var(--font-sans); color: #111; }
+  .hoja { display: flex; flex-direction: column; gap: 8pt; min-height: 268mm; break-after: page; }
+  .hoja:last-child { break-after: auto; }
+  .hoja-cab { display: flex; justify-content: space-between; gap: 12pt; padding-bottom: 6pt; border-bottom: 1.5pt solid #1d4ed8; font-size: 9pt; color: #333; }
+  .hoja-marca { display: flex; align-items: center; gap: 5pt; }
+  .hoja-marca .ic { width: 12pt; height: 12pt; color: #1d4ed8; }
+  .hoja h1 { margin: 4pt 0 0; font-size: 17pt; letter-spacing: -0.01em; color: #111; }
+  .hoja h2 { margin: 6pt 0 0; font-size: 11pt; color: #111; }
+  .hoja-res { font-size: 9.5pt; color: #333; }
+  .hoja table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+  .hoja th { text-align: left; font: 600 8pt var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: #555; border-bottom: 1pt solid #999; padding: 4pt 5pt; }
+  .hoja td { vertical-align: top; padding: 5pt; border-bottom: 0.5pt solid #ccc; }
+  .hoja td:nth-child(2), .hoja td:last-child { white-space: nowrap; font-family: var(--font-mono); }
+  .hoja td.mal { color: #b42318; font-weight: 600; }
+  .hoja-relevo { white-space: pre-wrap; font-size: 9.5pt; padding: 6pt 8pt; border-left: 2pt solid #1d4ed8; background: #f3f5fa; }
+  .hoja-pie span:last-child { white-space: nowrap; }
+  .hoja-pie { margin-top: auto; display: flex; justify-content: space-between; gap: 12pt; padding-top: 6pt; border-top: 0.5pt solid #ccc; font-size: 7.5pt; color: #555; }
+}
 </style>
 </head>
 <body>
@@ -997,7 +1031,7 @@ const BJ = (() => {
 
   /** Deja solo lo que Blue-Jr sabe leer, con tipos, longitudes y listas permitidas. Recalcula la nota. */
   function sanearEstado(bruto, indice, indiceRev = {}) {
-    const out = { v: 1, perfil: { nombre: '' }, respuestas: {}, relevos: {}, revisiones: {}, repaso: {}, rapido: {}, mensajes: {}, n2: {} };
+    const out = { v: 1, perfil: { nombre: '' }, respuestas: {}, relevos: {}, revisiones: {}, repaso: {}, rapido: {}, mensajes: {}, n2: {}, defensas: {} };
     if (!bruto || typeof bruto !== 'object') return out;
     out.perfil.nombre = corta(bruto.perfil?.nombre, LIMITES.nombre);
     const resp = bruto.respuestas && typeof bruto.respuestas === 'object' ? bruto.respuestas : {};
@@ -1069,6 +1103,17 @@ const BJ = (() => {
         else out.n2[id].push({ tipo: 'inicio' });
       }
     }
+    for (const [id, d] of Object.entries(obj(bruto.defensas))) {
+      const caso = indice[id];
+      const r = out.respuestas[id];
+      // Solo hay entrevista de tickets cerrados, y las preguntas dependen de lo que se decidió.
+      if (!caso || !r?.cerrado || !d || typeof d !== 'object') continue;
+      const limpio = {};
+      for (const p of preguntasDefensa(caso, r)) if (typeof d[p.id] === 'string') limpio[p.id] = corta(d[p.id], LIMITES.ticket);
+      limpio.ok = preguntasDefensa(caso, r).filter((p) => limpio[p.id] && corregirDefensa(p, limpio[p.id], caso).completo).map((p) => p.id);
+      limpio.cuando = typeof d.cuando === 'string' && !Number.isNaN(Date.parse(d.cuando)) ? d.cuando : null;
+      out.defensas[id] = limpio;
+    }
     return out;
   }
 
@@ -1118,6 +1163,7 @@ const BJ = (() => {
       ['revisor', (extra.cazados || 0) >= 3],
       ['rapido', extra.rapidoPerfecto === true],
       ['comunicador', (extra.mensajes || 0) >= 5],
+      ['entrevista', (extra.defensas || 0) >= 3],
       ['semana', hechos.length === casos.length && casos.length > 0]
     ];
     return lista.map(([id, ok]) => ({ id, ok }));
@@ -1235,6 +1281,155 @@ const BJ = (() => {
       : `This morning, at ${caso.hora}, we saw a situation that may affect company or customer data and needs a manager's decision. The security team is investigating it discreetly. We need you to authorise the review with HR and Legal.`;
   }
 
+  /* ---------- Defiende tu ticket: la entrevista sobre tus propios casos (0.6.0) ----------
+   * Tres preguntas por ticket cerrado, como las de una entrevista técnica de SOC. Si la decisión fue
+   * correcta, hay que defenderla frente a la alternativa; si fue un error, reconocerlo y decir qué harías ahora. */
+  const PREGUNTAS_DEF = Object.freeze(['veredicto', 'accion', 'evidencia']);
+  const XP_DEFENSA = 15; // por ticket con las tres respuestas completas
+  const ALTERNATIVA = Object.freeze({ veredicto: { vp: 'fp', fp: 'vp', benigno: 'vp' }, accion: { contener: 'escalar', escalar: 'contener', cerrar: 'escalar' } });
+  const NOMBRA = {
+    vp: /\b(verdadero positivo|true positive|vp|tp|ataque|attack|malicios\w*)\b/,
+    fp: /\b(falso positivo|false positive|fp)\b/,
+    benigno: /\b(benign\w*)\b/,
+    contener: /\b(conten\w*|contien\w*|contuv\w*|contain\w*)\b/,
+    escalar: /\b(escal\w*|n2|tier 2|nivel 2)\b/,
+    cerrar: /\b(cerr\w*|cierr\w*|clos\w*)\b/
+  };
+  const RE_DEF = {
+    porque: /\b(porque|ya que|puesto que|dado que|debido a|por eso|por lo que|asi que|because|since|due to|therefore|that is why|so i)\b/,
+    riesgo: /\b(riesgo|impacto|dano|propag\w*|negocio|urgen\w*|servicio|usuario\w*|datos|tiempo|minutos?|risk\w*|impact\w*|damage|spread\w*|business|urgent\w*|service|users?|data|time|minutes?)\b/,
+    reconoce: /\b(me equivoque|equivoc\w*|error|falle|se me paso|no vi|no mire|confundi|mistake|wrong|missed|overlooked|misread)\b/,
+    ahora: /\b(ahora|la proxima|en adelante|a partir de ahora|next time|now i|from now|going forward|in future)\b/
+  };
+  const DEF_PALABRAS = Object.freeze({ min: 15, max: 150 });
+  const horaCorta = (h) => String(h).slice(0, 5);
+  /** Primera línea del caso que contiene un dato clave: es la evidencia que se cita en los modelos. */
+  const lineaClave = (caso) => caso.logs.find(([, , m]) => caso.claves.some((k) => m.includes(k))) || [caso.hora, caso.fuente, ''];
+
+  /** Las tres preguntas de la entrevista para un ticket cerrado, según lo que se decidió. */
+  function preguntasDefensa(caso, resp = {}) {
+    return PREGUNTAS_DEF.map((id) => {
+      if (id === 'evidencia') return { id, modo: 'defiende' };
+      const tu = resp[id] ?? null, sol = caso[id];
+      return tu === sol ? { id, modo: 'defiende', tu, alt: ALTERNATIVA[id][tu] } : { id, modo: 'error', tu, sol };
+    });
+  }
+
+  /** Corrige una respuesta de la entrevista con criterios comprobables en local, como los mensajes. */
+  function corregirDefensa(pregunta, texto, caso) {
+    const t = plano(texto);
+    const n = palabras(texto);
+    const citadas = caso.claves.filter((k) => t.includes(plano(k)));
+    const breve = n >= DEF_PALABRAS.min && n <= DEF_PALABRAS.max;
+    let criterios;
+    if (pregunta.modo === 'error') criterios = [['reconoce', RE_DEF.reconoce.test(t)], ['dato', citadas.length >= 1], ['ahora', RE_DEF.ahora.test(t)], ['breve', breve]];
+    else if (pregunta.id === 'evidencia') criterios = [['dato', citadas.length >= 1], ['cuando', RE.hora.test(t)], ['porque', RE_DEF.porque.test(t)], ['breve', breve]];
+    else criterios = [
+      ['porque', RE_DEF.porque.test(t)],
+      [pregunta.id === 'veredicto' ? 'dato' : 'riesgo', pregunta.id === 'veredicto' ? citadas.length >= 1 : RE_DEF.riesgo.test(t)],
+      ['alternativa', NOMBRA[pregunta.alt].test(t)],
+      ['breve', breve]
+    ];
+    const lista = criterios.map(([id, ok]) => ({ id, ok: !!ok }));
+    return { criterios: lista, completo: lista.every((c) => c.ok), palabras: n, citadas };
+  }
+
+  const NOMBRES = {
+    es: { vp: 'verdadero positivo', fp: 'falso positivo', benigno: 'benigno', contener: 'contener', escalar: 'escalar', cerrar: 'cerrar' },
+    en: { vp: 'true positive', fp: 'false positive', benigno: 'benign', contener: 'contain', escalar: 'escalate', cerrar: 'close' }
+  };
+  /** Respuesta de ejemplo construida con los datos del caso; cumple su propia corrección en los dos idiomas. */
+  function modeloDefensa(pregunta, caso, lang = 'es') {
+    const es = lang === 'es';
+    const N = NOMBRES[es ? 'es' : 'en'];
+    const [h, origen] = lineaClave(caso);
+    const hora = horaCorta(h);
+    const datos = caso.claves.slice(0, 2).join(es ? ' y ' : ' and ');
+    if (pregunta.modo === 'error') return es
+      ? `Me equivoqué: elegí ${N[pregunta.tu] ?? 'nada'} y lo correcto era ${N[pregunta.sol]}. Se me pasó ${datos} a las ${hora}, que cambia la lectura del caso. Ahora, antes de decidir, compruebo ese dato y lo cito en el ticket.`
+      : `I got it wrong: I chose ${N[pregunta.tu] ?? 'nothing'} and the right answer was ${N[pregunta.sol]}. I missed ${datos} at ${hora}, which changes how the case reads. Now I check that fact before deciding and quote it in the ticket.`;
+    if (pregunta.id === 'evidencia') return es
+      ? `Le daría la línea de ${origen} de las ${hora}. Es suficiente porque ahí aparece ${datos}, que es lo que decide el caso, y el N2 puede comprobarla en un minuto.`
+      : `I would give them the ${origen} line at ${hora}. It is enough because it shows ${datos}, which is what decides the case, and tier 2 can check it in a minute.`;
+    if (pregunta.id === 'veredicto') {
+      const porque = {
+        vp: es ? `Descarté falso positivo porque la regla no saltó por ruido: hay actividad concreta que encaja con un ataque.` : `I ruled out a false positive because the rule did not fire on noise: there is concrete activity that fits an attack.`,
+        fp: es ? `Descarté verdadero positivo porque no hay nada malicioso detrás: la regla salta por cómo está ajustada.` : `I ruled out a true positive because there is nothing malicious behind it: the rule fires because of how it is tuned.`,
+        benigno: es ? `Descarté verdadero positivo porque la actividad es real pero esperada y está autorizada.` : `I ruled out a true positive because the activity is real but expected and authorised.`
+      }[pregunta.tu];
+      return es
+        ? `Lo clasifiqué como ${N[pregunta.tu]} porque el registro de ${origen} de las ${hora} lo muestra con ${datos}. ${porque}`
+        : `I classified it as a ${N[pregunta.tu]} because the ${origen} log at ${hora} shows it with ${datos}. ${porque}`;
+    }
+    return {
+      contener: es ? `Contuve porque el riesgo era inmediato: con ${datos} el daño podía propagarse en minutos. Escalar sin contener habría dejado la puerta abierta mientras el N2 lo revisaba, así que contuve primero y escalé después.`
+        : `I contained it because the risk was immediate: with ${datos} the damage could spread within minutes. Escalating without containing would have left the door open while tier 2 reviewed it, so I contained first and escalated afterwards.`,
+      escalar: es ? `Escalé y no contuve porque contener tiene impacto en el negocio y con ${datos} la decisión no me correspondía a mí. El riesgo no era inmediato, así que se lo pasé al N2 con la evidencia.`
+        : `I escalated and did not contain it because containment has a business impact and, with ${datos}, the decision was not mine to make. The risk was not immediate, so I passed it to tier 2 with the evidence.`,
+      cerrar: es ? `Lo cerré sin escalar porque no había riesgo: ${datos} explica la alerta y no hay nada más detrás. Escalarlo habría hecho perder tiempo al N2 con ruido.`
+        : `I closed it without escalating because there was no risk: ${datos} explains the alert and there is nothing else behind it. Escalating it would have wasted tier 2's time with noise.`
+    }[pregunta.tu];
+  }
+
+  /* ---------- Del ticket a la entrevista: historia STAR para Astrolabio ----------
+   * Formato compartido del ecosistema («yrd-ecosistema», tipo «historias»): Astrolabio la suma a las tuyas. */
+  const COMP_ASTROLABIO = Object.freeze({ triaje: 'analisis', logs: 'analisis', correo: 'analisis', identidad: 'analisis', endpoint: 'problemas', red: 'problemas', respuesta: 'presion', comunicacion: 'comunicacion' });
+  const STAR_LIMITES = Object.freeze({ titulo: 120, bloque: 4000, competencias: 6 });
+  const idHistoria = (caso) => 'bluejr-' + caso.id.toLowerCase();
+
+  /** Convierte un ticket cerrado en una historia STAR con lo que hizo el analista y lo que salió. */
+  function historiaStar(caso, resp, extra = {}) {
+    const lang = extra.lang === 'en' ? 'en' : 'es';
+    const es = lang === 'es';
+    const L = (o) => (o ? o[lang] ?? o.es : '');
+    const N = NOMBRES[lang];
+    const punto = (x) => (/[.!?…]$/.test(String(x).trim()) ? '' : '.');
+    const corte = (s, n) => (s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s);
+    const t = extra.turno || {};
+    const lineas = registros(caso);
+    const ev = (resp.evidencias || []).map((n) => lineas.find((l) => l.n === n)).filter(Boolean);
+    const sev = { critica: es ? 'crítica' : 'critical', alta: es ? 'alta' : 'high', media: es ? 'media' : 'medium', baja: es ? 'baja' : 'low' }[caso.sev];
+    const def = extra.defensa || {};
+    const defOk = new Set(def.ok || []);
+    const bienV = resp.veredicto === caso.veredicto, bienA = resp.accion === caso.accion;
+    const verbo = { es: { contener: 'contener y escalar', escalar: 'escalar al N2', cerrar: 'cerrarlo' }, en: { contener: 'contain and escalate it', escalar: 'escalate it to tier 2', cerrar: 'close it' } }[lang][resp.accion];
+    const s = es
+      ? `En Blue-Jr, un simulador de SOC, hice el turno ${t.n ?? ''} (${L(t.dia).toLowerCase()}) como analista N1 de Norte Logística, una empresa ficticia. A las ${caso.hora} saltó una alerta de ${caso.fuente}: «${L(caso.titulo)}». ${L(caso.resumen)}`
+      : `In Blue-Jr, a SOC simulator, I worked shift ${t.n ?? ''} (${L(t.dia)}) as a tier 1 analyst at Norte Logística, a made-up company. At ${caso.hora} a ${caso.fuente} alert fired: «${L(caso.titulo)}». ${L(caso.resumen)}`;
+    const tarea = es
+      ? `Tenía que decidir si era real, qué hacer y dejarlo documentado en el ticket para el siguiente nivel. Severidad ${sev}; regla «${L(caso.regla)}».`
+      : `I had to decide whether it was real, what to do and document it in the ticket for the next tier. Severity ${sev}; rule «${L(caso.regla)}».`;
+    const a = [
+      ev.length ? (es ? `Revisé los registros y fijé ${ev.length === 1 ? 'una línea' : ev.length + ' líneas'} como evidencia: ${ev.slice(0, 3).map((l) => `${l.t} ${l.s} ${l.m}`).join(' | ')}.` : `I went through the logs and pinned ${ev.length === 1 ? 'one line' : ev.length + ' lines'} as evidence: ${ev.slice(0, 3).map((l) => `${l.t} ${l.s} ${l.m}`).join(' | ')}.`)
+        : (es ? 'Revisé los registros del caso.' : 'I went through the case logs.'),
+      es ? `Lo clasifiqué como ${N[resp.veredicto]} y decidí ${verbo}.` : `I classified it as a ${N[resp.veredicto]} and decided to ${verbo}.`,
+      String(resp.ticket || '').trim() ? (es ? `Mi resumen del ticket: «${String(resp.ticket).trim()}»${punto(resp.ticket)}` : `My ticket summary: «${String(resp.ticket).trim()}»${punto(resp.ticket)}`) : '',
+      bienA && defOk.has('accion') && def.accion ? (es ? `Por qué lo decidí así: ${def.accion.trim()}` : `Why I decided that: ${def.accion.trim()}`) : '',
+      (extra.mensajes || []).length ? (es ? `Además escribí ${extra.mensajes.map((m) => (m === 'n2' ? 'el escalado al N2' : 'el aviso a dirección')).join(' y ')}.` : `I also wrote ${extra.mensajes.map((m) => (m === 'n2' ? 'the escalation to tier 2' : 'the update for management')).join(' and ')}.`) : ''
+    ].filter(Boolean).join(' ');
+    const fallos = [!bienV && (es ? `el veredicto (era ${N[caso.veredicto]})` : `the verdict wrong (it was a ${N[caso.veredicto]})`), !bienA && (es ? `la acción (había que ${N[caso.accion]})` : `the action wrong (it needed to ${N[caso.accion]})`)].filter(Boolean);
+    const r = (es ? `La corrección automática le dio ${resp.nota}/100. ` : `The automatic grading gave it ${resp.nota}/100. `)
+      + (fallos.length ? (es ? `Fallé ${fallos.join(' y ')}. ` : `I got ${fallos.join(' and ')}. `) : (es ? 'Acerté el veredicto y la acción. ' : 'I got the verdict and the action right. '))
+      + L(caso.explica);
+    const error = !bienV ? 'veredicto' : !bienA ? 'accion' : null;
+    const leccion = error && defOk.has(error) && def[error] ? def[error].trim()
+      : (es ? 'Qué me llevo: ' : 'What I take away: ') + (L(caso.explica).match(/^[^.]+\./)?.[0] || L(caso.explica));
+    const comps = [...new Set([...caso.competencias.map((k) => COMP_ASTROLABIO[k]).filter(Boolean), ...((extra.mensajes || []).length ? ['comunicacion'] : [])])].slice(0, STAR_LIMITES.competencias);
+    const dia = typeof resp.cuando === 'string' && /^\d{4}-\d{2}-\d{2}/.test(resp.cuando) ? resp.cuando.slice(0, 10) : diaIso(Date.now());
+    return {
+      id: idHistoria(caso),
+      titulo: corte(`${L(caso.titulo)} (${caso.id}, Blue-Jr)`, STAR_LIMITES.titulo),
+      tipo: 'real',
+      s: corte(s, STAR_LIMITES.bloque), t: corte(tarea, STAR_LIMITES.bloque), a: corte(a, STAR_LIMITES.bloque), r: corte(r, STAR_LIMITES.bloque), l: corte(leccion, STAR_LIMITES.bloque),
+      competencias: comps,
+      creada: dia, editada: dia
+    };
+  }
+  /** Sobre del ecosistema que entiende Astrolabio (y cualquier herramienta de la familia). */
+  function sobreHistorias(historias, appVersion, exportado = new Date().toISOString()) {
+    return { formato: 'yrd-ecosistema', version: 1, tipo: 'historias', app: 'blue-jr', appVersion: String(appVersion), exportado, datos: { historias } };
+  }
+
   /* ---------- Pregunta al N2: pistas del propio caso, con coste ----------
    * Tres preguntas por turno. Cada una resta XP al ticket (nunca nota): enseña cuándo merece la pena pedir ayuda. */
   const PREGUNTAS_N2 = Object.freeze(['inicio', 'falta', 'decision']);
@@ -1271,7 +1466,7 @@ const BJ = (() => {
     return { cuentas: top(cuenta.cuentas), ips: top(cuenta.ips), equipos: top(cuenta.equipos) };
   }
 
-  return { TIPOS_MENSAJE, XP_MENSAJE, corregirMensaje, modeloMensaje, PREGUNTAS_N2, LIMITE_N2, COSTE_N2, pistaN2, ERRORES_IA, DICTAMENES, PESOS_REV, corregirRevision, CAJAS, RAPIDO_N, XP_RAPIDO, repasar, sesionRapida, META_DIARIA, NIVELES, progreso, insignias, entidades, PESOS, UMBRAL_APTO, TICKET_MIN, VEREDICTOS, ACCIONES, SEVERIDADES, COMPETENCIAS, LIMITES, semilla, azar, registros, normalizar, camposDe, campoBien, clavesEn, corregir, resumenTurno, historial, safeParse, sanearEstado, celdaCsv, HORA };
+  return { PREGUNTAS_DEF, XP_DEFENSA, DEF_PALABRAS, preguntasDefensa, corregirDefensa, modeloDefensa, COMP_ASTROLABIO, STAR_LIMITES, idHistoria, historiaStar, sobreHistorias, TIPOS_MENSAJE, XP_MENSAJE, corregirMensaje, modeloMensaje, PREGUNTAS_N2, LIMITE_N2, COSTE_N2, pistaN2, ERRORES_IA, DICTAMENES, PESOS_REV, corregirRevision, CAJAS, RAPIDO_N, XP_RAPIDO, repasar, sesionRapida, META_DIARIA, NIVELES, progreso, insignias, entidades, PESOS, UMBRAL_APTO, TICKET_MIN, VEREDICTOS, ACCIONES, SEVERIDADES, COMPETENCIAS, LIMITES, semilla, azar, registros, normalizar, camposDe, campoBien, clavesEn, corregir, resumenTurno, historial, safeParse, sanearEstado, celdaCsv, HORA };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = BJ;
 /* ===== 00-i18n.js ===== */
@@ -1488,6 +1683,49 @@ const I18N = {
       decision_no: 'Yo no marcaría ese veredicto. Vuelve a la guía: ¿hay autorización?, ¿llegó a tener efecto?'
     },
     n2_coste: 'Pregunta al N2: −{n} XP en este ticket',
+    def_titulo: 'Defiende tu ticket',
+    def_sub: 'Daniel Vega, responsable del SOC, te entrevista sobre este ticket. Así preguntan en las entrevistas técnicas: por qué decidiste lo que decidiste.',
+    def_q: {
+      veredicto: 'En {id} dijiste «{tu}». ¿Por qué descartaste «{alt}»?',
+      accion: {
+        escalar: 'Lo escalaste. ¿Por qué no lo contuviste tú?',
+        contener: 'Lo contuviste. Contener tiene impacto: ¿por qué no te limitaste a escalarlo?',
+        cerrar: 'Lo cerraste. ¿Y si era real? ¿Por qué no lo escalaste?'
+      },
+      evidencia: 'Si el N2 solo pudiera mirar una línea del registro, ¿cuál le darías y por qué basta?',
+      error: 'En {id} elegiste «{tu}» para {que} y era «{sol}». ¿Qué se te pasó y qué harías ahora?'
+    },
+    def_que: { veredicto: 'el veredicto', accion: 'la acción' },
+    def_tab: { veredicto: 'Veredicto', accion: 'Acción', evidencia: 'Evidencia' },
+    def_ph: 'Contéstale como en una entrevista: la razón, el dato del caso que lo demuestra y la otra opción que descartaste.',
+    def_ph_error: 'Reconoce el error, di qué dato se te pasó y qué haces ahora distinto.',
+    def_revisar: 'Revisar la respuesta',
+    def_ejemplo: 'Ver una respuesta de ejemplo',
+    def_ok: 'Respuesta sólida: tiene lo que busca quien entrevista.',
+    def_hecha: '{n} de 3 respuestas completas',
+    def_crit: {
+      porque: ['Das el porqué', 'Explica la razón con «porque», «ya que» o «por eso».'],
+      dato: ['Citas un dato del caso', 'Nombra la IP, la cuenta, el equipo o el dato que lo decide.'],
+      riesgo: ['Hablas del riesgo o del impacto', 'Di qué podía pasar, a quién afectaba o cuánto tiempo había.'],
+      alternativa: ['Nombras la otra opción', 'Quien entrevista quiere ver que la sopesaste: nómbrala y di por qué no.'],
+      cuando: ['Dices la hora', 'Sitúa la línea en el tiempo (HH:MM).'],
+      reconoce: ['Reconoces el error', 'Dilo sin rodeos: «me equivoqué», «se me pasó».'],
+      ahora: ['Dices qué harías ahora', 'Cierra con lo que cambias: «ahora compruebo…», «la próxima vez…».'],
+      breve: ['Entre 15 y 150 palabras', 'Una respuesta de entrevista cabe en un minuto.']
+    },
+    xp_def: '+{n} XP · ticket {id} defendido',
+    star_uno: 'Historia STAR para Astrolabio',
+    star_todas: 'Historias STAR para Astrolabio (.json)',
+    star_nota: 'Convierte tus tickets en historias STAR (situación, tarea, acción, resultado y lección) que Astrolabio suma a las tuyas para preparar entrevistas. Mejor si antes defiendes el ticket: tu respuesta pasa a la historia.',
+    star_exportadas: '{n} historias STAR exportadas',
+    imprimir: 'Imprimir o guardar en PDF',
+    imprimir_nota: 'Una página por turno con tickets cerrados, lista para adjuntar a una candidatura.',
+    pdf_titulo: 'Historial de turnos SOC',
+    pdf_aviso: 'Simulación formativa con una empresa ficticia (Norte Logística). Las decisiones y los textos son del analista; la corrección es automática.',
+    pdf_cols: ['Alerta', 'Hora', 'Veredicto', 'Acción', 'Nota'],
+    pdf_aciertos: 'Veredictos acertados: {v} de {n} · acciones acertadas: {a} de {n}',
+    pdf_defendidos: 'Tickets defendidos en «Defiende tu ticket»: {n}',
+    pdf_pie: 'Página {p} de {t}',
     guia_titulo: 'Guía de investigación',
     guia_sub: 'triaje, análisis y respuesta',
     guia_si: 'Si',
@@ -1550,7 +1788,8 @@ const I18N = {
       semana: ['Semana completa', 'Cierra las 40 alertas'],
       revisor: ['Revisor de IA', 'Caza tres errores del agente'],
       rapido: ['Reflejos', 'Diez de diez en el triaje rápido'],
-      comunicador: ['Comunicador', 'Cinco mensajes completos a N2 o a dirección']
+      comunicador: ['Comunicador', 'Cinco mensajes completos a N2 o a dirección'],
+      entrevista: ['Lista para la entrevista', 'Defiende tres tickets con las tres respuestas completas']
     },
 
     hist_ante: 'TU HISTORIAL',
@@ -1593,7 +1832,8 @@ const I18N = {
       ['Decide', 'Veredicto (verdadero positivo, falso positivo o benigno) y acción (cerrar, escalar o contener).'],
       ['Documenta', 'Rellena los datos clave, fija las líneas que lo demuestran y escribe el ticket.'],
       ['Aprende de la corrección', 'Al cerrar ves la nota, lo esperado y por qué.'],
-      ['Entrega el relevo', 'Al acabar el turno, escribe lo que el siguiente analista debe saber.']
+      ['Entrega el relevo', 'Al acabar el turno, escribe lo que el siguiente analista debe saber.'],
+      ['Defiende tu ticket', 'Contesta las tres preguntas de entrevista sobre tu decisión. Después, en Historial, exporta tus tickets como historias STAR para Astrolabio o imprime una página por turno.']
     ],
     guia_por_que: 'Para el primer empleo piden experiencia, y para tenerla hace falta el primer empleo. Blue-Jr te da una semana de turnos de nivel 1 con decisiones reales y un historial que puedes enseñar.',
     metodo_intro: 'Cada ticket vale 100 puntos, repartidos así:',
@@ -1855,6 +2095,49 @@ const I18N = {
       decision_no: 'I would not choose that verdict. Go back to the guide: is there an authorisation? Did it take effect?'
     },
     n2_coste: 'Asked tier 2: −{n} XP on this ticket',
+    def_titulo: 'Defend your ticket',
+    def_sub: 'Daniel Vega, SOC lead, interviews you about this ticket. This is how technical interviews ask: why you decided what you decided.',
+    def_q: {
+      veredicto: 'In {id} you said «{tu}». Why did you rule out «{alt}»?',
+      accion: {
+        escalar: 'You escalated it. Why did you not contain it yourself?',
+        contener: 'You contained it. Containment has an impact: why not just escalate it?',
+        cerrar: 'You closed it. What if it was real? Why did you not escalate it?'
+      },
+      evidencia: 'If tier 2 could only look at one log line, which one would you give them and why is it enough?',
+      error: 'In {id} you chose «{tu}» for {que} and it was «{sol}». What did you miss and what would you do now?'
+    },
+    def_que: { veredicto: 'the verdict', accion: 'the action' },
+    def_tab: { veredicto: 'Verdict', accion: 'Action', evidencia: 'Evidence' },
+    def_ph: 'Answer as you would in an interview: the reason, the fact from the case that proves it and the other option you ruled out.',
+    def_ph_error: 'Own the mistake, say which fact you missed and what you now do differently.',
+    def_revisar: 'Check the answer',
+    def_ejemplo: 'See a sample answer',
+    def_ok: 'Solid answer: it has what an interviewer looks for.',
+    def_hecha: '{n} of 3 answers complete',
+    def_crit: {
+      porque: ['You give the why', 'Explain the reason with «because», «since» or «that is why».'],
+      dato: ['You quote a fact from the case', 'Name the IP, account, host or fact that decides it.'],
+      riesgo: ['You talk about risk or impact', 'Say what could happen, who it affected or how much time there was.'],
+      alternativa: ['You name the other option', 'The interviewer wants to see you weighed it: name it and say why not.'],
+      cuando: ['You give the time', 'Place the line in time (HH:MM).'],
+      reconoce: ['You own the mistake', 'Say it plainly: «I got it wrong», «I missed».'],
+      ahora: ['You say what you would do now', 'End with what changes: «now I check…», «next time…».'],
+      breve: ['Between 15 and 150 words', 'An interview answer fits in a minute.']
+    },
+    xp_def: '+{n} XP · ticket {id} defended',
+    star_uno: 'STAR story for Astrolabio',
+    star_todas: 'STAR stories for Astrolabio (.json)',
+    star_nota: 'Turn your tickets into STAR stories (situation, task, action, result and lesson) that Astrolabio adds to yours for interview prep. Better if you defend the ticket first: your answer goes into the story.',
+    star_exportadas: '{n} STAR stories exported',
+    imprimir: 'Print or save as PDF',
+    imprimir_nota: 'One page per shift with closed tickets, ready to attach to an application.',
+    pdf_titulo: 'SOC shift record',
+    pdf_aviso: 'Training simulation with a made-up company (Norte Logística). Decisions and texts are the analyst\'s; grading is automatic.',
+    pdf_cols: ['Alert', 'Time', 'Verdict', 'Action', 'Score'],
+    pdf_aciertos: 'Correct verdicts: {v} of {n} · correct actions: {a} of {n}',
+    pdf_defendidos: 'Tickets defended in «Defend your ticket»: {n}',
+    pdf_pie: 'Page {p} of {t}',
     guia_titulo: 'Investigation guide',
     guia_sub: 'triage, analysis and response',
     guia_si: 'If',
@@ -1917,7 +2200,8 @@ const I18N = {
       semana: ['Full week', 'Close all 40 alerts'],
       revisor: ['AI reviewer', 'Catch three agent mistakes'],
       rapido: ['Reflexes', 'Ten out of ten in quick triage'],
-      comunicador: ['Communicator', 'Five complete messages to T2 or management']
+      comunicador: ['Communicator', 'Five complete messages to T2 or management'],
+      entrevista: ['Interview ready', 'Defend three tickets with all three answers complete']
     },
 
     hist_ante: 'YOUR RECORD',
@@ -1960,7 +2244,8 @@ const I18N = {
       ['Decide', 'Verdict (true positive, false positive or benign) and action (close, escalate or contain).'],
       ['Document', 'Fill in the key facts, pin the lines that prove it and write the ticket.'],
       ['Learn from the grading', 'When you close it you see the score, what was expected and why.'],
-      ['Hand over', 'At the end of the shift, write what the next analyst needs to know.']
+      ['Hand over', 'At the end of the shift, write what the next analyst needs to know.'],
+      ['Defend your ticket', 'Answer the three interview questions about your decision. Then, in Record, export your tickets as STAR stories for Astrolabio or print one page per shift.']
     ],
     guia_por_que: 'Your first job asks for experience, and getting experience takes a first job. Blue-Jr gives you a week of tier 1 shifts with real decisions and a record you can show.',
     metodo_intro: 'Each ticket is worth 100 points, split like this:',
@@ -2019,7 +2304,7 @@ const EMPRESA = DATOS.empresa;
 const TURNOS = ['t1', 't2', 't3', 't4', 't5'].map((k) => DATOS[k]);
 const REV_INDICE = Object.fromEntries(DATOS.revision.casos.map((c) => [c.id, c]));
 const CASOS = Object.fromEntries(TURNOS.flatMap((t) => t.casos.map((c) => [c.id, { ...c, turno: t.id }])));
-const VERSION = '0.5.1';
+const VERSION = '0.6.0';
 const ACENTOS = ['rosa', 'solar', 'glaciar', 'orquidea', 'verde', 'azul', 'rojo'];
 const REPO = 'https://github.com/heindall92/Blue-Jr';
 const TEST = /[?&]test\b/.test(location.search);
@@ -2048,7 +2333,7 @@ const P = {
 const guardarPrefs = () => escribir(CLAVE_PREFS, JSON.stringify(P));
 
 /* ---------- Estado de la interfaz (no se guarda) ---------- */
-const UI = { turno: null, caso: null, filtro: '', fuente: null, panel: 'caso', ultimoTurno: leer('bluejr-ultimo') || 'T1', borrarArmado: false, vistaAnimada: null, guia: null, guiaTab: 'triaje', investigado: new Set(), rev: null, rapido: null, msgTipo: null, msgRevisado: null };
+const UI = { turno: null, caso: null, filtro: '', fuente: null, panel: 'caso', ultimoTurno: leer('bluejr-ultimo') || 'T1', borrarArmado: false, vistaAnimada: null, guia: null, guiaTab: 'triaje', investigado: new Set(), rev: null, rapido: null, msgTipo: null, msgRevisado: null, defP: null, defRevisado: null };
 
 /* ---------- Textos ---------- */
 const T = (k, vars) => {
@@ -2107,7 +2392,7 @@ const diaDe = (t) => L(t.dia);
 const numTurno = (t) => t.id.slice(1);
 /* ===== 02-icons.js ===== */
 /* Iconos Lucide (ISC, https://lucide.dev) · generado por scripts/iconos.mjs, no editar a mano */
-const ICONOS = {"radar":"<path d=\"M19.07 4.93A10 10 0 0 0 6.99 3.34\" /><path d=\"M4 6h.01\" /><path d=\"M2.29 9.62A10 10 0 1 0 21.31 8.35\" /><path d=\"M16.24 7.76A6 6 0 1 0 8.23 16.67\" /><path d=\"M12 18h.01\" /><path d=\"M17.99 11.66A6 6 0 0 1 15.77 16.67\" /><circle cx=\"12\" cy=\"12\" r=\"2\" /><path d=\"m13.41 10.59 5.66-5.66\" />","calendar-clock":"<path d=\"M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5\" /><path d=\"M16 2v4\" /><path d=\"M8 2v4\" /><path d=\"M3 10h5\" /><path d=\"M17.5 17.5 16 16.3V14\" /><circle cx=\"16\" cy=\"16\" r=\"6\" />","siren":"<path d=\"M7 18v-6a5 5 0 1 1 10 0v6\" /><path d=\"M5 21a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z\" /><path d=\"M21 12h1\" /><path d=\"M18.5 4.5 18 5\" /><path d=\"M2 12h1\" /><path d=\"M12 2v1\" /><path d=\"m4.929 4.929.707.707\" /><path d=\"M12 12v6\" />","award":"<path d=\"m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526\" /><circle cx=\"12\" cy=\"8\" r=\"6\" />","search":"<circle cx=\"11\" cy=\"11\" r=\"8\" /><path d=\"m21 21-4.3-4.3\" />","sun":"<circle cx=\"12\" cy=\"12\" r=\"4\" /><path d=\"M12 2v2\" /><path d=\"M12 20v2\" /><path d=\"m4.93 4.93 1.41 1.41\" /><path d=\"m17.66 17.66 1.41 1.41\" /><path d=\"M2 12h2\" /><path d=\"M20 12h2\" /><path d=\"m6.34 17.66-1.41 1.41\" /><path d=\"m19.07 4.93-1.41 1.41\" />","moon":"<path d=\"M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z\" />","circle-help":"<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3\" /><path d=\"M12 17h.01\" />","panel-left":"<rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" /><path d=\"M9 3v18\" />","palette":"<circle cx=\"13.5\" cy=\"6.5\" r=\".5\" fill=\"currentColor\" /><circle cx=\"17.5\" cy=\"10.5\" r=\".5\" fill=\"currentColor\" /><circle cx=\"8.5\" cy=\"7.5\" r=\".5\" fill=\"currentColor\" /><circle cx=\"6.5\" cy=\"12.5\" r=\".5\" fill=\"currentColor\" /><path d=\"M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z\" />","user":"<path d=\"M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2\" /><circle cx=\"12\" cy=\"7\" r=\"4\" />","x":"<path d=\"M18 6 6 18\" /><path d=\"m6 6 12 12\" />","check":"<path d=\"M20 6 9 17l-5-5\" />","circle-check":"<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"m9 12 2 2 4-4\" />","circle-x":"<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"m15 9-6 6\" /><path d=\"m9 9 6 6\" />","arrow-up-right":"<path d=\"M7 7h10v10\" /><path d=\"M7 17 17 7\" />","lock":"<rect width=\"18\" height=\"11\" x=\"3\" y=\"11\" rx=\"2\" ry=\"2\" /><path d=\"M7 11V7a5 5 0 0 1 10 0v4\" />","archive":"<rect width=\"20\" height=\"5\" x=\"2\" y=\"3\" rx=\"1\" /><path d=\"M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8\" /><path d=\"M10 12h4\" />","file-text":"<path d=\"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z\" /><path d=\"M14 2v4a2 2 0 0 0 2 2h4\" /><path d=\"M10 9H8\" /><path d=\"M16 13H8\" /><path d=\"M16 17H8\" />","download":"<path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\" /><polyline points=\"7 10 12 15 17 10\" /><line x1=\"12\" x2=\"12\" y1=\"15\" y2=\"3\" />","upload":"<path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\" /><polyline points=\"17 8 12 3 7 8\" /><line x1=\"12\" x2=\"12\" y1=\"3\" y2=\"15\" />","rotate-ccw":"<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\" /><path d=\"M3 3v5h5\" />","chevron-right":"<path d=\"m9 18 6-6-6-6\" />","chevron-left":"<path d=\"m15 18-6-6 6-6\" />","clock":"<circle cx=\"12\" cy=\"12\" r=\"10\" /><polyline points=\"12 6 12 12 16 14\" />","server":"<rect width=\"20\" height=\"8\" x=\"2\" y=\"2\" rx=\"2\" ry=\"2\" /><rect width=\"20\" height=\"8\" x=\"2\" y=\"14\" rx=\"2\" ry=\"2\" /><line x1=\"6\" x2=\"6.01\" y1=\"6\" y2=\"6\" /><line x1=\"6\" x2=\"6.01\" y1=\"18\" y2=\"18\" />","filter":"<polygon points=\"22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3\" />","terminal":"<polyline points=\"4 17 10 11 4 5\" /><line x1=\"12\" x2=\"20\" y1=\"19\" y2=\"19\" />","flag":"<path d=\"M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z\" /><line x1=\"4\" x2=\"4\" y1=\"22\" y2=\"15\" />","keyboard":"<path d=\"M10 8h.01\" /><path d=\"M12 12h.01\" /><path d=\"M14 8h.01\" /><path d=\"M16 12h.01\" /><path d=\"M18 8h.01\" /><path d=\"M6 8h.01\" /><path d=\"M7 16h10\" /><path d=\"M8 12h.01\" /><rect width=\"20\" height=\"16\" x=\"2\" y=\"4\" rx=\"2\" />","book-open":"<path d=\"M12 7v14\" /><path d=\"M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z\" />","info":"<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M12 16v-4\" /><path d=\"M12 8h.01\" />","github":"<path d=\"M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4\" /><path d=\"M9 18c-4.51 2-5-2-7-2\" />","mail":"<rect width=\"20\" height=\"16\" x=\"2\" y=\"4\" rx=\"2\" /><path d=\"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7\" />","play":"<polygon points=\"6 3 20 12 6 21 6 3\" />","list":"<path d=\"M3 12h.01\" /><path d=\"M3 18h.01\" /><path d=\"M3 6h.01\" /><path d=\"M8 12h13\" /><path d=\"M8 18h13\" /><path d=\"M8 6h13\" />","triangle-alert":"<path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\" /><path d=\"M12 9v4\" /><path d=\"M12 17h.01\" />","inbox":"<polyline points=\"22 12 16 12 14 15 10 15 8 12 2 12\" /><path d=\"M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z\" />","send":"<path d=\"M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z\" /><path d=\"m21.854 2.147-10.94 10.939\" />","pin":"<path d=\"M12 17v5\" /><path d=\"M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z\" />","target":"<circle cx=\"12\" cy=\"12\" r=\"10\" /><circle cx=\"12\" cy=\"12\" r=\"6\" /><circle cx=\"12\" cy=\"12\" r=\"2\" />","scroll-text":"<path d=\"M15 12h-5\" /><path d=\"M15 8h-5\" /><path d=\"M19 17V5a2 2 0 0 0-2-2H4\" /><path d=\"M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3\" />","zap":"<path d=\"M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z\" />","flame":"<path d=\"M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z\" />","trophy":"<path d=\"M6 9H4.5a2.5 2.5 0 0 1 0-5H6\" /><path d=\"M18 9h1.5a2.5 2.5 0 0 0 0-5H18\" /><path d=\"M4 22h16\" /><path d=\"M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22\" /><path d=\"M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22\" /><path d=\"M18 2H6v7a6 6 0 0 0 12 0V2Z\" />","compass":"<path d=\"m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z\" /><circle cx=\"12\" cy=\"12\" r=\"10\" />","split":"<path d=\"M16 3h5v5\" /><path d=\"M8 3H3v5\" /><path d=\"M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3\" /><path d=\"m15 9 6-6\" />","crosshair":"<circle cx=\"12\" cy=\"12\" r=\"10\" /><line x1=\"22\" x2=\"18\" y1=\"12\" y2=\"12\" /><line x1=\"6\" x2=\"2\" y1=\"12\" y2=\"12\" /><line x1=\"12\" x2=\"12\" y1=\"6\" y2=\"2\" /><line x1=\"12\" x2=\"12\" y1=\"22\" y2=\"18\" />","list-checks":"<path d=\"m3 17 2 2 4-4\" /><path d=\"m3 7 2 2 4-4\" /><path d=\"M13 6h8\" /><path d=\"M13 12h8\" /><path d=\"M13 18h8\" />","circle":"<circle cx=\"12\" cy=\"12\" r=\"10\" />","lightbulb":"<path d=\"M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5\" /><path d=\"M9 18h6\" /><path d=\"M10 22h4\" />","bot":"<path d=\"M12 8V4H8\" /><rect width=\"16\" height=\"12\" x=\"4\" y=\"8\" rx=\"2\" /><path d=\"M2 14h2\" /><path d=\"M20 14h2\" /><path d=\"M15 13v2\" /><path d=\"M9 13v2\" />"};
+const ICONOS = {"radar":"<path d=\"M19.07 4.93A10 10 0 0 0 6.99 3.34\" /><path d=\"M4 6h.01\" /><path d=\"M2.29 9.62A10 10 0 1 0 21.31 8.35\" /><path d=\"M16.24 7.76A6 6 0 1 0 8.23 16.67\" /><path d=\"M12 18h.01\" /><path d=\"M17.99 11.66A6 6 0 0 1 15.77 16.67\" /><circle cx=\"12\" cy=\"12\" r=\"2\" /><path d=\"m13.41 10.59 5.66-5.66\" />","calendar-clock":"<path d=\"M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5\" /><path d=\"M16 2v4\" /><path d=\"M8 2v4\" /><path d=\"M3 10h5\" /><path d=\"M17.5 17.5 16 16.3V14\" /><circle cx=\"16\" cy=\"16\" r=\"6\" />","siren":"<path d=\"M7 18v-6a5 5 0 1 1 10 0v6\" /><path d=\"M5 21a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z\" /><path d=\"M21 12h1\" /><path d=\"M18.5 4.5 18 5\" /><path d=\"M2 12h1\" /><path d=\"M12 2v1\" /><path d=\"m4.929 4.929.707.707\" /><path d=\"M12 12v6\" />","award":"<path d=\"m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526\" /><circle cx=\"12\" cy=\"8\" r=\"6\" />","search":"<circle cx=\"11\" cy=\"11\" r=\"8\" /><path d=\"m21 21-4.3-4.3\" />","sun":"<circle cx=\"12\" cy=\"12\" r=\"4\" /><path d=\"M12 2v2\" /><path d=\"M12 20v2\" /><path d=\"m4.93 4.93 1.41 1.41\" /><path d=\"m17.66 17.66 1.41 1.41\" /><path d=\"M2 12h2\" /><path d=\"M20 12h2\" /><path d=\"m6.34 17.66-1.41 1.41\" /><path d=\"m19.07 4.93-1.41 1.41\" />","moon":"<path d=\"M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z\" />","circle-help":"<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3\" /><path d=\"M12 17h.01\" />","panel-left":"<rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" /><path d=\"M9 3v18\" />","palette":"<circle cx=\"13.5\" cy=\"6.5\" r=\".5\" fill=\"currentColor\" /><circle cx=\"17.5\" cy=\"10.5\" r=\".5\" fill=\"currentColor\" /><circle cx=\"8.5\" cy=\"7.5\" r=\".5\" fill=\"currentColor\" /><circle cx=\"6.5\" cy=\"12.5\" r=\".5\" fill=\"currentColor\" /><path d=\"M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z\" />","user":"<path d=\"M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2\" /><circle cx=\"12\" cy=\"7\" r=\"4\" />","x":"<path d=\"M18 6 6 18\" /><path d=\"m6 6 12 12\" />","check":"<path d=\"M20 6 9 17l-5-5\" />","circle-check":"<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"m9 12 2 2 4-4\" />","circle-x":"<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"m15 9-6 6\" /><path d=\"m9 9 6 6\" />","arrow-up-right":"<path d=\"M7 7h10v10\" /><path d=\"M7 17 17 7\" />","lock":"<rect width=\"18\" height=\"11\" x=\"3\" y=\"11\" rx=\"2\" ry=\"2\" /><path d=\"M7 11V7a5 5 0 0 1 10 0v4\" />","archive":"<rect width=\"20\" height=\"5\" x=\"2\" y=\"3\" rx=\"1\" /><path d=\"M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8\" /><path d=\"M10 12h4\" />","file-text":"<path d=\"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z\" /><path d=\"M14 2v4a2 2 0 0 0 2 2h4\" /><path d=\"M10 9H8\" /><path d=\"M16 13H8\" /><path d=\"M16 17H8\" />","download":"<path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\" /><polyline points=\"7 10 12 15 17 10\" /><line x1=\"12\" x2=\"12\" y1=\"15\" y2=\"3\" />","upload":"<path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\" /><polyline points=\"17 8 12 3 7 8\" /><line x1=\"12\" x2=\"12\" y1=\"3\" y2=\"15\" />","rotate-ccw":"<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\" /><path d=\"M3 3v5h5\" />","chevron-right":"<path d=\"m9 18 6-6-6-6\" />","chevron-left":"<path d=\"m15 18-6-6 6-6\" />","clock":"<circle cx=\"12\" cy=\"12\" r=\"10\" /><polyline points=\"12 6 12 12 16 14\" />","server":"<rect width=\"20\" height=\"8\" x=\"2\" y=\"2\" rx=\"2\" ry=\"2\" /><rect width=\"20\" height=\"8\" x=\"2\" y=\"14\" rx=\"2\" ry=\"2\" /><line x1=\"6\" x2=\"6.01\" y1=\"6\" y2=\"6\" /><line x1=\"6\" x2=\"6.01\" y1=\"18\" y2=\"18\" />","filter":"<polygon points=\"22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3\" />","terminal":"<polyline points=\"4 17 10 11 4 5\" /><line x1=\"12\" x2=\"20\" y1=\"19\" y2=\"19\" />","flag":"<path d=\"M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z\" /><line x1=\"4\" x2=\"4\" y1=\"22\" y2=\"15\" />","keyboard":"<path d=\"M10 8h.01\" /><path d=\"M12 12h.01\" /><path d=\"M14 8h.01\" /><path d=\"M16 12h.01\" /><path d=\"M18 8h.01\" /><path d=\"M6 8h.01\" /><path d=\"M7 16h10\" /><path d=\"M8 12h.01\" /><rect width=\"20\" height=\"16\" x=\"2\" y=\"4\" rx=\"2\" />","book-open":"<path d=\"M12 7v14\" /><path d=\"M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z\" />","info":"<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M12 16v-4\" /><path d=\"M12 8h.01\" />","github":"<path d=\"M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4\" /><path d=\"M9 18c-4.51 2-5-2-7-2\" />","mail":"<rect width=\"20\" height=\"16\" x=\"2\" y=\"4\" rx=\"2\" /><path d=\"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7\" />","play":"<polygon points=\"6 3 20 12 6 21 6 3\" />","list":"<path d=\"M3 12h.01\" /><path d=\"M3 18h.01\" /><path d=\"M3 6h.01\" /><path d=\"M8 12h13\" /><path d=\"M8 18h13\" /><path d=\"M8 6h13\" />","triangle-alert":"<path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\" /><path d=\"M12 9v4\" /><path d=\"M12 17h.01\" />","inbox":"<polyline points=\"22 12 16 12 14 15 10 15 8 12 2 12\" /><path d=\"M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z\" />","send":"<path d=\"M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z\" /><path d=\"m21.854 2.147-10.94 10.939\" />","pin":"<path d=\"M12 17v5\" /><path d=\"M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z\" />","target":"<circle cx=\"12\" cy=\"12\" r=\"10\" /><circle cx=\"12\" cy=\"12\" r=\"6\" /><circle cx=\"12\" cy=\"12\" r=\"2\" />","scroll-text":"<path d=\"M15 12h-5\" /><path d=\"M15 8h-5\" /><path d=\"M19 17V5a2 2 0 0 0-2-2H4\" /><path d=\"M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3\" />","zap":"<path d=\"M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z\" />","flame":"<path d=\"M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z\" />","trophy":"<path d=\"M6 9H4.5a2.5 2.5 0 0 1 0-5H6\" /><path d=\"M18 9h1.5a2.5 2.5 0 0 0 0-5H18\" /><path d=\"M4 22h16\" /><path d=\"M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22\" /><path d=\"M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22\" /><path d=\"M18 2H6v7a6 6 0 0 0 12 0V2Z\" />","compass":"<path d=\"m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z\" /><circle cx=\"12\" cy=\"12\" r=\"10\" />","split":"<path d=\"M16 3h5v5\" /><path d=\"M8 3H3v5\" /><path d=\"M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3\" /><path d=\"m15 9 6-6\" />","crosshair":"<circle cx=\"12\" cy=\"12\" r=\"10\" /><line x1=\"22\" x2=\"18\" y1=\"12\" y2=\"12\" /><line x1=\"6\" x2=\"2\" y1=\"12\" y2=\"12\" /><line x1=\"12\" x2=\"12\" y1=\"6\" y2=\"2\" /><line x1=\"12\" x2=\"12\" y1=\"22\" y2=\"18\" />","list-checks":"<path d=\"m3 17 2 2 4-4\" /><path d=\"m3 7 2 2 4-4\" /><path d=\"M13 6h8\" /><path d=\"M13 12h8\" /><path d=\"M13 18h8\" />","circle":"<circle cx=\"12\" cy=\"12\" r=\"10\" />","lightbulb":"<path d=\"M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5\" /><path d=\"M9 18h6\" /><path d=\"M10 22h4\" />","bot":"<path d=\"M12 8V4H8\" /><rect width=\"16\" height=\"12\" x=\"4\" y=\"8\" rx=\"2\" /><path d=\"M2 14h2\" /><path d=\"M20 14h2\" /><path d=\"M15 13v2\" /><path d=\"M9 13v2\" />","mic":"<path d=\"M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z\" /><path d=\"M19 10v2a7 7 0 0 1-14 0v-2\" /><line x1=\"12\" x2=\"12\" y1=\"19\" y2=\"22\" />","printer":"<path d=\"M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2\" /><path d=\"M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6\" /><rect x=\"6\" y=\"14\" width=\"12\" height=\"8\" rx=\"1\" />","star":"<path d=\"M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z\" />"};
 const ic = (n, cls = '') => `<svg class="ic${cls ? ' ' + cls : ''}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${ICONOS[n] || ''}</svg>`;
 /* ===== 02b-motion.js ===== */
 /* Movimiento (principios de Emil Kowalski), con la Web Animations API.
@@ -2549,6 +2834,7 @@ function resultadoHtml(c) {
       <ul class="criterios">${filas}</ul>
       <h3>${esc(T('explicacion'))}</h3><p class="explica">${esc(L(c.explica))}</p>
       ${comunicaHtml(c)}
+      ${defiendeHtml(c)}
       <div class="ticket-pie"><button type="button" class="btn sec" data-reintentar="${c.id}">${ic('rotate-ccw')}${esc(T('reintentar'))}</button>${sig ? `<button type="button" class="btn" data-caso="${sig.id}">${esc(T('siguiente'))}${ic('chevron-right')}</button>` : ''}</div>
     </div>`;
 }
@@ -2567,6 +2853,10 @@ function vHistorial() {
       <section class="panel" data-entra aria-labelledby="ht-t"><h2 id="ht-t" class="panel-t">${ic('calendar-clock')}${esc(T('turnos_titulo'))}</h2><ul class="hist-turnos">${turnos}</ul>
         <h2 class="panel-t sep">${ic('archive')}${esc(T('datos_titulo'))}</h2>
         <div class="acciones-datos"><button type="button" class="btn" data-exportar-md>${ic('download')}${esc(T('exportar_md'))}</button><button type="button" class="btn sec" data-exportar-json>${ic('download')}${esc(T('exportar_json'))}</button><button type="button" class="btn sec" data-importar>${ic('upload')}${esc(T('importar'))}</button><button type="button" class="btn peligro" data-borrar>${ic('rotate-ccw')}${esc(UI.borrarArmado ? T('borrar_confirmar') : T('borrar'))}</button></div>
+        <h2 class="panel-t sep">${ic('mic')}${esc(T('def_titulo'))}</h2>
+        <p class="nota">${esc(T('star_nota'))}</p>
+        <div class="acciones-datos"><button type="button" class="btn" data-star-todas${tickets.length ? '' : ' disabled'}>${ic('star')}${esc(T('star_todas'))}</button><button type="button" class="btn sec" data-imprimir${tickets.length ? '' : ' disabled'}>${ic('printer')}${esc(T('imprimir'))}</button></div>
+        <p class="nota">${esc(T('imprimir_nota'))}</p>
       </section>
     </div>
     ${insigniasHtml()}
@@ -2736,9 +3026,9 @@ function practicaHtml() {
 }
 
 /* ---------- Insignias (historial) ---------- */
-const ICONO_INSIGNIA = { primer: 'flag', perfecto: 'target', sin_alarma: 'filter', contencion: 'lock', turno: 'award', racha3: 'flame', semana: 'trophy', revisor: 'bot', rapido: 'zap', comunicador: 'send' };
+const ICONO_INSIGNIA = { primer: 'flag', perfecto: 'target', sin_alarma: 'filter', contencion: 'lock', turno: 'award', racha3: 'flame', semana: 'trophy', revisor: 'bot', rapido: 'zap', comunicador: 'send', entrevista: 'mic' };
 function insigniasHtml() {
-  const lista = BJ.insignias(TURNOS, cerradas(), hoyLocal(), { racha: progresoActual().racha, cazados: cazados(), rapidoPerfecto: rapidoPerfecto(), mensajes: mensajesCompletos() });
+  const lista = BJ.insignias(TURNOS, cerradas(), hoyLocal(), { racha: progresoActual().racha, cazados: cazados(), rapidoPerfecto: rapidoPerfecto(), mensajes: mensajesCompletos(), defensas: defensasCompletas() });
   const n = lista.filter((x) => x.ok).length;
   return `<section class="panel insignias-p" data-entra aria-labelledby="ins-t"><h2 id="ins-t" class="panel-t">${ic('trophy')}${esc(T('insignias_t'))} <span class="pildora num">${esc(T('tareas_n', { a: n, b: lista.length }))}</span></h2>
     <ul class="insignias">${lista.map(({ id, ok }) => { const [nombre, como] = T('insignias.' + id); return `<li class="${ok ? 'ok' : ''}"><span class="ins-ic" aria-hidden="true">${ic(ICONO_INSIGNIA[id])}</span><b>${esc(nombre)}</b><small>${esc(como)}</small><span class="sr-only">${esc(ok ? T('conseguida') : T('pendiente'))}</span></li>`; }).join('')}</ul></section>`;
@@ -2768,7 +3058,8 @@ function entradasXp() {
   // Cada pregunta al N2 resta XP a su ticket (nunca nota); cada mensaje completo suma.
   const tickets = Object.entries(S.respuestas).map(([id, x]) => (typeof x.nota === 'number' ? { nota: Math.max(0, x.nota - BJ.COSTE_N2 * (S.n2[id]?.length || 0)), cuando: x.cuando } : x));
   const mensajes = Object.values(S.mensajes).flatMap((m) => (m.ok || []).map(() => ({ nota: BJ.XP_MENSAJE, cuando: m.cuando })));
-  return [...tickets, ...Object.values(S.revisiones), ...rapido, ...mensajes];
+  const defensas = Object.values(S.defensas).filter((d) => d.ok?.length === BJ.PREGUNTAS_DEF.length).map((d) => ({ nota: BJ.XP_DEFENSA, cuando: d.cuando }));
+  return [...tickets, ...Object.values(S.revisiones), ...rapido, ...mensajes, ...defensas];
 }
 const cazados = () => REVISION.casos.filter((c) => c.error !== null && revCerrada(c.id) && S.revisiones[c.id].dictamen === 'rechazar').length;
 const rapidoPerfecto = () => Object.values(S.rapido).some((x) => x.total === BJ.RAPIDO_N && x.aciertos === x.total);
@@ -3032,6 +3323,110 @@ function preguntarN2(tipo) {
   $('.n2-hilo li:last-child')?.setAttribute('tabindex', '-1');
   $('.n2-hilo li:last-child')?.focus();
 }
+/* ===== 04e-entrevista.js ===== */
+/* Del ticket a la entrevista.
+ * «Defiende tu ticket»: tres preguntas de entrevista sobre la decisión del propio analista, corregidas en local.
+ * Historias STAR para Astrolabio (formato «yrd-ecosistema») e historial imprimible de una página por turno. */
+
+const defensaDe = (id) => S.defensas[id] || (S.defensas[id] = { ok: [], cuando: null });
+const defensasCompletas = () => Object.values(S.defensas).filter((d) => d.ok?.length === BJ.PREGUNTAS_DEF.length).length;
+const nombreDecision = (k, v) => T((k === 'veredicto' ? 'veredictos.' : 'acciones.') + v);
+
+/** Texto de la pregunta según lo que se decidió: defender la decisión o reconocer el error. */
+function textoPregunta(p, c) {
+  if (p.modo === 'error') return T('def_q.error', { id: c.id, tu: nombreDecision(p.id, p.tu), que: T('def_que.' + p.id), sol: nombreDecision(p.id, p.sol) });
+  if (p.id === 'veredicto') return T('def_q.veredicto', { id: c.id, tu: nombreDecision('veredicto', p.tu), alt: nombreDecision('veredicto', p.alt) });
+  if (p.id === 'accion') return T('def_q.accion.' + p.tu);
+  return T('def_q.evidencia');
+}
+
+/* ---------- Defiende tu ticket ---------- */
+function defiendeHtml(c) {
+  if (!cerrado(c.id)) return '';
+  const preguntas = BJ.preguntasDefensa(c, S.respuestas[c.id]);
+  if (!preguntas.some((p) => p.id === UI.defP)) UI.defP = preguntas[0].id;
+  const p = preguntas.find((x) => x.id === UI.defP);
+  const d = S.defensas[c.id] || { ok: [] };
+  const texto = d[p.id] || '';
+  const revisado = UI.defRevisado === `${c.id}:${p.id}`;
+  const res = revisado ? BJ.corregirDefensa(p, texto, c) : null;
+  const lista = res ? `<ul class="criterios def-crit" aria-live="polite">${res.criterios.map((k) => `<li class="${k.ok ? 'ok' : 'ko'}">${ic(k.ok ? 'circle-check' : 'circle-x')}<span class="crit"><b>${esc(T('def_crit.' + k.id)[0])}</b>${k.ok ? '' : `<small>${esc(T('def_crit.' + k.id)[1])}</small>`}</span></li>`).join('')}</ul>` : '';
+  return `<section class="defiende" aria-labelledby="def-t">
+      <div class="n2-cab"><span class="n2-av def-av" aria-hidden="true">DV</span><div><h3 id="def-t">${ic('mic')}${esc(T('def_titulo'))}</h3><p class="nota">${esc(T('def_sub'))}</p></div></div>
+      <div class="g-tabs" role="group" aria-label="${esc(T('def_titulo'))}">${preguntas.map((x) => `<button type="button" data-def-p="${x.id}" aria-pressed="${x.id === p.id}">${esc(T('def_tab.' + x.id))}${(d.ok || []).includes(x.id) ? ic('circle-check', 'ok') : ''}</button>`).join('')}</div>
+      <p class="def-q" id="def-q">${esc(textoPregunta(p, c))}</p>
+      <label class="campo"><span class="sr-only">${esc(textoPregunta(p, c))}</span><textarea id="def-texto" rows="4" maxlength="${BJ.LIMITES.ticket}" aria-describedby="def-q" placeholder="${esc(T(p.modo === 'error' ? 'def_ph_error' : 'def_ph'))}">${esc(texto)}</textarea><small class="num" id="def-palabras">${esc(T('com_palabras', { n: (texto.trim().match(/\S+/g) || []).length }))}</small></label>
+      <button type="button" class="btn sec com-revisar" data-def-revisar>${ic('list-checks')}${esc(T('def_revisar'))}</button>
+      <details class="com-ej"><summary>${esc(T('def_ejemplo'))}</summary><p>${esc(BJ.modeloDefensa(p, c, P.lang))}</p></details>
+      ${lista}${res && res.completo ? `<p class="msg-ok">${ic('circle-check')}${esc(T('def_ok'))}</p>` : ''}
+      <div class="def-pie"><span class="nota num">${esc(T('def_hecha', { n: (d.ok || []).length }))}</span><button type="button" class="btn sec" data-star="${c.id}">${ic('star')}${esc(T('star_uno'))}</button></div>
+    </section>`;
+}
+function revisarDefensa() {
+  const c = CASOS[UI.caso];
+  const p = BJ.preguntasDefensa(c, S.respuestas[c.id]).find((x) => x.id === UI.defP);
+  if (!p) return;
+  const d = defensaDe(c.id);
+  d[p.id] = $('#def-texto').value.slice(0, BJ.LIMITES.ticket);
+  const res = BJ.corregirDefensa(p, d[p.id], c);
+  const antes = progresoActual();
+  const completaAntes = d.ok.length === BJ.PREGUNTAS_DEF.length;
+  d.ok = res.completo ? [...new Set([...d.ok, p.id])] : d.ok.filter((x) => x !== p.id);
+  const completa = d.ok.length === BJ.PREGUNTAS_DEF.length;
+  if (completa && !completaAntes) d.cuando = new Date().toISOString();
+  UI.defRevisado = `${c.id}:${p.id}`;
+  guardar();
+  repintarDefiende();
+  if (completa && !completaAntes) avisosXp(antes, progresoActual(), '', 0, T('xp_def', { n: BJ.XP_DEFENSA, id: c.id }));
+}
+function repintarDefiende() { const s = $('.defiende'); if (s) s.outerHTML = defiendeHtml(CASOS[UI.caso]); pintarLateral(); }
+
+/* ---------- Historias STAR para Astrolabio ---------- */
+function historiaDe(id) {
+  const c = CASOS[id];
+  const t = turnoDe(c.turno);
+  return BJ.historiaStar(c, S.respuestas[id], { lang: P.lang, turno: { n: numTurno(t), dia: t.dia }, defensa: S.defensas[id], mensajes: S.mensajes[id]?.ok || [] });
+}
+function exportarStar(ids) {
+  const lista = ids.filter(cerrado);
+  if (!lista.length) return;
+  const sobre = BJ.sobreHistorias(lista.map(historiaDe), VERSION);
+  const nombre = lista.length === 1 ? `bluejr-star-${lista[0]}.json` : `bluejr-historias-star-${new Date().toISOString().slice(0, 10)}.json`;
+  descargar(nombre, JSON.stringify(sobre, null, 2), 'application/json');
+}
+
+/* ---------- Historial imprimible: una página por turno ---------- */
+function impresionHtml() {
+  const fecha = new Date().toLocaleDateString(locale(), { day: 'numeric', month: 'long', year: 'numeric' });
+  const hojas = TURNOS.map((t) => ({ t, r: BJ.resumenTurno(t, cerradas()) })).filter((x) => x.r.hechos);
+  return hojas.map(({ t, r }, i) => {
+    const casos = t.casos.filter((x) => cerrado(x.id));
+    const res = (c) => S.respuestas[c.id];
+    const v = casos.filter((c) => res(c).veredicto === c.veredicto).length;
+    const a = casos.filter((c) => res(c).accion === c.accion).length;
+    const defendidos = casos.filter((c) => S.defensas[c.id]?.ok?.length === BJ.PREGUNTAS_DEF.length).length;
+    const relevo = (S.relevos[t.id] || '').trim();
+    const [cA, cH, cV, cAc, cN] = T('pdf_cols');
+    return `<section class="hoja">
+        <header class="hoja-cab"><p class="hoja-marca">${ic('radar')}<b>Blue-Jr</b> · ${esc(T('pdf_titulo'))}</p><p>${esc(S.perfil.nombre || T('perfil_rol'))} · ${esc(fecha)}</p></header>
+        <h1>${esc(T('turno_n', { n: numTurno(t) }))} · ${esc(diaDe(t))} · ${esc(L(t.tema))}</h1>
+        <p class="hoja-res"><b>${esc(T('progreso', { a: r.hechos, b: r.total }))}</b> · ${esc(T('nota_media'))} <b>${r.media}</b>/100 · ${esc(T('pdf_aciertos', { v, a, n: casos.length }))}</p>
+        <table><thead><tr><th>${esc(cA)}</th><th>${esc(cH)}</th><th>${esc(cV)}</th><th>${esc(cAc)}</th><th>${esc(cN)}</th></tr></thead><tbody>
+        ${casos.map((c) => { const s = res(c); return `<tr><td><b>${c.id}</b> ${esc(L(c.titulo))}</td><td>${c.hora}</td><td class="${s.veredicto === c.veredicto ? '' : 'mal'}">${esc(T('veredictos.' + s.veredicto))}</td><td class="${s.accion === c.accion ? '' : 'mal'}">${esc(T('acciones.' + s.accion))}</td><td><b>${s.nota}</b></td></tr>`; }).join('')}
+        </tbody></table>
+        ${defendidos ? `<p class="hoja-res">${esc(T('pdf_defendidos', { n: defendidos }))}</p>` : ''}
+        ${relevo ? `<h2>${esc(T('relevo'))}</h2><p class="hoja-relevo">${esc(relevo.length > 700 ? relevo.slice(0, 699) + '…' : relevo)}</p>` : ''}
+        <footer class="hoja-pie"><span>${esc(T('pdf_aviso'))} ${esc(REPO)}</span><span>${esc(T('pdf_pie', { p: i + 1, t: hojas.length }))}</span></footer>
+      </section>`;
+  }).join('');
+}
+function imprimirHistorial() {
+  let caja = $('#impresion');
+  if (!caja) { caja = document.createElement('div'); caja.id = 'impresion'; document.body.append(caja); }
+  caja.innerHTML = impresionHtml();
+  if (!caja.children.length) return;
+  window.print();
+}
 /* ===== 05-events.js ===== */
 /* Eventos y arranque. Un único delegado por tipo de evento: la interfaz se repinta por zonas. */
 
@@ -3153,12 +3548,18 @@ document.addEventListener('click', (e) => {
   }
   if ('cerrarTicket' in d) return cerrarTicket();
   if (d.reintentar) {
-    const r = respuesta(d.reintentar); delete r.cerrado; delete r.nota; guardar();
+    // La entrevista depende de lo que se decidió: al reabrir el ticket, se empieza de cero.
+    const r = respuesta(d.reintentar); delete r.cerrado; delete r.nota; delete S.defensas[d.reintentar]; guardar();
     pintar(); return $('[data-veredicto]')?.focus();
   }
   if (d.guardarRelevo) { S.relevos[d.guardarRelevo] = $('#relevo').value.slice(0, BJ.LIMITES.relevo); guardar(); return avisar(T('relevo_guardado')); }
   if ('exportarMd' in d) return descargar(`bluejr-historial-${new Date().toISOString().slice(0, 10)}.md`, historialMd(), 'text/markdown;charset=utf-8');
   if ('exportarJson' in d) return descargar(`bluejr-copia-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({ app: 'bluejr', version: VERSION, ...S }, null, 2), 'application/json');
+  if (d.defP) { UI.defP = d.defP; UI.defRevisado = null; repintarDefiende(); return $(`[data-def-p="${d.defP}"]`)?.focus(); }
+  if ('defRevisar' in d) return revisarDefensa();
+  if (d.star) return exportarStar([d.star]);
+  if ('starTodas' in d) return exportarStar(Object.keys(CASOS).filter(cerrado));
+  if ('imprimir' in d) return imprimirHistorial();
   if ('importar' in d) return $('#archivo').click();
   if ('borrar' in d) {
     if (!UI.borrarArmado) { UI.borrarArmado = true; b.lastChild.textContent = T('borrar_confirmar'); setTimeout(() => { UI.borrarArmado = false; if (document.contains(b)) b.lastChild.textContent = T('borrar'); }, 4000); return; }
@@ -3185,6 +3586,7 @@ document.addEventListener('input', (e) => {
     pintarLineas(); return actualizarTareas();
   }
   if (t.dataset.campo) { respuesta(UI.caso).campos[t.dataset.campo] = t.value.slice(0, BJ.LIMITES.campo); guardar(); return actualizarTareas(); }
+  if (t.id === 'def-texto') { defensaDe(UI.caso)[UI.defP] = t.value.slice(0, BJ.LIMITES.ticket); guardar(); $('#def-palabras').textContent = T('com_palabras', { n: (t.value.trim().match(/\S+/g) || []).length }); return; }
   if (t.id === 'msg-texto') { msgDe(UI.caso)[UI.msgTipo] = t.value.slice(0, BJ.LIMITES.ticket); guardar(); $('#msg-palabras').textContent = T('com_palabras', { n: (t.value.trim().match(/\S+/g) || []).length }); return; }
   if (t.id === 'texto-ticket') { respuesta(UI.caso).ticket = t.value.slice(0, BJ.LIMITES.ticket); guardar(); $('#cuenta-ticket').textContent = T('caracteres', { n: t.value.trim().length, m: BJ.TICKET_MIN }); actualizarTareas(); }
 });

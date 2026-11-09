@@ -54,6 +54,9 @@ for (const [ancho, alto] of [[1440, 900], [390, 844]]) {
       if (ancho < 900) await p.click('[data-panel="ticket"]');
       await p.fill('#msg-texto', 'Login raro de r.ibanez'); await p.click('[data-msg-revisar]');
       await auditar(p, `comunícalo ${ancho} ${tema}`);
+      // Defiende tu ticket con la lista corregida (criterios cumplidos y sin cumplir).
+      await p.click('[data-def-p="accion"]'); await p.fill('#def-texto', 'Contuve porque r.ibanez tenía sesión.'); await p.click('[data-def-revisar]');
+      await auditar(p, `defiende tu ticket ${ancho} ${tema}`);
       if (ancho < 900) await p.click('[data-panel="cola"]');
       await p.click('.cola [data-caso="T1-03"]');
       if (ancho < 900) await p.click('[data-panel="ticket"]');

@@ -14,7 +14,8 @@ function entradasXp() {
   // Cada pregunta al N2 resta XP a su ticket (nunca nota); cada mensaje completo suma.
   const tickets = Object.entries(S.respuestas).map(([id, x]) => (typeof x.nota === 'number' ? { nota: Math.max(0, x.nota - BJ.COSTE_N2 * (S.n2[id]?.length || 0)), cuando: x.cuando } : x));
   const mensajes = Object.values(S.mensajes).flatMap((m) => (m.ok || []).map(() => ({ nota: BJ.XP_MENSAJE, cuando: m.cuando })));
-  return [...tickets, ...Object.values(S.revisiones), ...rapido, ...mensajes];
+  const defensas = Object.values(S.defensas).filter((d) => d.ok?.length === BJ.PREGUNTAS_DEF.length).map((d) => ({ nota: BJ.XP_DEFENSA, cuando: d.cuando }));
+  return [...tickets, ...Object.values(S.revisiones), ...rapido, ...mensajes, ...defensas];
 }
 const cazados = () => REVISION.casos.filter((c) => c.error !== null && revCerrada(c.id) && S.revisiones[c.id].dictamen === 'rechazar').length;
 const rapidoPerfecto = () => Object.values(S.rapido).some((x) => x.total === BJ.RAPIDO_N && x.aciertos === x.total);

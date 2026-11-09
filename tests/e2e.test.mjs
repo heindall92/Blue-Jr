@@ -2,6 +2,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { lanzar, URL_APP, BJ, INDICE, respuestaPerfecta } from './_util.mjs';
@@ -425,9 +426,9 @@ test('historial: insignias ganadas y pendientes', async () => {
   const c = INDICE['T1-01'];
   await p.addInitScript(([id, r]) => { if (!localStorage.getItem('bluejr-v1')) localStorage.setItem('bluejr-v1', JSON.stringify({ respuestas: { [id]: { ...r, cerrado: true, cuando: new Date().toISOString() } } })); }, [c.id, respuestaPerfecta(c)]);
   await ir(p, 'historial');
-  assert.equal(await p.locator('.insignias li').count(), 10);
+  assert.equal(await p.locator('.insignias li').count(), 11);
   assert.equal(await p.locator('.insignias li.ok').count(), 2, 'primer ticket y ticket perfecto');
-  assert.match(await p.textContent('.insignias-p .pildora'), /2 de 10/);
+  assert.match(await p.textContent('.insignias-p .pildora'), /2 de 11/);
   await p.context().close();
 });
 
@@ -565,5 +566,101 @@ test('Comunícalo: el mensaje a N2 y el aviso a dirección se corrigen, suman XP
   const md = readFileSync(await descarga.path(), 'utf8');
   assert.match(md, /Escalado a N2\*\*\n\n> Prioridad alta/);
   assert.match(md, /Aviso a dirección/);
+  await p.context().close();
+});
+
+/* ---------- 0.6.0 · Del ticket a la entrevista ---------- */
+const sembrarCerrados = async (p, resp, extra = {}) => p.addInitScript(([r, x]) => {
+  if (!localStorage.getItem('bluejr-v1')) localStorage.setItem('bluejr-v1', JSON.stringify({ perfil: { nombre: 'Ana Prueba' }, respuestas: r, ...x }));
+  window.print = () => { window.__impreso = (window.__impreso || 0) + 1; };
+}, [resp, extra]);
+const cerradoComo = (id, cambios = {}) => ({ ...respuestaPerfecta(INDICE[id]), cerrado: true, cuando: new Date().toISOString(), ...cambios });
+
+test('Defiende tu ticket: tres preguntas sobre tu decisión, XP al completarlas y se reinicia al reabrir', async () => {
+  const p = await pagina();
+  const c = INDICE['T1-01'];
+  await sembrarCerrados(p, { 'T1-01': cerradoComo('T1-01'), 'T1-02': cerradoComo('T1-02', { accion: INDICE['T1-02'].accion === 'cerrar' ? 'escalar' : 'cerrar' }) });
+  await ir(p, 'T1');
+  await p.click('.cola [data-caso="T1-01"]');
+  await p.waitForSelector('.defiende');
+  // T1-01 se contuvo bien: hay que defenderlo frente a escalar sin contener.
+  await p.click('[data-def-p="accion"]');
+  assert.match(await p.textContent('#def-q'), /contuviste/i);
+  await p.fill('#def-texto', 'Lo contuve.');
+  await p.click('[data-def-revisar]');
+  assert.equal(await p.locator('.def-crit li.ko').count(), 4);
+  const xpAntes = await p.evaluate(() => document.querySelector('.cuenta-txt small')?.textContent);
+  for (const q of BJ.PREGUNTAS_DEF) {
+    await p.click(`[data-def-p="${q}"]`);
+    await p.fill('#def-texto', BJ.modeloDefensa(BJ.preguntasDefensa(c, respuestaPerfecta(c)).find((x) => x.id === q), c, 'es'));
+    await p.click('[data-def-revisar]');
+    assert.equal(await p.locator('.def-crit li.ko').count(), 0, q);
+  }
+  assert.match(await p.textContent('.def-pie'), /3 de 3/);
+  await p.waitForSelector('.toast >> text=+15 XP');
+  assert.notEqual(await p.evaluate(() => document.querySelector('.cuenta-txt small')?.textContent), xpAntes);
+  const s = await p.evaluate(() => JSON.parse(localStorage.getItem('bluejr-v1')));
+  assert.deepEqual(s.defensas['T1-01'].ok, ['veredicto', 'accion', 'evidencia']);
+  // Un ticket con la acción equivocada pregunta por el error.
+  await p.click('.cola [data-caso="T1-02"]');
+  await p.click('[data-def-p="accion"]');
+  assert.match(await p.textContent('#def-q'), /¿Qué se te pasó y qué harías ahora\?/);
+  // Reabrir el ticket borra su entrevista: las preguntas dependen de lo decidido.
+  await p.click('.cola [data-caso="T1-01"]');
+  await p.click('[data-reintentar="T1-01"]');
+  assert.equal(await p.evaluate(() => JSON.parse(localStorage.getItem('bluejr-v1')).defensas['T1-01']), undefined);
+  assert.deepEqual(p.fallos, []);
+  await p.context().close();
+});
+
+test('Historias STAR para Astrolabio: un ticket o todos, con el sobre del ecosistema y tus textos', async () => {
+  const p = await pagina();
+  const c = INDICE['T1-01'];
+  const def = Object.fromEntries(BJ.preguntasDefensa(c, respuestaPerfecta(c)).map((q) => [q.id, BJ.modeloDefensa(q, c, 'es')]));
+  await sembrarCerrados(p, { 'T1-01': cerradoComo('T1-01', { ticket: 'Fuerza bruta desde 203.0.113.45 con login OK de r.ibanez; cuenta deshabilitada.' }), 'T2-01': cerradoComo('T2-01') }, { defensas: { 'T1-01': { ...def, ok: ['veredicto', 'accion', 'evidencia'] } } });
+  await ir(p, 'T1');
+  await p.click('.cola [data-caso="T1-01"]');
+  const [uno] = await Promise.all([p.waitForEvent('download'), p.click('[data-star="T1-01"]')]);
+  assert.equal(uno.suggestedFilename(), 'bluejr-star-T1-01.json');
+  const s1 = JSON.parse(readFileSync(await uno.path(), 'utf8'));
+  assert.deepEqual([s1.formato, s1.version, s1.tipo, s1.app], ['yrd-ecosistema', 1, 'historias', 'blue-jr']);
+  assert.equal(s1.datos.historias.length, 1);
+  const h = s1.datos.historias[0];
+  assert.equal(h.id, 'bluejr-t1-01');
+  assert.match(h.a, /Fuerza bruta desde 203\.0\.113\.45/);
+  assert.match(h.a, /Por qué lo decidí así: Contuve porque/);
+  await ir(p, 'historial');
+  const [todas] = await Promise.all([p.waitForEvent('download'), p.click('[data-star-todas]')]);
+  assert.match(todas.suggestedFilename(), /^bluejr-historias-star-\d{4}-\d{2}-\d{2}\.json$/);
+  const s2 = JSON.parse(readFileSync(await todas.path(), 'utf8'));
+  assert.deepEqual(s2.datos.historias.map((x) => x.id), ['bluejr-t1-01', 'bluejr-t2-01']);
+  assert.deepEqual(p.fallos, []);
+  await p.context().close();
+});
+
+test('historial imprimible: una página A4 por turno con tickets (pdfinfo y pdftotext)', async () => {
+  const p = await pagina({ colorScheme: 'light' });
+  await sembrarCerrados(p, { 'T1-01': cerradoComo('T1-01'), 'T1-02': cerradoComo('T1-02'), 'T3-01': cerradoComo('T3-01'), 'T5-01': cerradoComo('T5-01') }, { relevos: { T1: 'VPN de r.ibanez contenida; pendiente de revisión del N2.' } });
+  await ir(p, 'historial');
+  await p.click('[data-imprimir]');
+  assert.equal(await p.evaluate(() => window.__impreso), 1);
+  await p.emulateMedia({ media: 'print' });
+  const dir = mkdtempSync(join(tmpdir(), 'bluejr-pdf-'));
+  const pdf = join(dir, 'historial.pdf');
+  writeFileSync(pdf, await p.pdf({ format: 'A4', printBackground: true, preferCSSPageSize: true }));
+  const info = execFileSync('pdfinfo', [pdf], { encoding: 'utf8' });
+  assert.match(info, /^Pages:\s+3$/m, info);
+  assert.match(info, /^Page size:.*\(A4\)$/m, info);
+  const paginas = execFileSync('pdftotext', ['-layout', pdf, '-'], { encoding: 'utf8' }).split('\f');
+  ['Turno 1 · Lunes', 'Turno 3 · Miércoles', 'Turno 5 · Viernes'].forEach((t, i) => {
+    assert.ok(paginas[i].includes(t), `página ${i + 1}: ${t}`);
+    assert.ok(paginas[i].includes(`Página ${i + 1} de 3`), `pie de la página ${i + 1}`);
+  });
+  assert.match(paginas[0], /Ana Prueba/);
+  assert.match(paginas[0], /pendiente de revisión del N2/);
+  // En pantalla, la hoja de impresión no se ve.
+  await p.emulateMedia({ media: 'screen' });
+  assert.equal(await p.locator('#impresion').isVisible(), false);
+  assert.deepEqual(p.fallos, []);
   await p.context().close();
 });

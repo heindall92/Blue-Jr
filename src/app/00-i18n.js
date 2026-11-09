@@ -211,6 +211,49 @@ const I18N = {
       decision_no: 'Yo no marcaría ese veredicto. Vuelve a la guía: ¿hay autorización?, ¿llegó a tener efecto?'
     },
     n2_coste: 'Pregunta al N2: −{n} XP en este ticket',
+    def_titulo: 'Defiende tu ticket',
+    def_sub: 'Daniel Vega, responsable del SOC, te entrevista sobre este ticket. Así preguntan en las entrevistas técnicas: por qué decidiste lo que decidiste.',
+    def_q: {
+      veredicto: 'En {id} dijiste «{tu}». ¿Por qué descartaste «{alt}»?',
+      accion: {
+        escalar: 'Lo escalaste. ¿Por qué no lo contuviste tú?',
+        contener: 'Lo contuviste. Contener tiene impacto: ¿por qué no te limitaste a escalarlo?',
+        cerrar: 'Lo cerraste. ¿Y si era real? ¿Por qué no lo escalaste?'
+      },
+      evidencia: 'Si el N2 solo pudiera mirar una línea del registro, ¿cuál le darías y por qué basta?',
+      error: 'En {id} elegiste «{tu}» para {que} y era «{sol}». ¿Qué se te pasó y qué harías ahora?'
+    },
+    def_que: { veredicto: 'el veredicto', accion: 'la acción' },
+    def_tab: { veredicto: 'Veredicto', accion: 'Acción', evidencia: 'Evidencia' },
+    def_ph: 'Contéstale como en una entrevista: la razón, el dato del caso que lo demuestra y la otra opción que descartaste.',
+    def_ph_error: 'Reconoce el error, di qué dato se te pasó y qué haces ahora distinto.',
+    def_revisar: 'Revisar la respuesta',
+    def_ejemplo: 'Ver una respuesta de ejemplo',
+    def_ok: 'Respuesta sólida: tiene lo que busca quien entrevista.',
+    def_hecha: '{n} de 3 respuestas completas',
+    def_crit: {
+      porque: ['Das el porqué', 'Explica la razón con «porque», «ya que» o «por eso».'],
+      dato: ['Citas un dato del caso', 'Nombra la IP, la cuenta, el equipo o el dato que lo decide.'],
+      riesgo: ['Hablas del riesgo o del impacto', 'Di qué podía pasar, a quién afectaba o cuánto tiempo había.'],
+      alternativa: ['Nombras la otra opción', 'Quien entrevista quiere ver que la sopesaste: nómbrala y di por qué no.'],
+      cuando: ['Dices la hora', 'Sitúa la línea en el tiempo (HH:MM).'],
+      reconoce: ['Reconoces el error', 'Dilo sin rodeos: «me equivoqué», «se me pasó».'],
+      ahora: ['Dices qué harías ahora', 'Cierra con lo que cambias: «ahora compruebo…», «la próxima vez…».'],
+      breve: ['Entre 15 y 150 palabras', 'Una respuesta de entrevista cabe en un minuto.']
+    },
+    xp_def: '+{n} XP · ticket {id} defendido',
+    star_uno: 'Historia STAR para Astrolabio',
+    star_todas: 'Historias STAR para Astrolabio (.json)',
+    star_nota: 'Convierte tus tickets en historias STAR (situación, tarea, acción, resultado y lección) que Astrolabio suma a las tuyas para preparar entrevistas. Mejor si antes defiendes el ticket: tu respuesta pasa a la historia.',
+    star_exportadas: '{n} historias STAR exportadas',
+    imprimir: 'Imprimir o guardar en PDF',
+    imprimir_nota: 'Una página por turno con tickets cerrados, lista para adjuntar a una candidatura.',
+    pdf_titulo: 'Historial de turnos SOC',
+    pdf_aviso: 'Simulación formativa con una empresa ficticia (Norte Logística). Las decisiones y los textos son del analista; la corrección es automática.',
+    pdf_cols: ['Alerta', 'Hora', 'Veredicto', 'Acción', 'Nota'],
+    pdf_aciertos: 'Veredictos acertados: {v} de {n} · acciones acertadas: {a} de {n}',
+    pdf_defendidos: 'Tickets defendidos en «Defiende tu ticket»: {n}',
+    pdf_pie: 'Página {p} de {t}',
     guia_titulo: 'Guía de investigación',
     guia_sub: 'triaje, análisis y respuesta',
     guia_si: 'Si',
@@ -273,7 +316,8 @@ const I18N = {
       semana: ['Semana completa', 'Cierra las 40 alertas'],
       revisor: ['Revisor de IA', 'Caza tres errores del agente'],
       rapido: ['Reflejos', 'Diez de diez en el triaje rápido'],
-      comunicador: ['Comunicador', 'Cinco mensajes completos a N2 o a dirección']
+      comunicador: ['Comunicador', 'Cinco mensajes completos a N2 o a dirección'],
+      entrevista: ['Lista para la entrevista', 'Defiende tres tickets con las tres respuestas completas']
     },
 
     hist_ante: 'TU HISTORIAL',
@@ -316,7 +360,8 @@ const I18N = {
       ['Decide', 'Veredicto (verdadero positivo, falso positivo o benigno) y acción (cerrar, escalar o contener).'],
       ['Documenta', 'Rellena los datos clave, fija las líneas que lo demuestran y escribe el ticket.'],
       ['Aprende de la corrección', 'Al cerrar ves la nota, lo esperado y por qué.'],
-      ['Entrega el relevo', 'Al acabar el turno, escribe lo que el siguiente analista debe saber.']
+      ['Entrega el relevo', 'Al acabar el turno, escribe lo que el siguiente analista debe saber.'],
+      ['Defiende tu ticket', 'Contesta las tres preguntas de entrevista sobre tu decisión. Después, en Historial, exporta tus tickets como historias STAR para Astrolabio o imprime una página por turno.']
     ],
     guia_por_que: 'Para el primer empleo piden experiencia, y para tenerla hace falta el primer empleo. Blue-Jr te da una semana de turnos de nivel 1 con decisiones reales y un historial que puedes enseñar.',
     metodo_intro: 'Cada ticket vale 100 puntos, repartidos así:',
@@ -578,6 +623,49 @@ const I18N = {
       decision_no: 'I would not choose that verdict. Go back to the guide: is there an authorisation? Did it take effect?'
     },
     n2_coste: 'Asked tier 2: −{n} XP on this ticket',
+    def_titulo: 'Defend your ticket',
+    def_sub: 'Daniel Vega, SOC lead, interviews you about this ticket. This is how technical interviews ask: why you decided what you decided.',
+    def_q: {
+      veredicto: 'In {id} you said «{tu}». Why did you rule out «{alt}»?',
+      accion: {
+        escalar: 'You escalated it. Why did you not contain it yourself?',
+        contener: 'You contained it. Containment has an impact: why not just escalate it?',
+        cerrar: 'You closed it. What if it was real? Why did you not escalate it?'
+      },
+      evidencia: 'If tier 2 could only look at one log line, which one would you give them and why is it enough?',
+      error: 'In {id} you chose «{tu}» for {que} and it was «{sol}». What did you miss and what would you do now?'
+    },
+    def_que: { veredicto: 'the verdict', accion: 'the action' },
+    def_tab: { veredicto: 'Verdict', accion: 'Action', evidencia: 'Evidence' },
+    def_ph: 'Answer as you would in an interview: the reason, the fact from the case that proves it and the other option you ruled out.',
+    def_ph_error: 'Own the mistake, say which fact you missed and what you now do differently.',
+    def_revisar: 'Check the answer',
+    def_ejemplo: 'See a sample answer',
+    def_ok: 'Solid answer: it has what an interviewer looks for.',
+    def_hecha: '{n} of 3 answers complete',
+    def_crit: {
+      porque: ['You give the why', 'Explain the reason with «because», «since» or «that is why».'],
+      dato: ['You quote a fact from the case', 'Name the IP, account, host or fact that decides it.'],
+      riesgo: ['You talk about risk or impact', 'Say what could happen, who it affected or how much time there was.'],
+      alternativa: ['You name the other option', 'The interviewer wants to see you weighed it: name it and say why not.'],
+      cuando: ['You give the time', 'Place the line in time (HH:MM).'],
+      reconoce: ['You own the mistake', 'Say it plainly: «I got it wrong», «I missed».'],
+      ahora: ['You say what you would do now', 'End with what changes: «now I check…», «next time…».'],
+      breve: ['Between 15 and 150 words', 'An interview answer fits in a minute.']
+    },
+    xp_def: '+{n} XP · ticket {id} defended',
+    star_uno: 'STAR story for Astrolabio',
+    star_todas: 'STAR stories for Astrolabio (.json)',
+    star_nota: 'Turn your tickets into STAR stories (situation, task, action, result and lesson) that Astrolabio adds to yours for interview prep. Better if you defend the ticket first: your answer goes into the story.',
+    star_exportadas: '{n} STAR stories exported',
+    imprimir: 'Print or save as PDF',
+    imprimir_nota: 'One page per shift with closed tickets, ready to attach to an application.',
+    pdf_titulo: 'SOC shift record',
+    pdf_aviso: 'Training simulation with a made-up company (Norte Logística). Decisions and texts are the analyst\'s; grading is automatic.',
+    pdf_cols: ['Alert', 'Time', 'Verdict', 'Action', 'Score'],
+    pdf_aciertos: 'Correct verdicts: {v} of {n} · correct actions: {a} of {n}',
+    pdf_defendidos: 'Tickets defended in «Defend your ticket»: {n}',
+    pdf_pie: 'Page {p} of {t}',
     guia_titulo: 'Investigation guide',
     guia_sub: 'triage, analysis and response',
     guia_si: 'If',
@@ -640,7 +728,8 @@ const I18N = {
       semana: ['Full week', 'Close all 40 alerts'],
       revisor: ['AI reviewer', 'Catch three agent mistakes'],
       rapido: ['Reflexes', 'Ten out of ten in quick triage'],
-      comunicador: ['Communicator', 'Five complete messages to T2 or management']
+      comunicador: ['Communicator', 'Five complete messages to T2 or management'],
+      entrevista: ['Interview ready', 'Defend three tickets with all three answers complete']
     },
 
     hist_ante: 'YOUR RECORD',
@@ -683,7 +772,8 @@ const I18N = {
       ['Decide', 'Verdict (true positive, false positive or benign) and action (close, escalate or contain).'],
       ['Document', 'Fill in the key facts, pin the lines that prove it and write the ticket.'],
       ['Learn from the grading', 'When you close it you see the score, what was expected and why.'],
-      ['Hand over', 'At the end of the shift, write what the next analyst needs to know.']
+      ['Hand over', 'At the end of the shift, write what the next analyst needs to know.'],
+      ['Defend your ticket', 'Answer the three interview questions about your decision. Then, in Record, export your tickets as STAR stories for Astrolabio or print one page per shift.']
     ],
     guia_por_que: 'Your first job asks for experience, and getting experience takes a first job. Blue-Jr gives you a week of tier 1 shifts with real decisions and a record you can show.',
     metodo_intro: 'Each ticket is worth 100 points, split like this:',

@@ -170,7 +170,7 @@ const BJ = (() => {
 
   /** Deja solo lo que Blue-Jr sabe leer, con tipos, longitudes y listas permitidas. Recalcula la nota. */
   function sanearEstado(bruto, indice, indiceRev = {}) {
-    const out = { v: 1, perfil: { nombre: '' }, respuestas: {}, relevos: {}, revisiones: {}, repaso: {}, rapido: {}, mensajes: {}, n2: {} };
+    const out = { v: 1, perfil: { nombre: '' }, respuestas: {}, relevos: {}, revisiones: {}, repaso: {}, rapido: {}, mensajes: {}, n2: {}, defensas: {} };
     if (!bruto || typeof bruto !== 'object') return out;
     out.perfil.nombre = corta(bruto.perfil?.nombre, LIMITES.nombre);
     const resp = bruto.respuestas && typeof bruto.respuestas === 'object' ? bruto.respuestas : {};
@@ -242,6 +242,17 @@ const BJ = (() => {
         else out.n2[id].push({ tipo: 'inicio' });
       }
     }
+    for (const [id, d] of Object.entries(obj(bruto.defensas))) {
+      const caso = indice[id];
+      const r = out.respuestas[id];
+      // Solo hay entrevista de tickets cerrados, y las preguntas dependen de lo que se decidió.
+      if (!caso || !r?.cerrado || !d || typeof d !== 'object') continue;
+      const limpio = {};
+      for (const p of preguntasDefensa(caso, r)) if (typeof d[p.id] === 'string') limpio[p.id] = corta(d[p.id], LIMITES.ticket);
+      limpio.ok = preguntasDefensa(caso, r).filter((p) => limpio[p.id] && corregirDefensa(p, limpio[p.id], caso).completo).map((p) => p.id);
+      limpio.cuando = typeof d.cuando === 'string' && !Number.isNaN(Date.parse(d.cuando)) ? d.cuando : null;
+      out.defensas[id] = limpio;
+    }
     return out;
   }
 
@@ -291,6 +302,7 @@ const BJ = (() => {
       ['revisor', (extra.cazados || 0) >= 3],
       ['rapido', extra.rapidoPerfecto === true],
       ['comunicador', (extra.mensajes || 0) >= 5],
+      ['entrevista', (extra.defensas || 0) >= 3],
       ['semana', hechos.length === casos.length && casos.length > 0]
     ];
     return lista.map(([id, ok]) => ({ id, ok }));
@@ -408,6 +420,155 @@ const BJ = (() => {
       : `This morning, at ${caso.hora}, we saw a situation that may affect company or customer data and needs a manager's decision. The security team is investigating it discreetly. We need you to authorise the review with HR and Legal.`;
   }
 
+  /* ---------- Defiende tu ticket: la entrevista sobre tus propios casos (0.6.0) ----------
+   * Tres preguntas por ticket cerrado, como las de una entrevista técnica de SOC. Si la decisión fue
+   * correcta, hay que defenderla frente a la alternativa; si fue un error, reconocerlo y decir qué harías ahora. */
+  const PREGUNTAS_DEF = Object.freeze(['veredicto', 'accion', 'evidencia']);
+  const XP_DEFENSA = 15; // por ticket con las tres respuestas completas
+  const ALTERNATIVA = Object.freeze({ veredicto: { vp: 'fp', fp: 'vp', benigno: 'vp' }, accion: { contener: 'escalar', escalar: 'contener', cerrar: 'escalar' } });
+  const NOMBRA = {
+    vp: /\b(verdadero positivo|true positive|vp|tp|ataque|attack|malicios\w*)\b/,
+    fp: /\b(falso positivo|false positive|fp)\b/,
+    benigno: /\b(benign\w*)\b/,
+    contener: /\b(conten\w*|contien\w*|contuv\w*|contain\w*)\b/,
+    escalar: /\b(escal\w*|n2|tier 2|nivel 2)\b/,
+    cerrar: /\b(cerr\w*|cierr\w*|clos\w*)\b/
+  };
+  const RE_DEF = {
+    porque: /\b(porque|ya que|puesto que|dado que|debido a|por eso|por lo que|asi que|because|since|due to|therefore|that is why|so i)\b/,
+    riesgo: /\b(riesgo|impacto|dano|propag\w*|negocio|urgen\w*|servicio|usuario\w*|datos|tiempo|minutos?|risk\w*|impact\w*|damage|spread\w*|business|urgent\w*|service|users?|data|time|minutes?)\b/,
+    reconoce: /\b(me equivoque|equivoc\w*|error|falle|se me paso|no vi|no mire|confundi|mistake|wrong|missed|overlooked|misread)\b/,
+    ahora: /\b(ahora|la proxima|en adelante|a partir de ahora|next time|now i|from now|going forward|in future)\b/
+  };
+  const DEF_PALABRAS = Object.freeze({ min: 15, max: 150 });
+  const horaCorta = (h) => String(h).slice(0, 5);
+  /** Primera línea del caso que contiene un dato clave: es la evidencia que se cita en los modelos. */
+  const lineaClave = (caso) => caso.logs.find(([, , m]) => caso.claves.some((k) => m.includes(k))) || [caso.hora, caso.fuente, ''];
+
+  /** Las tres preguntas de la entrevista para un ticket cerrado, según lo que se decidió. */
+  function preguntasDefensa(caso, resp = {}) {
+    return PREGUNTAS_DEF.map((id) => {
+      if (id === 'evidencia') return { id, modo: 'defiende' };
+      const tu = resp[id] ?? null, sol = caso[id];
+      return tu === sol ? { id, modo: 'defiende', tu, alt: ALTERNATIVA[id][tu] } : { id, modo: 'error', tu, sol };
+    });
+  }
+
+  /** Corrige una respuesta de la entrevista con criterios comprobables en local, como los mensajes. */
+  function corregirDefensa(pregunta, texto, caso) {
+    const t = plano(texto);
+    const n = palabras(texto);
+    const citadas = caso.claves.filter((k) => t.includes(plano(k)));
+    const breve = n >= DEF_PALABRAS.min && n <= DEF_PALABRAS.max;
+    let criterios;
+    if (pregunta.modo === 'error') criterios = [['reconoce', RE_DEF.reconoce.test(t)], ['dato', citadas.length >= 1], ['ahora', RE_DEF.ahora.test(t)], ['breve', breve]];
+    else if (pregunta.id === 'evidencia') criterios = [['dato', citadas.length >= 1], ['cuando', RE.hora.test(t)], ['porque', RE_DEF.porque.test(t)], ['breve', breve]];
+    else criterios = [
+      ['porque', RE_DEF.porque.test(t)],
+      [pregunta.id === 'veredicto' ? 'dato' : 'riesgo', pregunta.id === 'veredicto' ? citadas.length >= 1 : RE_DEF.riesgo.test(t)],
+      ['alternativa', NOMBRA[pregunta.alt].test(t)],
+      ['breve', breve]
+    ];
+    const lista = criterios.map(([id, ok]) => ({ id, ok: !!ok }));
+    return { criterios: lista, completo: lista.every((c) => c.ok), palabras: n, citadas };
+  }
+
+  const NOMBRES = {
+    es: { vp: 'verdadero positivo', fp: 'falso positivo', benigno: 'benigno', contener: 'contener', escalar: 'escalar', cerrar: 'cerrar' },
+    en: { vp: 'true positive', fp: 'false positive', benigno: 'benign', contener: 'contain', escalar: 'escalate', cerrar: 'close' }
+  };
+  /** Respuesta de ejemplo construida con los datos del caso; cumple su propia corrección en los dos idiomas. */
+  function modeloDefensa(pregunta, caso, lang = 'es') {
+    const es = lang === 'es';
+    const N = NOMBRES[es ? 'es' : 'en'];
+    const [h, origen] = lineaClave(caso);
+    const hora = horaCorta(h);
+    const datos = caso.claves.slice(0, 2).join(es ? ' y ' : ' and ');
+    if (pregunta.modo === 'error') return es
+      ? `Me equivoqué: elegí ${N[pregunta.tu] ?? 'nada'} y lo correcto era ${N[pregunta.sol]}. Se me pasó ${datos} a las ${hora}, que cambia la lectura del caso. Ahora, antes de decidir, compruebo ese dato y lo cito en el ticket.`
+      : `I got it wrong: I chose ${N[pregunta.tu] ?? 'nothing'} and the right answer was ${N[pregunta.sol]}. I missed ${datos} at ${hora}, which changes how the case reads. Now I check that fact before deciding and quote it in the ticket.`;
+    if (pregunta.id === 'evidencia') return es
+      ? `Le daría la línea de ${origen} de las ${hora}. Es suficiente porque ahí aparece ${datos}, que es lo que decide el caso, y el N2 puede comprobarla en un minuto.`
+      : `I would give them the ${origen} line at ${hora}. It is enough because it shows ${datos}, which is what decides the case, and tier 2 can check it in a minute.`;
+    if (pregunta.id === 'veredicto') {
+      const porque = {
+        vp: es ? `Descarté falso positivo porque la regla no saltó por ruido: hay actividad concreta que encaja con un ataque.` : `I ruled out a false positive because the rule did not fire on noise: there is concrete activity that fits an attack.`,
+        fp: es ? `Descarté verdadero positivo porque no hay nada malicioso detrás: la regla salta por cómo está ajustada.` : `I ruled out a true positive because there is nothing malicious behind it: the rule fires because of how it is tuned.`,
+        benigno: es ? `Descarté verdadero positivo porque la actividad es real pero esperada y está autorizada.` : `I ruled out a true positive because the activity is real but expected and authorised.`
+      }[pregunta.tu];
+      return es
+        ? `Lo clasifiqué como ${N[pregunta.tu]} porque el registro de ${origen} de las ${hora} lo muestra con ${datos}. ${porque}`
+        : `I classified it as a ${N[pregunta.tu]} because the ${origen} log at ${hora} shows it with ${datos}. ${porque}`;
+    }
+    return {
+      contener: es ? `Contuve porque el riesgo era inmediato: con ${datos} el daño podía propagarse en minutos. Escalar sin contener habría dejado la puerta abierta mientras el N2 lo revisaba, así que contuve primero y escalé después.`
+        : `I contained it because the risk was immediate: with ${datos} the damage could spread within minutes. Escalating without containing would have left the door open while tier 2 reviewed it, so I contained first and escalated afterwards.`,
+      escalar: es ? `Escalé y no contuve porque contener tiene impacto en el negocio y con ${datos} la decisión no me correspondía a mí. El riesgo no era inmediato, así que se lo pasé al N2 con la evidencia.`
+        : `I escalated and did not contain it because containment has a business impact and, with ${datos}, the decision was not mine to make. The risk was not immediate, so I passed it to tier 2 with the evidence.`,
+      cerrar: es ? `Lo cerré sin escalar porque no había riesgo: ${datos} explica la alerta y no hay nada más detrás. Escalarlo habría hecho perder tiempo al N2 con ruido.`
+        : `I closed it without escalating because there was no risk: ${datos} explains the alert and there is nothing else behind it. Escalating it would have wasted tier 2's time with noise.`
+    }[pregunta.tu];
+  }
+
+  /* ---------- Del ticket a la entrevista: historia STAR para Astrolabio ----------
+   * Formato compartido del ecosistema («yrd-ecosistema», tipo «historias»): Astrolabio la suma a las tuyas. */
+  const COMP_ASTROLABIO = Object.freeze({ triaje: 'analisis', logs: 'analisis', correo: 'analisis', identidad: 'analisis', endpoint: 'problemas', red: 'problemas', respuesta: 'presion', comunicacion: 'comunicacion' });
+  const STAR_LIMITES = Object.freeze({ titulo: 120, bloque: 4000, competencias: 6 });
+  const idHistoria = (caso) => 'bluejr-' + caso.id.toLowerCase();
+
+  /** Convierte un ticket cerrado en una historia STAR con lo que hizo el analista y lo que salió. */
+  function historiaStar(caso, resp, extra = {}) {
+    const lang = extra.lang === 'en' ? 'en' : 'es';
+    const es = lang === 'es';
+    const L = (o) => (o ? o[lang] ?? o.es : '');
+    const N = NOMBRES[lang];
+    const punto = (x) => (/[.!?…]$/.test(String(x).trim()) ? '' : '.');
+    const corte = (s, n) => (s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s);
+    const t = extra.turno || {};
+    const lineas = registros(caso);
+    const ev = (resp.evidencias || []).map((n) => lineas.find((l) => l.n === n)).filter(Boolean);
+    const sev = { critica: es ? 'crítica' : 'critical', alta: es ? 'alta' : 'high', media: es ? 'media' : 'medium', baja: es ? 'baja' : 'low' }[caso.sev];
+    const def = extra.defensa || {};
+    const defOk = new Set(def.ok || []);
+    const bienV = resp.veredicto === caso.veredicto, bienA = resp.accion === caso.accion;
+    const verbo = { es: { contener: 'contener y escalar', escalar: 'escalar al N2', cerrar: 'cerrarlo' }, en: { contener: 'contain and escalate it', escalar: 'escalate it to tier 2', cerrar: 'close it' } }[lang][resp.accion];
+    const s = es
+      ? `En Blue-Jr, un simulador de SOC, hice el turno ${t.n ?? ''} (${L(t.dia).toLowerCase()}) como analista N1 de Norte Logística, una empresa ficticia. A las ${caso.hora} saltó una alerta de ${caso.fuente}: «${L(caso.titulo)}». ${L(caso.resumen)}`
+      : `In Blue-Jr, a SOC simulator, I worked shift ${t.n ?? ''} (${L(t.dia)}) as a tier 1 analyst at Norte Logística, a made-up company. At ${caso.hora} a ${caso.fuente} alert fired: «${L(caso.titulo)}». ${L(caso.resumen)}`;
+    const tarea = es
+      ? `Tenía que decidir si era real, qué hacer y dejarlo documentado en el ticket para el siguiente nivel. Severidad ${sev}; regla «${L(caso.regla)}».`
+      : `I had to decide whether it was real, what to do and document it in the ticket for the next tier. Severity ${sev}; rule «${L(caso.regla)}».`;
+    const a = [
+      ev.length ? (es ? `Revisé los registros y fijé ${ev.length === 1 ? 'una línea' : ev.length + ' líneas'} como evidencia: ${ev.slice(0, 3).map((l) => `${l.t} ${l.s} ${l.m}`).join(' | ')}.` : `I went through the logs and pinned ${ev.length === 1 ? 'one line' : ev.length + ' lines'} as evidence: ${ev.slice(0, 3).map((l) => `${l.t} ${l.s} ${l.m}`).join(' | ')}.`)
+        : (es ? 'Revisé los registros del caso.' : 'I went through the case logs.'),
+      es ? `Lo clasifiqué como ${N[resp.veredicto]} y decidí ${verbo}.` : `I classified it as a ${N[resp.veredicto]} and decided to ${verbo}.`,
+      String(resp.ticket || '').trim() ? (es ? `Mi resumen del ticket: «${String(resp.ticket).trim()}»${punto(resp.ticket)}` : `My ticket summary: «${String(resp.ticket).trim()}»${punto(resp.ticket)}`) : '',
+      bienA && defOk.has('accion') && def.accion ? (es ? `Por qué lo decidí así: ${def.accion.trim()}` : `Why I decided that: ${def.accion.trim()}`) : '',
+      (extra.mensajes || []).length ? (es ? `Además escribí ${extra.mensajes.map((m) => (m === 'n2' ? 'el escalado al N2' : 'el aviso a dirección')).join(' y ')}.` : `I also wrote ${extra.mensajes.map((m) => (m === 'n2' ? 'the escalation to tier 2' : 'the update for management')).join(' and ')}.`) : ''
+    ].filter(Boolean).join(' ');
+    const fallos = [!bienV && (es ? `el veredicto (era ${N[caso.veredicto]})` : `the verdict wrong (it was a ${N[caso.veredicto]})`), !bienA && (es ? `la acción (había que ${N[caso.accion]})` : `the action wrong (it needed to ${N[caso.accion]})`)].filter(Boolean);
+    const r = (es ? `La corrección automática le dio ${resp.nota}/100. ` : `The automatic grading gave it ${resp.nota}/100. `)
+      + (fallos.length ? (es ? `Fallé ${fallos.join(' y ')}. ` : `I got ${fallos.join(' and ')}. `) : (es ? 'Acerté el veredicto y la acción. ' : 'I got the verdict and the action right. '))
+      + L(caso.explica);
+    const error = !bienV ? 'veredicto' : !bienA ? 'accion' : null;
+    const leccion = error && defOk.has(error) && def[error] ? def[error].trim()
+      : (es ? 'Qué me llevo: ' : 'What I take away: ') + (L(caso.explica).match(/^[^.]+\./)?.[0] || L(caso.explica));
+    const comps = [...new Set([...caso.competencias.map((k) => COMP_ASTROLABIO[k]).filter(Boolean), ...((extra.mensajes || []).length ? ['comunicacion'] : [])])].slice(0, STAR_LIMITES.competencias);
+    const dia = typeof resp.cuando === 'string' && /^\d{4}-\d{2}-\d{2}/.test(resp.cuando) ? resp.cuando.slice(0, 10) : diaIso(Date.now());
+    return {
+      id: idHistoria(caso),
+      titulo: corte(`${L(caso.titulo)} (${caso.id}, Blue-Jr)`, STAR_LIMITES.titulo),
+      tipo: 'real',
+      s: corte(s, STAR_LIMITES.bloque), t: corte(tarea, STAR_LIMITES.bloque), a: corte(a, STAR_LIMITES.bloque), r: corte(r, STAR_LIMITES.bloque), l: corte(leccion, STAR_LIMITES.bloque),
+      competencias: comps,
+      creada: dia, editada: dia
+    };
+  }
+  /** Sobre del ecosistema que entiende Astrolabio (y cualquier herramienta de la familia). */
+  function sobreHistorias(historias, appVersion, exportado = new Date().toISOString()) {
+    return { formato: 'yrd-ecosistema', version: 1, tipo: 'historias', app: 'blue-jr', appVersion: String(appVersion), exportado, datos: { historias } };
+  }
+
   /* ---------- Pregunta al N2: pistas del propio caso, con coste ----------
    * Tres preguntas por turno. Cada una resta XP al ticket (nunca nota): enseña cuándo merece la pena pedir ayuda. */
   const PREGUNTAS_N2 = Object.freeze(['inicio', 'falta', 'decision']);
@@ -444,6 +605,6 @@ const BJ = (() => {
     return { cuentas: top(cuenta.cuentas), ips: top(cuenta.ips), equipos: top(cuenta.equipos) };
   }
 
-  return { TIPOS_MENSAJE, XP_MENSAJE, corregirMensaje, modeloMensaje, PREGUNTAS_N2, LIMITE_N2, COSTE_N2, pistaN2, ERRORES_IA, DICTAMENES, PESOS_REV, corregirRevision, CAJAS, RAPIDO_N, XP_RAPIDO, repasar, sesionRapida, META_DIARIA, NIVELES, progreso, insignias, entidades, PESOS, UMBRAL_APTO, TICKET_MIN, VEREDICTOS, ACCIONES, SEVERIDADES, COMPETENCIAS, LIMITES, semilla, azar, registros, normalizar, camposDe, campoBien, clavesEn, corregir, resumenTurno, historial, safeParse, sanearEstado, celdaCsv, HORA };
+  return { PREGUNTAS_DEF, XP_DEFENSA, DEF_PALABRAS, preguntasDefensa, corregirDefensa, modeloDefensa, COMP_ASTROLABIO, STAR_LIMITES, idHistoria, historiaStar, sobreHistorias, TIPOS_MENSAJE, XP_MENSAJE, corregirMensaje, modeloMensaje, PREGUNTAS_N2, LIMITE_N2, COSTE_N2, pistaN2, ERRORES_IA, DICTAMENES, PESOS_REV, corregirRevision, CAJAS, RAPIDO_N, XP_RAPIDO, repasar, sesionRapida, META_DIARIA, NIVELES, progreso, insignias, entidades, PESOS, UMBRAL_APTO, TICKET_MIN, VEREDICTOS, ACCIONES, SEVERIDADES, COMPETENCIAS, LIMITES, semilla, azar, registros, normalizar, camposDe, campoBien, clavesEn, corregir, resumenTurno, historial, safeParse, sanearEstado, celdaCsv, HORA };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = BJ;

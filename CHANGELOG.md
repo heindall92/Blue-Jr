@@ -2,6 +2,16 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [versionado semántico](https://semver.org/lang/es/).
 
+## [0.6.0] - 2026-11-09
+
+### Añadido
+- «Defiende tu ticket» en el resultado de cada ticket cerrado: tres preguntas de entrevista según lo decidido (`BJ.preguntasDefensa`), corregidas en local con criterios en español y en inglés (`BJ.corregirDefensa`: el porqué, un dato del caso, el riesgo, la alternativa, la hora, reconocer el error, qué harías ahora y la extensión) y una respuesta de ejemplo construida con el caso (`BJ.modeloDefensa`). Las tres completas suman 15 XP; reabrir el ticket borra su entrevista.
+- Historias STAR para Astrolabio (`BJ.historiaStar`, `BJ.sobreHistorias`): de un ticket desde su resultado o de todos desde Historial, con el resumen del ticket, la defensa, los mensajes completos y el resultado contado tal cual (también los fallos).
+- Historial imprimible: una página A4 por turno con tickets cerrados (estilos `@media print`, sin librerías).
+- Insignia «Lista para la entrevista» (tres tickets defendidos); paso nuevo en la guía de la ayuda.
+- `scripts/ejemplo-star.mjs` y `tests/fixtures/historias-blue-jr.json`: el ejemplo del formato compartido, también en el repositorio de Astrolabio. `tests/fixtures/contrato-astrolabio.json` resume lo que Astrolabio acepta.
+- Pruebas: 8 unitarias (`tests/entrevista.test.mjs`), 3 e2e y axe en «Defiende tu ticket». La CI instala `poppler-utils` para `pdfinfo` y `pdftotext`.
+
 ## [0.5.1] - 2026-11-09
 
 ### Cambiado

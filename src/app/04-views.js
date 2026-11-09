@@ -201,6 +201,7 @@ function resultadoHtml(c) {
       <ul class="criterios">${filas}</ul>
       <h3>${esc(T('explicacion'))}</h3><p class="explica">${esc(L(c.explica))}</p>
       ${comunicaHtml(c)}
+      ${defiendeHtml(c)}
       <div class="ticket-pie"><button type="button" class="btn sec" data-reintentar="${c.id}">${ic('rotate-ccw')}${esc(T('reintentar'))}</button>${sig ? `<button type="button" class="btn" data-caso="${sig.id}">${esc(T('siguiente'))}${ic('chevron-right')}</button>` : ''}</div>
     </div>`;
 }
@@ -219,6 +220,10 @@ function vHistorial() {
       <section class="panel" data-entra aria-labelledby="ht-t"><h2 id="ht-t" class="panel-t">${ic('calendar-clock')}${esc(T('turnos_titulo'))}</h2><ul class="hist-turnos">${turnos}</ul>
         <h2 class="panel-t sep">${ic('archive')}${esc(T('datos_titulo'))}</h2>
         <div class="acciones-datos"><button type="button" class="btn" data-exportar-md>${ic('download')}${esc(T('exportar_md'))}</button><button type="button" class="btn sec" data-exportar-json>${ic('download')}${esc(T('exportar_json'))}</button><button type="button" class="btn sec" data-importar>${ic('upload')}${esc(T('importar'))}</button><button type="button" class="btn peligro" data-borrar>${ic('rotate-ccw')}${esc(UI.borrarArmado ? T('borrar_confirmar') : T('borrar'))}</button></div>
+        <h2 class="panel-t sep">${ic('mic')}${esc(T('def_titulo'))}</h2>
+        <p class="nota">${esc(T('star_nota'))}</p>
+        <div class="acciones-datos"><button type="button" class="btn" data-star-todas${tickets.length ? '' : ' disabled'}>${ic('star')}${esc(T('star_todas'))}</button><button type="button" class="btn sec" data-imprimir${tickets.length ? '' : ' disabled'}>${ic('printer')}${esc(T('imprimir'))}</button></div>
+        <p class="nota">${esc(T('imprimir_nota'))}</p>
       </section>
     </div>
     ${insigniasHtml()}
