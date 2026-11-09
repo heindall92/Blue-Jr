@@ -6,8 +6,8 @@ function pintar() {
   pintarLateral(); pintarBarra(); pintarAbajo();
   if (r.vista === 'turno') { UI.ultimoTurno = r.turno; escribir('bluejr-ultimo', r.turno); }
   const main = $('#main');
-  main.innerHTML = `<div class="vista">${r.vista === 'turno' ? vTurno(r.turno) : r.vista === 'historial' ? vHistorial() : vTurnos()}</div>`;
-  const titulo = r.vista === 'turno' ? `${T('turno_n', { n: r.turno.slice(1) })} · ${diaDe(turnoDe(r.turno))}` : r.vista === 'historial' ? T('nav_historial') : T('nav_turnos');
+  main.innerHTML = `<div class="vista">${r.vista === 'turno' ? vTurno(r.turno) : r.vista === 'historial' ? vHistorial() : r.vista === 'revision' ? vRevision() : r.vista === 'rapido' ? vRapido() : vTurnos()}</div>`;
+  const titulo = r.vista === 'turno' ? `${T('turno_n', { n: r.turno.slice(1) })} · ${diaDe(turnoDe(r.turno))}` : r.vista === 'historial' ? T('nav_historial') : r.vista === 'revision' ? T('rev_corto') : r.vista === 'rapido' ? T('rap_titulo') : T('nav_turnos');
   document.title = `${titulo} · BlueJr`;
   $('.saltar').textContent = T('saltar');
   // La entrada solo se reproduce al cambiar de vista (y al arrancar), no en cada repintado.
@@ -81,6 +81,18 @@ document.addEventListener('click', (e) => {
     $$('[data-pivote]').forEach((x) => x.setAttribute('aria-pressed', x.dataset.pivote === UI.filtro));
     pintarLineas(); return actualizarTareas();
   }
+  if (d.rev) return abrirRev(d.rev);
+  if (d.dictamen || d.motivo || d.raccion) {
+    const k = d.dictamen ? 'dictamen' : d.motivo ? 'motivo' : 'raccion';
+    const r = revResp(UI.rev); r[k === 'raccion' ? 'accion' : k] = d[k]; guardar();
+    $('#rinforme').innerHTML = panelInforme(REV[UI.rev]);
+    return $(`[data-${k}="${d[k]}"]`)?.focus();
+  }
+  if ('enviarRev' in d) return enviarRevision();
+  if (d.revRepetir) { const r = revResp(d.revRepetir); delete r.cerrado; delete r.nota; guardar(); $('#rinforme').innerHTML = panelInforme(REV[d.revRepetir]); pintarLateral(); return $('[data-dictamen]')?.focus(); }
+  if (d.rapido) return responderRapido(d.rapido);
+  if ('rapidoSig' in d) return siguienteRapido();
+  if ('rapidoOtra' in d) { nuevaRonda(); repintarRapido(); return $('[data-rapido]')?.focus(); }
   if (d.guiaTab) { UI.guiaTab = d.guiaTab; const g = $('#guia'); g.outerHTML = guiaHtml(CASOS[UI.caso]); return $(`[data-guia-tab="${d.guiaTab}"]`)?.focus(); }
   if ('decidirAbrir' in d) { camino = []; return abrirAyuda('decidir'); }
   if (d.decidir) {
@@ -111,7 +123,7 @@ document.addEventListener('click', (e) => {
   if ('importar' in d) return $('#archivo').click();
   if ('borrar' in d) {
     if (!UI.borrarArmado) { UI.borrarArmado = true; b.lastChild.textContent = T('borrar_confirmar'); setTimeout(() => { UI.borrarArmado = false; if (document.contains(b)) b.lastChild.textContent = T('borrar'); }, 4000); return; }
-    UI.borrarArmado = false; S = BJ.sanearEstado(null, CASOS); guardar(); pintar(); return avisar(T('borrado'));
+    UI.borrarArmado = false; S = BJ.sanearEstado(null, CASOS, REV_INDICE); UI.rapido = null; guardar(); pintar(); return avisar(T('borrado'));
   }
 });
 
@@ -147,7 +159,7 @@ $('#archivo').addEventListener('change', async (e) => {
   if (f.size > 2 * 1024 * 1024) return avisar(T('import_error'));
   const r = BJ.safeParse(await f.text());
   if (!r.ok || !r.valor || r.valor.app !== 'bluejr') return avisar(T('import_error'));
-  S = BJ.sanearEstado(r.valor, CASOS); guardar(); pintar();
+  S = BJ.sanearEstado(r.valor, CASOS, REV_INDICE); UI.rapido = null; guardar(); pintar();
   avisar(T('importado', { n: Object.values(S.respuestas).filter((x) => x.cerrado).length }));
 });
 
@@ -167,7 +179,7 @@ document.addEventListener('keydown', (e) => {
     pintarAyuda(); return $('#tab-' + tabAyuda).focus();
   }
   // Grupos de radio (veredicto y acción): flechas para moverse y elegir.
-  if (e.target.getAttribute('role') === 'radio' && ['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp'].includes(e.key)) {
+  if (e.target.getAttribute('role') === 'radio' && (e.target.dataset.veredicto || e.target.dataset.accion) && ['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp'].includes(e.key)) {
     e.preventDefault();
     const k = e.target.dataset.veredicto ? 'veredicto' : 'accion';
     const lista = k === 'veredicto' ? BJ.VEREDICTOS : BJ.ACCIONES;
@@ -176,7 +188,22 @@ document.addEventListener('keydown', (e) => {
     respuesta(UI.caso)[k] = v; guardar(); pintarTicket();
     return $(`[data-${k}="${v}"]`)?.focus();
   }
+  if (e.target.getAttribute('role') === 'radio' && ['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp'].includes(e.key)) {
+    const k = ['dictamen', 'motivo', 'raccion'].find((x) => e.target.dataset[x]);
+    if (k) {
+      e.preventDefault();
+      const lista = k === 'dictamen' ? BJ.DICTAMENES : k === 'motivo' ? BJ.ERRORES_IA : BJ.ACCIONES;
+      const v = lista[(lista.indexOf(e.target.dataset[k]) + (['ArrowRight', 'ArrowDown'].includes(e.key) ? 1 : -1) + lista.length) % lista.length];
+      const r = revResp(UI.rev); r[k === 'raccion' ? 'accion' : k] = v; guardar();
+      $('#rinforme').innerHTML = panelInforme(REV[UI.rev]);
+      return $(`[data-${k}="${v}"]`)?.focus();
+    }
+  }
   if (enCampo || e.ctrlKey || e.metaKey || e.altKey || document.querySelector('dialog[open]')) return;
+  if (ruta().vista === 'rapido' && UI.rapido && !UI.rapido.fin) {
+    if (['1', '2', '3'].includes(e.key) && !UI.rapido.respuesta) { e.preventDefault(); return responderRapido(BJ.ACCIONES[+e.key - 1]); }
+    if (e.key === 'Enter' && UI.rapido.respuesta && !e.target.closest('button, a')) { e.preventDefault(); return siguienteRapido(); }
+  }
   if (e.key === '?') { e.preventDefault(); return abrirAyuda(); }
   if (e.key === '[' && matchMedia('(min-width: 901px)').matches) { e.preventDefault(); return alternarLateral(); }
   if (e.key === '/' && $('#filtro')) { e.preventDefault(); return $('#filtro').focus(); }

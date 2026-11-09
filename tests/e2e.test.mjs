@@ -127,9 +127,9 @@ test('ayuda: pestañas con flechas y fórmula generada desde las constantes', as
 test('inglés completo: ninguna vista deja texto de interfaz en español', async () => {
   const p = await pagina({ locale: 'en-GB' });
   await p.addInitScript(() => localStorage.setItem('bluejr-prefs', JSON.stringify({ lang: 'en' })));
-  const restos = /\b(Turno|Turnos|Alerta|Historial|Cerrar|Buscar|Veredicto|Acción|Ayuda|Registros|Guardar|Empezar|Superado|Pendiente|Verdadero|Benigno|Escalar|Contener|Competencias|Exportar|Importar|Borrar|Glosario|Atajos)\b/;
+  const restos = /\b(Turno|Turnos|Alerta|Historial|Cerrar|Buscar|Veredicto|Acción|Ayuda|Registros|Guardar|Empezar|Superado|Pendiente|Verdadero|Benigno|Escalar|Contener|Competencias|Exportar|Importar|Borrar|Glosario|Atajos|Revisión|Aprobar|Rechazar|Triaje|Racha|Insignias|Tareas)\b/;
   const visible = () => p.evaluate(() => { const c = document.body.cloneNode(true); c.querySelectorAll('.logs, .evidencias code, script, dialog:not([open])').forEach((n) => n.remove()); return c.innerText; });
-  for (const h of ['turnos', 'T2', 'historial']) {
+  for (const h of ['turnos', 'T2', 'historial', 'revision', 'rapido']) {
     await ir(p, h);
     const t = await visible();
     assert.doesNotMatch(t, restos, `${h}: ${t.match(restos)?.[0]}`);
@@ -138,7 +138,7 @@ test('inglés completo: ninguna vista deja texto de interfaz en español', async
   await p.click('[data-veredicto="fp"]'); await p.click('[data-accion="cerrar"]'); await p.click('[data-cerrar-ticket]');
   assert.doesNotMatch(await visible(), restos);
   await p.click('[data-ayuda]');
-  for (const tab of ['guia', 'metodo', 'datos', 'atajos', 'glosario', 'acerca']) {
+  for (const tab of ['guia', 'decidir', 'metodo', 'datos', 'atajos', 'glosario', 'acerca']) {
     await p.click(`[data-tab="${tab}"]`);
     const t = await p.evaluate(() => { const d = document.querySelector('#dlg-ayuda').cloneNode(true); d.querySelectorAll('.inventario dt').forEach((n) => n.remove()); return d.innerText; });
     assert.doesNotMatch(t, restos, `ayuda/${tab}: ${t.match(restos)?.[0]}`);
@@ -399,8 +399,84 @@ test('historial: insignias ganadas y pendientes', async () => {
   const c = INDICE['T1-01'];
   await p.addInitScript(([id, r]) => { if (!localStorage.getItem('bluejr-v1')) localStorage.setItem('bluejr-v1', JSON.stringify({ respuestas: { [id]: { ...r, cerrado: true, cuando: new Date().toISOString() } } })); }, [c.id, respuestaPerfecta(c)]);
   await ir(p, 'historial');
-  assert.equal(await p.locator('.insignias li').count(), 7);
+  assert.equal(await p.locator('.insignias li').count(), 9);
   assert.equal(await p.locator('.insignias li.ok').count(), 2, 'primer ticket y ticket perfecto');
-  assert.match(await p.textContent('.insignias-p .pildora'), /2 de 7/);
+  assert.match(await p.textContent('.insignias-p .pildora'), /2 de 9/);
   await p.context().close();
+});
+
+test('revisión de IA: aprobar un acierto, cazar un error y la nota no se puede falsificar', async () => {
+  const p = await pagina();
+  await ir(p, 'revision');
+  assert.equal(await p.locator('.cola [data-rev]').count(), 10);
+  assert.match(await p.textContent('.pag-cab .pildora'), /0 de 10/);
+  // R-01: el agente acierta; aprobar da 100.
+  await p.click('.cola [data-rev="R-01"]');
+  assert.equal(await p.locator('[data-motivo]').count(), 0, 'sin motivo hasta rechazar');
+  await p.click('[data-dictamen="aprobar"]');
+  await p.click('[data-enviar-rev]');
+  assert.match(await p.textContent('#resultado .nota-grande'), /^100/);
+  assert.match(await p.textContent('#toasts'), /\+100 XP · revisión R-01/);
+  // R-04: el agente se inventa la evidencia. Rechazar con el motivo y la acción correctos.
+  await p.click('.cola [data-rev="R-04"]');
+  await p.click('[data-dictamen="rechazar"]');
+  assert.equal(await p.locator('[data-motivo]').count(), 5);
+  assert.ok(await p.isDisabled('[data-enviar-rev]'), 'falta el motivo y la acción');
+  await p.click('[data-motivo="alucinacion"]');
+  await p.focus('[data-raccion="cerrar"]'); await p.keyboard.press('ArrowRight'); await p.keyboard.press('ArrowRight');
+  assert.equal(await p.getAttribute('[data-raccion="contener"]', 'aria-checked'), 'true', 'las flechas eligen la acción');
+  await p.click('[data-enviar-rev]');
+  assert.match(await p.textContent('#resultado'), /Se inventó evidencia/);
+  assert.match(await p.textContent('#resultado .nota-grande'), /^100/);
+  assert.match(await p.textContent('#toasts'), /Error del agente cazado/);
+  // R-07: aprobar un veredicto equivocado puntúa 0 y lo explica.
+  await p.click('.cola [data-rev="R-07"]');
+  await p.click('[data-dictamen="aprobar"]'); await p.click('[data-enviar-rev]');
+  assert.match(await p.textContent('#resultado .nota-grande'), /^0/);
+  assert.match(await p.textContent('.pag-cab .pildora'), /3 de 10/);
+  // Una copia importada no puede traer una revisión con nota inventada: se recalcula.
+  const notas = await p.evaluate(() => { const S = window.__BJ__.S(); return [S.revisiones['R-01'].nota, S.revisiones['R-07'].nota]; });
+  assert.deepEqual(notas, [100, 0]);
+  await p.context().close();
+});
+
+test('triaje rápido: bloqueado al principio, diez alertas con teclas 1-2-3 y repaso de lo fallado', async () => {
+  const p = await pagina();
+  await ir(p, 'rapido');
+  assert.equal(await p.locator('.vacio-grande').count(), 1, 'bloqueado sin tickets cerrados');
+  await p.context().close();
+  const q = await pagina();
+  const ids = ['T1-01', 'T1-02', 'T1-03', 'T1-04', 'T1-05', 'T1-06', 'T1-07', 'T1-08', 'T2-01', 'T2-02', 'T2-03'];
+  const resp = Object.fromEntries(ids.map((id) => [id, { ...respuestaPerfecta(INDICE[id]), cerrado: true, cuando: new Date(Date.now() - 86400000).toISOString() }]));
+  await q.addInitScript((r) => { if (!localStorage.getItem('bluejr-v1')) localStorage.setItem('bluejr-v1', JSON.stringify({ respuestas: r })); }, resp);
+  await ir(q, 'rapido');
+  assert.match(await q.textContent('.rap-cab'), /1 de 10/);
+  let fallos = 0;
+  for (let i = 0; i < 10; i++) {
+    const id = await q.textContent('.rapido .alerta .id');
+    // Acierta todas menos la primera, con el teclado.
+    const bien = INDICE[id].accion;
+    const elegida = i === 0 ? ['cerrar', 'escalar', 'contener'].find((a) => a !== bien) : bien;
+    if (i === 0) fallos++;
+    await q.keyboard.press(String(['cerrar', 'escalar', 'contener'].indexOf(elegida) + 1));
+    assert.match(await q.textContent('.rap-fb'), i === 0 ? /Tocaba/ : /Correcto/);
+    await q.keyboard.press('Enter');
+  }
+  assert.match(await q.textContent('.rap-fin'), /9 de 10 aciertos/);
+  assert.match(await q.textContent('.rap-fin'), /\+45 XP/);
+  assert.match(await q.textContent('.rap-fin'), /1 alertas volverán mañana|volverán mañana/);
+  const S = await q.evaluate(() => window.__BJ__.S());
+  const hoy = new Date().toISOString().slice(0, 10);
+  assert.deepEqual(S.rapido[hoy], { aciertos: 9, total: 10, ms: S.rapido[hoy].ms });
+  assert.equal(Object.values(S.repaso).filter((e) => e.caja === 0).length, fallos, 'lo fallado vuelve mañana');
+  // Otra ronda: no vuelve a sumar XP del día.
+  await q.click('[data-rapido-otra]');
+  for (let i = 0; i < 10; i++) { await q.keyboard.press('1'); await q.keyboard.press('Enter'); }
+  assert.match(await q.textContent('.rap-fin'), /Ronda de repaso/);
+  assert.equal((await q.evaluate(() => window.__BJ__.S())).rapido[hoy].aciertos, 9);
+  // La portada lo refleja.
+  await q.click('a[href="#turnos"]');
+  await q.waitForSelector('.modos');
+  assert.match(await q.textContent('.modo-rap'), /Hecho hoy: 9 de 10/);
+  await q.context().close();
 });

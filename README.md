@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/badge/licencia-MIT-4169A1?style=flat"/></a>
-  <img alt="Versión 0.3.0" src="https://img.shields.io/badge/versi%C3%B3n-0.3.0-6B9BFF?style=flat"/>
+  <img alt="Versión 0.4.0" src="https://img.shields.io/badge/versi%C3%B3n-0.4.0-6B9BFF?style=flat"/>
   <img alt="40 alertas" src="https://img.shields.io/badge/alertas-40-7C4DFF?style=flat"/>
   <img alt="5 turnos" src="https://img.shields.io/badge/turnos-5-2E9E7A?style=flat"/>
   <img alt="MITRE ATT&CK" src="https://img.shields.io/badge/MITRE-ATT%26CK-E07B39?style=flat"/>
@@ -74,8 +74,8 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
     </tr>
     <tr>
       <td valign="top"><code>├─ ◈ pruebas:</code><br><br>
-        <img alt="Unitarias" src="https://img.shields.io/badge/unitarias-39-2E8B57?style=for-the-badge"/>
-        <img alt="E2E" src="https://img.shields.io/badge/e2e-17-2E8B57?style=for-the-badge"/>
+        <img alt="Unitarias" src="https://img.shields.io/badge/unitarias-46-2E8B57?style=for-the-badge"/>
+        <img alt="E2E" src="https://img.shields.io/badge/e2e-19-2E8B57?style=for-the-badge"/>
         <img alt="axe" src="https://img.shields.io/badge/axe-0%20infracciones-2E8B57?style=for-the-badge"/><br>
         <sub><code>cada caso se resuelve leyendo sus registros · red bloqueada en el e2e · claro y oscuro, 1440 y 390 px</code></sub>
       </td>
@@ -89,7 +89,7 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
   </tbody>
   <tfoot>
     <tr>
-      <td colspan="2"><code>version: 0.3.0&nbsp;&nbsp;·&nbsp;&nbsp;nivel: SOC N1&nbsp;&nbsp;·&nbsp;&nbsp;empresa: Norte Logística (ficticia)&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
+      <td colspan="2"><code>version: 0.4.0&nbsp;&nbsp;·&nbsp;&nbsp;nivel: SOC N1&nbsp;&nbsp;·&nbsp;&nbsp;empresa: Norte Logística (ficticia)&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
     </tr>
   </tfoot>
 </table>
@@ -99,6 +99,14 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
 ---
 
 ## <img src="docs/assets/icons/sparkles.svg" width="20" height="20" valign="middle"/> Novedades
+
+### 0.4.0 · noviembre de 2026 · El nivel 1 en la era de la IA
+
+Salida de una [investigación sobre lo que les falta a los juniors](docs/investigacion-juniors.md): la IA se está quedando con el primer triaje y el nivel 1 pasa a revisar sus veredictos, y ninguna plataforma lo entrena.
+
+- **Revisión del agente de IA (nivel 1,5).** Diez alertas que un agente ya ha resuelto, con su veredicto, su acción, su confianza, su razonamiento y las comprobaciones que hizo. Apruebas las buenas o rechazas las malas diciendo qué falló y qué acción tocaba. El agente acierta en cuatro y se equivoca en seis, cada vez de una forma típica: ignora el contexto, pasa por alto la señal, se inventa una evidencia, actúa contra una persona o se fía de un solo indicador.
+- **Triaje rápido de cinco minutos al día.** Diez alertas que ya has trabajado, decididas en segundos con las teclas 1, 2 y 3. Lo que fallas vuelve mañana y lo que aciertas, cada vez más tarde (2, 4, 7 y 14 días). La primera ronda del día suma XP y mantiene la racha.
+- **Dos insignias nuevas:** «Revisor de IA» (caza tres errores del agente) y «Reflejos» (diez de diez en el triaje rápido).
 
 ### 0.3.0 · noviembre de 2026 · El entrenador
 
@@ -172,11 +180,17 @@ Un junior no aprende con una nota: aprende cuando entiende **por qué** se escal
 | Entidades para pivotar | «Campos interesantes» de Splunk y entidades de Microsoft Sentinel | A seguir una IP, una cuenta o un equipo por todos los registros |
 | Tareas del incidente | Tareas de los incidentes de Microsoft Sentinel | El método: investigar, fijar evidencia, decidir y documentar |
 | Práctica diaria | La racha y la meta diaria de Atlas GRC | Constancia: un par de tickets al día, todos los días |
+| Revisión de IA (0.4.0) | Los SOC donde un agente hace el primer triaje y el nivel 1 audita | A desconfiar con método: comprobar que lo citado existe, buscar lo que no se miró y corregir la acción |
+| Triaje rápido (0.4.0) | Repaso espaciado de Atlas GRC | Decidir en segundos y no olvidar lo fallado |
 
 <table>
 <tr>
 <td width="50%"><img src="docs/capturas/guia-claro.png" alt="Guía de investigación en la pestaña Respuesta y registros filtrados por la IP 203.0.113.45"/><br/><sub><b>Guía y pivote</b> · la respuesta según lo que encuentres y los registros filtrados por una IP</sub></td>
 <td width="50%"><img src="docs/capturas/decidir-claro.png" alt="Árbol «¿Escalo o no?» con tres respuestas y la decisión Escalar a N2"/><br/><sub><b>¿Escalo o no?</b> · tres preguntas hasta la decisión, con su porqué</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/capturas/revision-claro.png" alt="Revisión de IA: el agente da por benigno un PowerShell codificado citando una tarea INV-2231 que no existe; el revisor lo rechaza por inventar evidencia"/><br/><sub><b>Revisión de IA</b> · cazar al agente que se inventa la evidencia</sub></td>
+<td width="50%"><img src="docs/capturas/rapido-oscuro.png" alt="Triaje rápido en oscuro: alerta con sus registros, tres opciones con teclas 1, 2 y 3 y la corrección al momento"/><br/><sub><b>Triaje rápido</b> · cinco minutos al día, en oscuro</sub></td>
 </tr>
 <tr>
 <td colspan="2"><img src="docs/capturas/guia-oscuro.png" alt="Guía de investigación de la familia Equipos y procesos en modo oscuro, con las tareas del incidente en el ticket"/><br/><sub><b>Guía y tareas del incidente</b> · en oscuro</sub></td>
@@ -234,6 +248,8 @@ timeline
 |---|---|---|
 | <img src="docs/assets/icons/sparkles.svg" width="18"/> | **Portada** | Ilustración del analista de guardia (clara u oscura según el tema), cuenta atrás del turno, siguiente paso recomendado, tarjetas de estadísticas y los cinco turnos con su regleta. |
 | <img src="docs/assets/icons/siren.svg" width="18"/> | **Turno** | Regleta, cola de alertas, alerta con registros filtrables y evidencias, ticket y corrección. Al completar el turno, informe de relevo. |
+| <img src="docs/assets/icons/brain-circuit.svg" width="18"/> | **Revisión de IA** | Diez alertas resueltas por un agente: informe con veredicto, acción, confianza, razonamiento y comprobaciones; aprobar o rechazar con el motivo y la acción correcta. |
+| <img src="docs/assets/icons/rocket.svg" width="18"/> | **Triaje rápido** | Diez alertas ya trabajadas, decididas con 1, 2 y 3; corrección al momento y repaso espaciado de lo fallado. |
 | <img src="docs/assets/icons/gauge.svg" width="18"/> | **Historial** | Tickets cerrados, nota media, veredictos acertados, amenazas cerradas por error, competencias, turnos y tickets; exportar e importar. |
 | <img src="docs/assets/icons/terminal.svg" width="18"/> | **Búsqueda** (`Ctrl K`) | Secciones, alertas y glosario. Nunca desvela respuestas: busca por la regla, no por la técnica. |
 | <img src="docs/assets/icons/user-round.svg" width="18"/> | **Ayuda** (`?`) | Guía, método de corrección generado desde el código, empresa y datos, atajos, glosario y acerca de. |
@@ -368,10 +384,10 @@ Detalle en [SECURITY.md](SECURITY.md).
 
 | Suite | Pruebas | Qué cubre |
 |---|---|---|
-| Motor | 21 | Corrección por criterio, normalización, MITRE, ruido determinista que nunca cita entidades del caso, historial, saneado de importaciones, CSV contra fórmulas, XP, racha (con el corte de un día sin práctica), niveles, insignias y entidades |
-| Casos | 11 | Cada caso se resuelve leyendo sus registros, textos bilingües, solo IP de documentación y dominios `.example`, referencias cruzadas válidas; cada caso en una sola guía, su acción correcta siempre entre las salidas de la guía, ninguna guía cita datos de un caso y el árbol de decisión cubre las tres acciones y los tres veredictos |
+| Motor | 26 | Corrección por criterio, normalización, MITRE, ruido determinista que nunca cita entidades del caso, historial, saneado de importaciones, CSV contra fórmulas, XP, racha (con el corte de un día sin práctica), niveles, insignias y entidades; corrección de la revisión de IA, repaso espaciado, selección del triaje rápido y saneado de revisiones, repaso y triaje importados |
+| Casos | 13 | Cada caso se resuelve leyendo sus registros, textos bilingües, solo IP de documentación y dominios `.example`, referencias cruzadas válidas; cada caso en una sola guía, su acción correcta siempre entre las salidas de la guía, ninguna guía cita datos de un caso y el árbol de decisión cubre las tres acciones y los tres veredictos; el turno de revisión cubre los cinco tipos de error y el agente solo cita lo que existe en los registros, salvo cuando alucina |
 | Repositorio | 7 | HTML al día, CSP sin `unsafe-inline` en scripts, paridad de claves ES/EN, versión única, enlaces y cifras de este README, y la raíz que lleva a la aplicación en Pages |
-| E2E | 17 | Alerta de punta a punta, teclado, ayuda, inglés sin restos de español, exportar e importar, importación hostil, relevo, móvil, tema, movimiento (entrada antes de 450 ms), lateral plegable y portada; guía por pestañas, pivote por entidad, tareas que se marcan solas, XP y racha al cerrar, las cinco salidas del árbol de decisión e insignias |
+| E2E | 19 | Alerta de punta a punta, teclado, ayuda, inglés sin restos de español, exportar e importar, importación hostil, relevo, móvil, tema, movimiento (entrada antes de 450 ms), lateral plegable y portada; guía por pestañas, pivote por entidad, tareas que se marcan solas, XP y racha al cerrar, las cinco salidas del árbol de decisión e insignias; revisión de IA (aprobar, cazar un error, nota recalculada) y triaje rápido (bloqueo, teclas, XP solo en la primera ronda, repaso) |
 | Accesibilidad | 4 | axe en vistas, estados y todos los diálogos, en claro y oscuro, a 1440 y 390 px: 0 infracciones |
 
 ## <img src="docs/assets/icons/calendar-clock.svg" width="20" height="20" valign="middle"/> Hoja de ruta
@@ -382,9 +398,10 @@ Detalle en [ROADMAP.md](ROADMAP.md).
 - [x] 0.2.0 · Portada, movimiento, lateral plegable, modo oscuro y tipografía
 - [x] 0.2.1 · Radar como marca y prueba de movimiento estable en la CI
 - [x] 0.3.0 · El entrenador: guías de investigación, ¿escalo o no?, entidades, tareas y práctica diaria
-- [ ] 0.4.0 · Turnos con reloj: SLA por severidad y alertas que llegan mientras trabajas
-- [ ] 0.5.0 · Segunda semana: nube y SaaS
-- [ ] 0.6.0 · Del ticket a la entrevista: historial en PDF y tickets como historias STAR para Astrolabio
+- [x] 0.4.0 · El nivel 1 en la era de la IA: revisión del agente de IA y triaje rápido diario
+- [ ] 0.5.0 · Comunicar y pedir ayuda: escalados y relevos corregidos y «Pregunta al N2»
+- [ ] 0.6.0 · Del ticket a la entrevista: «Defiende tu ticket» e historias STAR para Astrolabio
+- [ ] 0.7.0 · Contexto español: RGPD, ENS e INCIBE-CERT en los casos
 
 ## <img src="docs/assets/icons/triangle-alert.svg" width="20" height="20" valign="middle"/> Limitaciones conocidas
 
@@ -409,8 +426,9 @@ Blue-Jr/
 │   │   ├── 03-shell.js           Lateral, barra superior, búsqueda, ayuda y perfil
 │   │   ├── 04-views.js           Portada, turno e historial
 │   │   ├── 04b-entreno.js        Guía, entidades, tareas, ¿escalo o no?, práctica e insignias
+│   │   ├── 04c-revision.js       Revisión del agente de IA y triaje rápido
 │   │   └── 05-events.js          Eventos, teclado y arranque
-│   ├── data/                     empresa.json, t1…t5.json (40 casos) y guias.json
+│   ├── data/                     empresa.json, t1…t5.json (40 casos), guias.json y revision.json
 │   ├── styles/bluejr.css         Tokens, claro y oscuro, siete acentos, móvil
 │   └── fonts/                    Outfit y Geist Mono (OFL)
 │

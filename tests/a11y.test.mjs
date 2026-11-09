@@ -22,8 +22,8 @@ async function auditar(p, donde, contexto = 'document') {
 }
 
 const ESTADO = (() => {
-  const c = INDICE['T1-01'], m = INDICE['T1-05'];
-  return { perfil: { nombre: 'Ana Prueba' }, respuestas: { 'T1-01': { ...respuestaPerfecta(c), cerrado: true, evidencias: [5] }, 'T1-05': { veredicto: 'vp', accion: 'contener', campos: {}, ticket: '', cerrado: true } }, relevos: {} };
+  const c = INDICE['T1-01'], m = INDICE['T1-05'], d = INDICE['T1-02'];
+  return { perfil: { nombre: 'Ana Prueba' }, respuestas: { 'T1-01': { ...respuestaPerfecta(c), cerrado: true, evidencias: [5] }, 'T1-05': { veredicto: 'vp', accion: 'contener', campos: {}, ticket: '', cerrado: true }, 'T1-02': { ...respuestaPerfecta(d), cerrado: true } }, relevos: {} };
 })();
 
 for (const [ancho, alto] of [[1440, 900], [390, 844]]) {
@@ -32,7 +32,7 @@ for (const [ancho, alto] of [[1440, 900], [390, 844]]) {
       const ctx = await navegador.newContext({ viewport: { width: ancho, height: alto }, colorScheme: tema, locale: 'es-ES', bypassCSP: true }); // solo para inyectar axe
       const p = await ctx.newPage();
       await p.addInitScript((s) => { localStorage.setItem('bluejr-v1', JSON.stringify(s)); }, ESTADO);
-      for (const h of ['turnos', 'T1', 'historial']) {
+      for (const h of ['turnos', 'T1', 'historial', 'revision', 'rapido']) {
         await p.goto(`${URL_APP}?test#${h}`); await p.waitForSelector('.vista');
         if (await p.getAttribute('html', 'data-theme') !== tema) await p.click('[data-tema]'); // la carga empieza en claro
         await auditar(p, `${h} ${ancho} ${tema}`);
@@ -46,9 +46,22 @@ for (const [ancho, alto] of [[1440, 900], [390, 844]]) {
       await auditar(p, `resultado ${ancho} ${tema}`);
       if (ancho < 900) await p.click('[data-panel="caso"]');
       await p.fill('#filtro', 'vpn'); await auditar(p, `filtro ${ancho} ${tema}`);
+      // Revisión de IA: rechazo con motivo y acción, y resultado.
+      await p.goto(`${URL_APP}?test#revision`); await p.waitForSelector('.vista');
+      if (await p.getAttribute('html', 'data-theme') !== tema) await p.click('[data-tema]');
+      if (ancho < 900) await p.click('[data-panel="ticket"]');
+      await p.click('[data-dictamen="rechazar"]');
+      await auditar(p, `revisión abierta ${ancho} ${tema}`);
+      await p.click('[data-motivo="omision"]'); await p.click('[data-raccion="cerrar"]'); await p.click('[data-enviar-rev]');
+      await auditar(p, `revisión corregida ${ancho} ${tema}`);
+      // Triaje rápido: respuesta y aviso.
+      await p.goto(`${URL_APP}?test#rapido`); await p.waitForSelector('.rap-ops');
+      await p.click('[data-rapido="escalar"]');
+      await auditar(p, `triaje rápido ${ancho} ${tema}`);
       // Diálogos.
+      await p.goto(`${URL_APP}?test#T1`); await p.waitForSelector('.vista');
       await p.click('[data-ayuda] >> nth=0');
-      for (const tab of ['guia', 'metodo', 'datos', 'atajos', 'glosario', 'acerca']) {
+      for (const tab of ['guia', 'decidir', 'metodo', 'datos', 'atajos', 'glosario', 'acerca']) {
         await p.click(`[data-tab="${tab}"]`);
         await auditar(p, `ayuda/${tab} ${ancho} ${tema}`, '#dlg-ayuda');
       }

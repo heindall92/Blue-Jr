@@ -24,23 +24,34 @@ BlueJr resuelve un problema: **la paradoja de la experiencia** del primer empleo
 - [x] Práctica diaria: XP, meta, racha, niveles, insignias y siguiente alerta, derivados de los tickets.
 - Aceptación cumplida: ninguna guía cita datos de un caso y la acción correcta de cada caso está entre las salidas de su guía (`tests/casos.test.mjs`); el e2e recorre guía, pivote, tareas, XP, las cinco salidas del árbol e insignias; axe sin infracciones.
 
-## 0.4.0 · Presión de verdad
+## 0.4.0 · El nivel 1 en la era de la IA (hecho)
 
-- [ ] Modo turno con reloj: SLA por severidad (crítica 15 min, alta 1 h) y alertas que llegan mientras trabajas.
-- [ ] Indicador de tiempo hasta la decisión en el historial.
-- Aceptación: el e2e simula un turno completo con reloj acelerado y comprueba los SLA incumplidos.
+Sale de la [investigación de noviembre de 2026](docs/investigacion-juniors.md).
 
-## 0.5.0 · Segunda semana: nube y SaaS
+- [x] Turno de revisión del agente de IA: diez alertas con veredicto, acción, confianza, razonamiento y comprobaciones del agente; cuatro aciertos y seis errores típicos (contexto, omisión, alucinación, persona, fuente única).
+- [x] Triaje rápido diario con repaso espaciado (1, 2, 4, 7 y 14 días); solo la primera ronda del día suma XP.
+- [x] Insignias «Revisor de IA» y «Reflejos»; la XP y la racha cuentan toda la práctica.
+- Aceptación cumplida: el agente solo cita lo que existe en los registros salvo cuando alucina, y hay al menos un caso de cada tipo de error (`tests/casos.test.mjs`); saneado de revisiones, repaso y triaje importados (`tests/engine.test.mjs`); e2e de la revisión y del triaje rápido; axe sin infracciones en las vistas nuevas.
 
-- [ ] Cinco turnos nuevos (Microsoft 365, AWS CloudTrail, Kubernetes, GitHub, Okta) con la misma empresa.
-- Aceptación: `tests/casos.test.mjs` pasa con 80 casos; ningún caso sin al menos una decisión de no escalar en su turno.
+## 0.5.0 · Comunicar y pedir ayuda
+
+- [ ] Mensaje de escalado a N2, relevo y «explícaselo a dirección» corregidos en local con una lista de criterios (qué, cuándo, quién, evidencia, acción y recomendación).
+- [ ] «Pregunta al N2»: tres preguntas por turno a un mentor, con coste en XP, para aprender cuándo pedir ayuda.
+- Aceptación: cada criterio de la corrección tiene prueba con textos buenos y malos; nada sale del navegador.
 
 ## 0.6.0 · Del ticket a la entrevista
 
-- [ ] Historial en PDF de una página por turno.
+- [ ] «Defiende tu ticket»: preguntas de entrevista sobre los propios casos (por qué escalaste y no contuviste).
 - [ ] Exportar cada ticket como historia STAR para **Astrolabio** (formato JSON compartido y prueba en los dos repositorios).
-- Aceptación: el PDF se verifica con `pdfinfo` y la importación en Astrolabio tiene prueba e2e.
+- [ ] Historial en PDF de una página por turno.
+- Aceptación: la importación en Astrolabio tiene prueba e2e y el PDF se verifica con `pdfinfo`.
 
-## 0.7.0 · Otros puestos de entrada
+## 0.7.0 · Contexto español
 
-- [ ] Rol GRC junior (evidencias, riesgos y controles) y rol de soporte y sistemas, con el mismo motor.
+- [ ] Casos con RGPD (brecha de datos personales: aviso al DPD y notificación a la AEPD en 72 horas), ENS e INCIBE-CERT, enlazados con el ecosistema GRC.
+
+## Más adelante
+
+- Turnos con reloj (SLA por severidad y alertas que llegan mientras trabajas): baja de prioridad porque SOCSimulator y TryHackMe ya lo tienen.
+- Segunda semana: nube y SaaS (Microsoft 365, AWS CloudTrail, Kubernetes, GitHub, Okta).
+- Otros puestos de entrada: GRC junior y soporte y sistemas, con el mismo motor.

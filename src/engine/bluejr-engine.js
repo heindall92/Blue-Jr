@@ -169,8 +169,8 @@ const BJ = (() => {
   const HORA = /^\d{2}:\d{2}:\d{2}$/;
 
   /** Deja solo lo que BlueJr sabe leer, con tipos, longitudes y listas permitidas. Recalcula la nota. */
-  function sanearEstado(bruto, indice) {
-    const out = { v: 1, perfil: { nombre: '' }, respuestas: {}, relevos: {} };
+  function sanearEstado(bruto, indice, indiceRev = {}) {
+    const out = { v: 1, perfil: { nombre: '' }, respuestas: {}, relevos: {}, revisiones: {}, repaso: {}, rapido: {} };
     if (!bruto || typeof bruto !== 'object') return out;
     out.perfil.nombre = corta(bruto.perfil?.nombre, LIMITES.nombre);
     const resp = bruto.respuestas && typeof bruto.respuestas === 'object' ? bruto.respuestas : {};
@@ -192,6 +192,31 @@ const BJ = (() => {
     }
     const rel = bruto.relevos && typeof bruto.relevos === 'object' ? bruto.relevos : {};
     for (const [id, t] of Object.entries(rel)) if (/^T[1-9]$/.test(id) && typeof t === 'string') out.relevos[id] = corta(t, LIMITES.relevo);
+    const obj = (x) => (x && typeof x === 'object' && !Array.isArray(x) ? x : {});
+    const fecha = (x) => typeof x === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x) && !Number.isNaN(Date.parse(x));
+    for (const [id, r] of Object.entries(obj(bruto.revisiones))) {
+      const item = indiceRev[id];
+      if (!item || !r || typeof r !== 'object') continue;
+      const limpio = {
+        dictamen: DICTAMENES.includes(r.dictamen) ? r.dictamen : null,
+        motivo: ERRORES_IA.includes(r.motivo) ? r.motivo : null,
+        accion: ACCIONES.includes(r.accion) ? r.accion : null,
+        cuando: typeof r.cuando === 'string' && !Number.isNaN(Date.parse(r.cuando)) ? r.cuando : null
+      };
+      // La nota se recalcula siempre: una copia no puede traer una revisión aprobada a mano.
+      if (r.cerrado === true && limpio.dictamen) { limpio.cerrado = true; limpio.nota = corregirRevision(item, limpio).nota; }
+      out.revisiones[id] = limpio;
+    }
+    for (const [id, e] of Object.entries(obj(bruto.repaso))) {
+      if (!indice[id] || !e || !Number.isInteger(e.caja) || e.caja < 0 || e.caja >= CAJAS.length || !fecha(e.proximo)) continue;
+      out.repaso[id] = { caja: e.caja, proximo: e.proximo };
+    }
+    for (const [d, x] of Object.entries(obj(bruto.rapido)).slice(0, 400)) {
+      if (!fecha(d) || !x || typeof x !== 'object') continue;
+      const total = x.total, aciertos = x.aciertos, ms = x.ms;
+      if (!Number.isInteger(total) || total < 1 || total > RAPIDO_N || !Number.isInteger(aciertos) || aciertos < 0 || aciertos > total) continue;
+      out.rapido[d] = { aciertos, total, ms: Number.isInteger(ms) && ms >= 0 && ms <= 3600000 ? ms : 0 };
+    }
     return out;
   }
 
@@ -226,21 +251,69 @@ const BJ = (() => {
     };
   }
 
-  function insignias(turnos, respuestas = {}, hoy) {
+  function insignias(turnos, respuestas = {}, hoy, extra = {}) {
     const casos = turnos.flatMap((t) => t.casos);
     const hechos = casos.filter((c) => typeof respuestas[c.id]?.nota === 'number');
     const r = (c) => respuestas[c.id];
-    const p = progreso(respuestas, hoy);
+    const racha = Number.isInteger(extra.racha) ? extra.racha : progreso(respuestas, hoy).racha;
     const lista = [
       ['primer', hechos.length >= 1],
       ['perfecto', hechos.some((c) => r(c).nota === 100)],
       ['sin_alarma', hechos.filter((c) => c.veredicto !== 'vp' && r(c).veredicto === c.veredicto).length >= 3],
       ['contencion', hechos.filter((c) => c.accion === 'contener' && r(c).accion === 'contener').length >= 5],
       ['turno', turnos.some((t) => resumenTurno(t, respuestas).apto)],
-      ['racha3', p.racha >= 3],
+      ['racha3', racha >= 3],
+      ['revisor', (extra.cazados || 0) >= 3],
+      ['rapido', extra.rapidoPerfecto === true],
       ['semana', hechos.length === casos.length && casos.length > 0]
     ];
     return lista.map(([id, ok]) => ({ id, ok }));
+  }
+
+  /* ---------- Revisión del agente de IA (nivel 1,5) ----------
+   * Un agente ya ha resuelto la alerta; el analista aprueba o rechaza su trabajo y, si lo rechaza,
+   * dice qué falló y qué acción tocaba. */
+  const ERRORES_IA = Object.freeze(['contexto', 'omision', 'alucinacion', 'persona', 'fuente']);
+  const DICTAMENES = Object.freeze(['aprobar', 'rechazar']);
+  const PESOS_REV = Object.freeze({ dictamen: 60, motivo: 25, accion: 15 });
+  function corregirRevision(item, r = {}) {
+    const bien = item.error === null;
+    const dictamen = r.dictamen === (bien ? 'aprobar' : 'rechazar');
+    // Si el agente acertó y se aprueba, no hay motivo ni acción que corregir: se dan por buenos.
+    const motivo = bien ? dictamen : dictamen && r.motivo === item.error;
+    const accion = bien ? dictamen : dictamen && r.accion === item.accion;
+    const criterios = [
+      { id: 'dictamen', peso: PESOS_REV.dictamen, puntos: dictamen ? PESOS_REV.dictamen : 0, esperado: bien ? 'aprobar' : 'rechazar', valor: r.dictamen ?? null },
+      { id: 'motivo', peso: PESOS_REV.motivo, puntos: motivo ? PESOS_REV.motivo : 0, esperado: item.error, valor: r.motivo ?? null },
+      { id: 'accion', peso: PESOS_REV.accion, puntos: accion ? PESOS_REV.accion : 0, esperado: item.accion, valor: r.accion ?? null }
+    ];
+    return { nota: criterios.reduce((a, c) => a + c.puntos, 0), criterios, cazado: !bien && dictamen };
+  }
+
+  /* ---------- Triaje rápido con repaso espaciado ----------
+   * Lo que se falla vuelve mañana; lo que se acierta, cada vez más tarde (1, 2, 4, 7 y 14 días). */
+  const CAJAS = Object.freeze([1, 2, 4, 7, 14]);
+  const RAPIDO_N = 10;
+  const XP_RAPIDO = 5; // XP por acierto en la primera ronda del día
+  function repasar(entrada, acierto, hoy) {
+    // Una alerta nueva acertada empieza en la segunda caja: solo lo fallado vuelve mañana.
+    const caja = acierto ? Math.min((entrada && Number.isInteger(entrada.caja) ? entrada.caja : 0) + 1, CAJAS.length - 1) : 0;
+    return { caja, proximo: diaAntes(hoy, -CAJAS[caja]) };
+  }
+  function sesionRapida(casos, respuestas = {}, repaso = {}, hoy, n = RAPIDO_N) {
+    const cerrados = casos.filter((c) => typeof respuestas[c.id]?.nota === 'number');
+    const r = azar(semilla('rapido-' + hoy));
+    const mezcla = cerrados.map((c) => [r(), c]).sort((a, b) => a[0] - b[0]).map(([, c]) => c);
+    const toca = (c) => repaso[c.id] && repaso[c.id].proximo <= hoy;
+    const fallado = (c) => !repaso[c.id] && respuestas[c.id].accion !== c.accion;
+    const nuevo = (c) => !repaso[c.id];
+    const orden = [
+      ...mezcla.filter(toca).sort((a, b) => repaso[a.id].proximo.localeCompare(repaso[b.id].proximo)),
+      ...mezcla.filter((c) => fallado(c)),
+      ...mezcla.filter((c) => nuevo(c) && !fallado(c)),
+      ...mezcla.filter((c) => repaso[c.id] && !toca(c))
+    ];
+    return [...new Set(orden)].slice(0, n);
   }
 
   /* ---------- Entidades de los registros (como los «campos interesantes» de un SIEM) ----------
@@ -261,6 +334,6 @@ const BJ = (() => {
     return { cuentas: top(cuenta.cuentas), ips: top(cuenta.ips), equipos: top(cuenta.equipos) };
   }
 
-  return { META_DIARIA, NIVELES, progreso, insignias, entidades, PESOS, UMBRAL_APTO, TICKET_MIN, VEREDICTOS, ACCIONES, SEVERIDADES, COMPETENCIAS, LIMITES, semilla, azar, registros, normalizar, camposDe, campoBien, clavesEn, corregir, resumenTurno, historial, safeParse, sanearEstado, celdaCsv, HORA };
+  return { ERRORES_IA, DICTAMENES, PESOS_REV, corregirRevision, CAJAS, RAPIDO_N, XP_RAPIDO, repasar, sesionRapida, META_DIARIA, NIVELES, progreso, insignias, entidades, PESOS, UMBRAL_APTO, TICKET_MIN, VEREDICTOS, ACCIONES, SEVERIDADES, COMPETENCIAS, LIMITES, semilla, azar, registros, normalizar, camposDe, campoBien, clavesEn, corregir, resumenTurno, historial, safeParse, sanearEstado, celdaCsv, HORA };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = BJ;

