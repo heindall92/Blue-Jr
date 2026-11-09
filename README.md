@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/badge/licencia-MIT-4169A1?style=flat"/></a>
-  <img alt="Versión 0.4.0" src="https://img.shields.io/badge/versi%C3%B3n-0.4.0-6B9BFF?style=flat"/>
+  <img alt="Versión 0.5.0" src="https://img.shields.io/badge/versi%C3%B3n-0.5.0-6B9BFF?style=flat"/>
   <img alt="40 alertas" src="https://img.shields.io/badge/alertas-40-7C4DFF?style=flat"/>
   <img alt="5 turnos" src="https://img.shields.io/badge/turnos-5-2E9E7A?style=flat"/>
   <img alt="MITRE ATT&CK" src="https://img.shields.io/badge/MITRE-ATT%26CK-E07B39?style=flat"/>
@@ -74,8 +74,8 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
     </tr>
     <tr>
       <td valign="top"><code>├─ ◈ pruebas:</code><br><br>
-        <img alt="Unitarias" src="https://img.shields.io/badge/unitarias-46-2E8B57?style=for-the-badge"/>
-        <img alt="E2E" src="https://img.shields.io/badge/e2e-19-2E8B57?style=for-the-badge"/>
+        <img alt="Unitarias" src="https://img.shields.io/badge/unitarias-51-2E8B57?style=for-the-badge"/>
+        <img alt="E2E" src="https://img.shields.io/badge/e2e-21-2E8B57?style=for-the-badge"/>
         <img alt="axe" src="https://img.shields.io/badge/axe-0%20infracciones-2E8B57?style=for-the-badge"/><br>
         <sub><code>cada caso se resuelve leyendo sus registros · red bloqueada en el e2e · claro y oscuro, 1440 y 390 px</code></sub>
       </td>
@@ -89,7 +89,7 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
   </tbody>
   <tfoot>
     <tr>
-      <td colspan="2"><code>version: 0.4.0&nbsp;&nbsp;·&nbsp;&nbsp;nivel: SOC N1&nbsp;&nbsp;·&nbsp;&nbsp;empresa: Norte Logística (ficticia)&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
+      <td colspan="2"><code>version: 0.5.0&nbsp;&nbsp;·&nbsp;&nbsp;nivel: SOC N1&nbsp;&nbsp;·&nbsp;&nbsp;empresa: Norte Logística (ficticia)&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
     </tr>
   </tfoot>
 </table>
@@ -99,6 +99,14 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
 ---
 
 ## <img src="docs/assets/icons/sparkles.svg" width="20" height="20" valign="middle"/> Novedades
+
+### 0.5.0 · noviembre de 2026 · Comunicar y pedir ayuda
+
+Lo que más valoran quienes contratan es la comunicación, y lo que más bloquea a quien empieza es no saber cuándo pedir ayuda ([investigación](docs/investigacion-juniors.md)).
+
+- **Comunícalo.** Al cerrar un ticket que se escala, se escriben dos mensajes: el escalado a N2 (qué pasó, cuándo, quién está afectado, la evidencia, lo que hiciste y la prioridad) y el aviso a dirección (sin jerga, a qué afecta, qué se está haciendo, qué decisión hace falta y en menos de 120 palabras). Se corrigen en el navegador con una lista de criterios, sin IA ni servidor, y hay un ejemplo construido con los datos del caso. Cada mensaje completo suma 10 XP y va al historial exportable.
+- **Pregunta al N2.** Irene Soler, N2 de guardia, responde tres preguntas por turno: por dónde empezar, qué dato falta y si el veredicto va bien. Las pistas salen del propio caso y nunca dicen la acción. Cada pregunta resta 10 XP a ese ticket (la nota no cambia) y la respuesta se queda como estaba al preguntar: no sirve para probar respuestas gratis.
+- **Insignia «Comunicador»:** cinco mensajes completos.
 
 ### 0.4.0 · noviembre de 2026 · El nivel 1 en la era de la IA
 
@@ -182,6 +190,8 @@ Un junior no aprende con una nota: aprende cuando entiende **por qué** se escal
 | Práctica diaria | La racha y la meta diaria de Atlas GRC | Constancia: un par de tickets al día, todos los días |
 | Revisión de IA (0.4.0) | Los SOC donde un agente hace el primer triaje y el nivel 1 audita | A desconfiar con método: comprobar que lo citado existe, buscar lo que no se miró y corregir la acción |
 | Triaje rápido (0.4.0) | Repaso espaciado de Atlas GRC | Decidir en segundos y no olvidar lo fallado |
+| Comunícalo (0.5.0) | Las plantillas de escalado y de aviso a dirección de un SOC | Que el N2 pueda actuar con tu mensaje y que dirección entienda qué decidir |
+| Pregunta al N2 (0.5.0) | El analista de guardia al que se consulta en un turno | Cuándo merece la pena pedir ayuda, y que tiene un coste |
 
 <table>
 <tr>
@@ -191,6 +201,10 @@ Un junior no aprende con una nota: aprende cuando entiende **por qué** se escal
 <tr>
 <td width="50%"><img src="docs/capturas/revision-claro.png" alt="Revisión de IA: el agente da por benigno un PowerShell codificado citando una tarea INV-2231 que no existe; el revisor lo rechaza por inventar evidencia"/><br/><sub><b>Revisión de IA</b> · cazar al agente que se inventa la evidencia</sub></td>
 <td width="50%"><img src="docs/capturas/rapido-oscuro.png" alt="Triaje rápido en oscuro: alerta con sus registros, tres opciones con teclas 1, 2 y 3 y la corrección al momento"/><br/><sub><b>Triaje rápido</b> · cinco minutos al día, en oscuro</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/capturas/comunica-claro.png" alt="Comunícalo: mensaje de escalado a N2 revisado con la lista de criterios, todos cumplidos"/><br/><sub><b>Comunícalo</b> · el escalado a N2, corregido en local</sub></td>
+<td width="50%"><img src="docs/capturas/n2-oscuro.png" alt="Pregunta al N2 en oscuro: la mentora responde por dónde empezar y si el veredicto va bien, con el coste en XP"/><br/><sub><b>Pregunta al N2</b> · tres preguntas por turno, con coste</sub></td>
 </tr>
 <tr>
 <td colspan="2"><img src="docs/capturas/guia-oscuro.png" alt="Guía de investigación de la familia Equipos y procesos en modo oscuro, con las tareas del incidente en el ticket"/><br/><sub><b>Guía y tareas del incidente</b> · en oscuro</sub></td>
@@ -384,10 +398,10 @@ Detalle en [SECURITY.md](SECURITY.md).
 
 | Suite | Pruebas | Qué cubre |
 |---|---|---|
-| Motor | 26 | Corrección por criterio, normalización, MITRE, ruido determinista que nunca cita entidades del caso, historial, saneado de importaciones, CSV contra fórmulas, XP, racha (con el corte de un día sin práctica), niveles, insignias y entidades; corrección de la revisión de IA, repaso espaciado, selección del triaje rápido y saneado de revisiones, repaso y triaje importados |
+| Motor | 31 | Corrección por criterio, normalización, MITRE, ruido determinista que nunca cita entidades del caso, historial, saneado de importaciones, CSV contra fórmulas, XP, racha (con el corte de un día sin práctica), niveles, insignias y entidades; corrección de la revisión de IA, repaso espaciado, selección del triaje rápido y saneado de revisiones, repaso y triaje importados; corrección de los mensajes (cada criterio con su texto bueno y su texto malo), ejemplos que cumplen su propia corrección, pistas del N2 y saneado de mensajes y preguntas |
 | Casos | 13 | Cada caso se resuelve leyendo sus registros, textos bilingües, solo IP de documentación y dominios `.example`, referencias cruzadas válidas; cada caso en una sola guía, su acción correcta siempre entre las salidas de la guía, ninguna guía cita datos de un caso y el árbol de decisión cubre las tres acciones y los tres veredictos; el turno de revisión cubre los cinco tipos de error y el agente solo cita lo que existe en los registros, salvo cuando alucina |
 | Repositorio | 7 | HTML al día, CSP sin `unsafe-inline` en scripts, paridad de claves ES/EN, versión única, enlaces y cifras de este README, y la raíz que lleva a la aplicación en Pages |
-| E2E | 19 | Alerta de punta a punta, teclado, ayuda, inglés sin restos de español, exportar e importar, importación hostil, relevo, móvil, tema, movimiento (entrada antes de 450 ms), lateral plegable y portada; guía por pestañas, pivote por entidad, tareas que se marcan solas, XP y racha al cerrar, las cinco salidas del árbol de decisión e insignias; revisión de IA (aprobar, cazar un error, nota recalculada) y triaje rápido (bloqueo, teclas, XP solo en la primera ronda, repaso) |
+| E2E | 21 | Alerta de punta a punta, teclado, ayuda, inglés sin restos de español, exportar e importar, importación hostil, relevo, móvil, tema, movimiento (entrada antes de 450 ms), lateral plegable y portada; guía por pestañas, pivote por entidad, tareas que se marcan solas, XP y racha al cerrar, las cinco salidas del árbol de decisión e insignias; revisión de IA (aprobar, cazar un error, nota recalculada) y triaje rápido (bloqueo, teclas, XP solo en la primera ronda, repaso); Pregunta al N2 (límite por turno, coste en XP, respuesta congelada) y Comunícalo (corrección, XP y exportación) |
 | Accesibilidad | 4 | axe en vistas, estados y todos los diálogos, en claro y oscuro, a 1440 y 390 px: 0 infracciones |
 
 ## <img src="docs/assets/icons/calendar-clock.svg" width="20" height="20" valign="middle"/> Hoja de ruta
@@ -399,14 +413,14 @@ Detalle en [ROADMAP.md](ROADMAP.md).
 - [x] 0.2.1 · Radar como marca y prueba de movimiento estable en la CI
 - [x] 0.3.0 · El entrenador: guías de investigación, ¿escalo o no?, entidades, tareas y práctica diaria
 - [x] 0.4.0 · El nivel 1 en la era de la IA: revisión del agente de IA y triaje rápido diario
-- [ ] 0.5.0 · Comunicar y pedir ayuda: escalados y relevos corregidos y «Pregunta al N2»
+- [x] 0.5.0 · Comunicar y pedir ayuda: mensajes a N2 y a dirección corregidos en local y «Pregunta al N2»
 - [ ] 0.6.0 · Del ticket a la entrevista: «Defiende tu ticket» e historias STAR para Astrolabio
 - [ ] 0.7.0 · Contexto español: RGPD, ENS e INCIBE-CERT en los casos
 
 ## <img src="docs/assets/icons/triangle-alert.svg" width="20" height="20" valign="middle"/> Limitaciones conocidas
 
 - Los casos son ficticios y están escritos a mano: enseñan el razonamiento de un nivel 1, no sustituyen la experiencia en un SOC real.
-- La corrección es automática: compara con una solución por caso y busca datos en el ticket; no valora el estilo de la redacción.
+- La corrección es automática: compara con una solución por caso y busca datos en el ticket y en los mensajes; comprueba que estén las piezas que necesita quien los lee, no valora el estilo de la redacción.
 - El progreso vive en el navegador: si borras sus datos, se pierde. Usa **Historial → Copia de seguridad**.
 - Las notas de ITSM de los registros están en español también en inglés, como en una empresa española.
 
@@ -427,6 +441,7 @@ Blue-Jr/
 │   │   ├── 04-views.js           Portada, turno e historial
 │   │   ├── 04b-entreno.js        Guía, entidades, tareas, ¿escalo o no?, práctica e insignias
 │   │   ├── 04c-revision.js       Revisión del agente de IA y triaje rápido
+│   │   ├── 04d-comunicar.js      Comunícalo y Pregunta al N2
 │   │   └── 05-events.js          Eventos, teclado y arranque
 │   ├── data/                     empresa.json, t1…t5.json (40 casos), guias.json y revision.json
 │   ├── styles/bluejr.css         Tokens, claro y oscuro, siete acentos, móvil

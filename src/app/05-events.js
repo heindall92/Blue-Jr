@@ -30,7 +30,7 @@ function pintarTicket() { $('#ticket').innerHTML = panelTicket(CASOS[UI.caso]); 
 
 function abrirCaso(id, foco = true) {
   if (!CASOS[id]) return;
-  UI.caso = id; UI.filtro = ''; UI.fuente = null; UI.panel = 'caso';
+  UI.caso = id; UI.filtro = ''; UI.fuente = null; UI.panel = 'caso'; UI.msgRevisado = null;
   if (ruta().turno !== CASOS[id].turno) { location.hash = CASOS[id].turno; return; }
   pintarCaso();
   $('.puesto')?.setAttribute('data-panel-activo', 'caso');
@@ -51,7 +51,8 @@ function cerrarTicket() {
   const scroll = scrollY;
   pintar();
   scrollTo(0, scroll);
-  avisosXp(antes, progresoActual(), c.id, r.nota);
+  // La XP del ticket descuenta lo que costaron las preguntas al N2; la nota no cambia.
+  avisosXp(antes, progresoActual(), c.id, r.nota, T('xp_ganado', { x: Math.max(0, r.nota - BJ.COSTE_N2 * (S.n2[c.id]?.length || 0)), n: r.nota, id: c.id }));
   UI.panel = 'ticket';
   $('.puesto')?.setAttribute('data-panel-activo', 'ticket');
   $$('[data-panel]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.panel === 'ticket'));
@@ -81,6 +82,9 @@ document.addEventListener('click', (e) => {
     $$('[data-pivote]').forEach((x) => x.setAttribute('aria-pressed', x.dataset.pivote === UI.filtro));
     pintarLineas(); return actualizarTareas();
   }
+  if (d.msgTipo) { UI.msgTipo = d.msgTipo; repintarComunica(); return $(`[data-msg-tipo="${d.msgTipo}"]`)?.focus(); }
+  if ('msgRevisar' in d) return revisarMensaje();
+  if (d.n2) return preguntarN2(d.n2);
   if (d.rev) return abrirRev(d.rev);
   if (d.dictamen || d.motivo || d.raccion) {
     const k = d.dictamen ? 'dictamen' : d.motivo ? 'motivo' : 'raccion';
@@ -146,6 +150,7 @@ document.addEventListener('input', (e) => {
     pintarLineas(); return actualizarTareas();
   }
   if (t.dataset.campo) { respuesta(UI.caso).campos[t.dataset.campo] = t.value.slice(0, BJ.LIMITES.campo); guardar(); return actualizarTareas(); }
+  if (t.id === 'msg-texto') { msgDe(UI.caso)[UI.msgTipo] = t.value.slice(0, BJ.LIMITES.ticket); guardar(); $('#msg-palabras').textContent = T('com_palabras', { n: (t.value.trim().match(/\S+/g) || []).length }); return; }
   if (t.id === 'texto-ticket') { respuesta(UI.caso).ticket = t.value.slice(0, BJ.LIMITES.ticket); guardar(); $('#cuenta-ticket').textContent = T('caracteres', { n: t.value.trim().length, m: BJ.TICKET_MIN }); actualizarTareas(); }
 });
 

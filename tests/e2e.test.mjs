@@ -399,9 +399,9 @@ test('historial: insignias ganadas y pendientes', async () => {
   const c = INDICE['T1-01'];
   await p.addInitScript(([id, r]) => { if (!localStorage.getItem('bluejr-v1')) localStorage.setItem('bluejr-v1', JSON.stringify({ respuestas: { [id]: { ...r, cerrado: true, cuando: new Date().toISOString() } } })); }, [c.id, respuestaPerfecta(c)]);
   await ir(p, 'historial');
-  assert.equal(await p.locator('.insignias li').count(), 9);
+  assert.equal(await p.locator('.insignias li').count(), 10);
   assert.equal(await p.locator('.insignias li.ok').count(), 2, 'primer ticket y ticket perfecto');
-  assert.match(await p.textContent('.insignias-p .pildora'), /2 de 9/);
+  assert.match(await p.textContent('.insignias-p .pildora'), /2 de 10/);
   await p.context().close();
 });
 
@@ -479,4 +479,65 @@ test('triaje rápido: bloqueado al principio, diez alertas con teclas 1-2-3 y re
   await q.waitForSelector('.modos');
   assert.match(await q.textContent('.modo-rap'), /Hecho hoy: 9 de 10/);
   await q.context().close();
+});
+
+test('Pregunta al N2: tres por turno, cuestan XP y la respuesta se queda como estaba al preguntar', async () => {
+  const p = await pagina();
+  await ir(p, 'T1');
+  assert.match(await p.textContent('.n2 .nota'), /Te quedan 3 preguntas/);
+  await p.click('[data-veredicto="fp"]');
+  await p.click('[data-n2="decision"]');
+  assert.match(await p.textContent('.n2-hilo'), /no marcaría ese veredicto/);
+  await p.click('[data-veredicto="vp"]');
+  assert.match(await p.textContent('.n2-hilo'), /no marcaría ese veredicto/, 'cambiar el veredicto no vuelve a preguntar gratis');
+  assert.equal(await p.locator('[data-n2="decision"]').count(), 0);
+  await p.click('[data-n2="inicio"]');
+  assert.match(await p.textContent('.n2-hilo'), /vpn01 a las 08:0/);
+  assert.match(await p.textContent('.n2 .nota'), /Te queda 1 pregunta/);
+  // La tercera, en otra alerta del mismo turno; después no quedan.
+  await p.click('.cola [data-caso="T1-02"]');
+  await p.click('[data-n2="falta"]');
+  assert.match(await p.textContent('.n2 .nota'), /Te quedan 0/);
+  assert.ok(await p.isDisabled('[data-n2="inicio"]'));
+  // Cerrar T1-01 con todo bien: 100 de nota, 80 de XP por las dos preguntas.
+  await p.click('.cola [data-caso="T1-01"]');
+  const r = respuestaPerfecta(INDICE['T1-01']);
+  await p.click('[data-accion="contener"]');
+  for (const [k, v] of Object.entries(r.campos)) await p.fill(`[data-campo="${k}"]`, v);
+  await p.fill('#texto-ticket', r.ticket);
+  await p.click('[data-cerrar-ticket]');
+  await p.waitForSelector('#resultado');
+  assert.match(await p.textContent('#resultado .nota-grande'), /^100/);
+  assert.match(await p.textContent('#toasts'), /\+80 XP · ticket T1-01 cerrado con 100\/100/);
+  await p.context().close();
+});
+
+test('Comunícalo: el mensaje a N2 y el aviso a dirección se corrigen, suman XP y van al historial', async () => {
+  const p = await pagina();
+  const c = INDICE['T1-01'], f = INDICE['T1-05'];
+  await p.addInitScript(([a, b]) => { if (!localStorage.getItem('bluejr-v1')) localStorage.setItem('bluejr-v1', JSON.stringify({ respuestas: { 'T1-01': { ...a, cerrado: true, cuando: new Date().toISOString() }, 'T1-05': { ...b, cerrado: true, cuando: new Date().toISOString() } } })); }, [respuestaPerfecta(c), respuestaPerfecta(f)]);
+  await ir(p, 'T1');
+  await p.click('.cola [data-caso="T1-05"]');
+  assert.equal(await p.locator('.comunica').count(), 0, 'un falso positivo cerrado no se escala ni se comunica');
+  await p.click('.cola [data-caso="T1-01"]');
+  await p.fill('#msg-texto', 'Login raro de r.ibanez, mirad');
+  await p.click('[data-msg-revisar]');
+  assert.ok(await p.locator('.msg-crit li.ko').count() >= 3);
+  await p.fill('#msg-texto', 'Prioridad alta. A las 08:05 fuerza bruta contra la VPN desde 203.0.113.45 que termina en login OK de r.ibanez. He deshabilitado la cuenta y bloqueado la IP; lo escalo para revisar el alcance.');
+  await p.click('[data-msg-revisar]');
+  assert.equal(await p.locator('.msg-crit li.ko').count(), 0);
+  assert.match(await p.textContent('#toasts'), /\+10 XP · Escalado a N2 completo/);
+  await p.click('[data-msg-tipo="dir"]');
+  await p.click('.com-ej summary');
+  assert.doesNotMatch(await p.textContent('.com-ej p'), /\d+\.\d+\.\d+\.\d+/, 'el ejemplo para dirección no lleva IP');
+  await p.fill('#msg-texto', await p.textContent('.com-ej p'));
+  await p.click('[data-msg-revisar]');
+  assert.equal(await p.locator('.msg-crit li.ko').count(), 0);
+  assert.equal(await p.locator('[data-msg-tipo] .ic.ok').count(), 2);
+  await ir(p, 'historial');
+  const [descarga] = await Promise.all([p.waitForEvent('download'), p.click('[data-exportar-md]')]);
+  const md = readFileSync(await descarga.path(), 'utf8');
+  assert.match(md, /Escalado a N2\*\*\n\n> Prioridad alta/);
+  assert.match(md, /Aviso a dirección/);
+  await p.context().close();
 });

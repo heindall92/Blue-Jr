@@ -750,6 +750,36 @@ dialog.buscar { width: min(620px, calc(100% - 24px)); margin-top: 12dvh; }
   .modos { grid-template-columns: minmax(0, 1fr); }
 }
 
+/* ---------- Comunícalo y Pregunta al N2 ---------- */
+.comunica { display: grid; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--hair); }
+.comunica h3 { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.comunica h3 .ic { width: 17px; height: 17px; color: var(--accent); }
+.comunica .g-tabs .ic.ok { color: var(--ok); }
+.com-para { font-size: 0.82rem; color: var(--ink-2); }
+.com-revisar { justify-self: start; }
+.com-ej { font-size: 0.82rem; }
+.com-ej summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+.com-ej p { margin-top: 8px; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--hair); color: var(--ink-2); line-height: 1.5; }
+.msg-crit li .crit small { color: var(--ink-3); }
+.msg-ok { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--ok); font-size: 0.875rem; }
+.msg-ok .ic { width: 18px; height: 18px; }
+
+.n2 { display: grid; gap: 10px; padding: 12px 14px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--hair); }
+.n2-cab { display: flex; align-items: flex-start; gap: 10px; }
+.n2-cab h3 { font-size: 0.875rem; }
+.n2-cab .nota { font-size: 0.78rem; }
+.n2-av { display: grid; place-items: center; width: 34px; height: 34px; flex: none; border-radius: 50%; background: linear-gradient(135deg, #22b8a6, #2f7fe0); color: #fff; font: 700 0.75rem var(--font-sans); }
+.n2-hilo { display: grid; gap: 8px; }
+.n2-hilo li { display: grid; gap: 2px; padding: 9px 11px; border-radius: 12px; background: var(--surface); border: 1px solid var(--hair); font-size: 0.82rem; outline: none; }
+.n2-hilo li:focus-visible { box-shadow: 0 0 0 2px var(--accent); }
+.n2-hilo b { color: var(--ink-2); font-weight: 600; }
+.n2-hilo span { color: var(--ink); }
+.n2-qs { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip.n2-q { height: auto; min-height: 30px; padding: 5px 11px; font-family: var(--font-sans); cursor: pointer; }
+.chip.n2-q:hover:not(:disabled) { border-color: var(--accent); color: var(--ink); }
+.chip.n2-q:disabled { cursor: not-allowed; opacity: 0.6; }
+.vista .n2-hilo li:last-child { animation: guia-abre 240ms var(--ease-out); }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }

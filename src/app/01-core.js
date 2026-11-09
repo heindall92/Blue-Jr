@@ -33,7 +33,7 @@ const P = {
 const guardarPrefs = () => escribir(CLAVE_PREFS, JSON.stringify(P));
 
 /* ---------- Estado de la interfaz (no se guarda) ---------- */
-const UI = { turno: null, caso: null, filtro: '', fuente: null, panel: 'caso', ultimoTurno: leer('bluejr-ultimo') || 'T1', borrarArmado: false, vistaAnimada: null, guia: null, guiaTab: 'triaje', investigado: new Set(), rev: null, rapido: null };
+const UI = { turno: null, caso: null, filtro: '', fuente: null, panel: 'caso', ultimoTurno: leer('bluejr-ultimo') || 'T1', borrarArmado: false, vistaAnimada: null, guia: null, guiaTab: 'triaje', investigado: new Set(), rev: null, rapido: null, msgTipo: null, msgRevisado: null };
 
 /* ---------- Textos ---------- */
 const T = (k, vars) => {

@@ -171,6 +171,46 @@ const I18N = {
     modo_rap_txt: 'Diez alertas decididas en segundos, con repaso de lo que falles',
     modo_rev_ante: 'NIVEL 1,5',
     modo_rev_txt: 'Audita los veredictos de un agente de IA · {a} de {b} revisadas',
+    com_titulo: 'Comunícalo',
+    com_intro: 'Cerrar bien no basta: alguien tiene que entender qué ha pasado. Escribe el mensaje a N2 y el aviso a dirección, y revísalos con la lista.',
+    com_tipo: { n2: 'Escalado a N2', dir: 'Aviso a dirección' },
+    com_para: { n2: 'Para quien sigue la investigación: técnico, con datos, en pocas líneas.', dir: 'Para alguien que no es técnico: qué pasa, a qué afecta, qué se está haciendo y qué decisión necesitas. Sin jerga.' },
+    com_ph: { n2: 'Prioridad, qué ha pasado y a qué hora, cuentas, equipos o IP afectados, la evidencia y lo que has hecho o pides.', dir: 'Qué ha pasado en lenguaje llano, a qué puede afectar (clientes, datos, servicio), qué está haciendo el equipo de seguridad y qué necesitas que decidan.' },
+    com_palabras: '{n} palabras',
+    com_ejemplo: 'Ver un ejemplo',
+    com_revisar: 'Revisar el mensaje',
+    com_ok: 'Mensaje completo: tiene todo lo que necesita quien lo lee.',
+    msg_crit: {
+      n2: {
+        que: ['Qué ha pasado', 'Nombra el tipo de incidente o la regla, con palabras del caso.'],
+        cuando: ['Cuándo', 'Pon la hora (HH:MM).'],
+        quien: ['Quién o qué está afectado', 'Cita la cuenta, el equipo o la IP.'],
+        evidencia: ['Evidencia', 'Cita al menos dos datos de los registros.'],
+        accion: ['Qué has hecho o qué pides', 'Di si has contenido (deshabilitar, aislar, bloquear) o qué necesitas que haga N2.'],
+        urgencia: ['Prioridad', 'Indica la urgencia: crítica, alta, media o baja.']
+      },
+      dir: {
+        llano: ['Sin jerga', 'Quita IP, EventID, hashes, nombres de técnicas y siglas como EDR o SIEM.'],
+        impacto: ['A qué afecta', 'Habla de clientes, datos, servicio, pedidos, nóminas o dinero.'],
+        situacion: ['Qué se está haciendo', 'Di que el equipo de seguridad lo ha contenido o lo está investigando.'],
+        peticion: ['Qué necesitas', 'Pide una decisión, una autorización o confirma que no hace falta ninguna.'],
+        breve: ['Breve', 'Entre 25 y 120 palabras.']
+      }
+    },
+    xp_msg: '+{n} XP · {t} completo',
+    n2_titulo: 'Pregunta al N2',
+    n2_sub: 'Irene Soler, N2 de guardia. Te quedan {n} preguntas en este turno; cada una resta {c} XP a este ticket.',
+    n2_sub_1: 'Irene Soler, N2 de guardia. Te queda 1 pregunta en este turno; resta {c} XP a este ticket.',
+    n2_q: { inicio: '¿Por dónde empiezo?', falta: '¿Qué dato me falta?', decision: '¿Voy bien con el veredicto?' },
+    n2_r: {
+      inicio: 'Yo empezaría por {f} a las {h}. Lee qué pasa justo antes y justo después.',
+      falta: 'Revisa estos datos: {c}. Están en los registros.',
+      falta_ok: 'Tus datos clave cuadran. Ahora, el resumen.',
+      decision_nada: 'Primero elige un veredicto y te digo.',
+      decision_si: 'El veredicto encaja. Para la acción, pásalo por «¿Escalo o no?».',
+      decision_no: 'Yo no marcaría ese veredicto. Vuelve a la guía: ¿hay autorización?, ¿llegó a tener efecto?'
+    },
+    n2_coste: 'Pregunta al N2: −{n} XP en este ticket',
     guia_titulo: 'Guía de investigación',
     guia_sub: 'triaje, análisis y respuesta',
     guia_si: 'Si',
@@ -218,7 +258,7 @@ const I18N = {
     reto_t: 'Siguiente alerta',
     reto_repaso: 'Repasa la que peor te salió',
     reto_btn: 'Investigar',
-    xp_ganado: '+{n} XP · ticket {id} cerrado con {n}/100',
+    xp_ganado: '+{x} XP · ticket {id} cerrado con {n}/100',
     subes: 'Subes de nivel: {n}',
     meta_cumplida: 'Meta de hoy cumplida',
     racha_aviso: 'Racha de {n} días seguidos',
@@ -232,7 +272,8 @@ const I18N = {
       racha3: ['Constancia', 'Practica tres días seguidos'],
       semana: ['Semana completa', 'Cierra las 40 alertas'],
       revisor: ['Revisor de IA', 'Caza tres errores del agente'],
-      rapido: ['Reflejos', 'Diez de diez en el triaje rápido']
+      rapido: ['Reflejos', 'Diez de diez en el triaje rápido'],
+      comunicador: ['Comunicador', 'Cinco mensajes completos a N2 o a dirección']
     },
 
     hist_ante: 'TU HISTORIAL',
@@ -497,6 +538,46 @@ const I18N = {
     modo_rap_txt: 'Ten alerts decided in seconds, with review of what you miss',
     modo_rev_ante: 'TIER 1.5',
     modo_rev_txt: 'Audit an AI agent\'s verdicts · {a} of {b} reviewed',
+    com_titulo: 'Communicate it',
+    com_intro: 'Closing it well is not enough: someone has to understand what happened. Write the message to T2 and the note to management, and check them against the list.',
+    com_tipo: { n2: 'Escalation to T2', dir: 'Note to management' },
+    com_para: { n2: 'For whoever continues the investigation: technical, with data, in a few lines.', dir: 'For someone non-technical: what is happening, what it affects, what is being done and which decision you need. No jargon.' },
+    com_ph: { n2: 'Priority, what happened and when, affected accounts, hosts or IPs, the evidence and what you did or are asking for.', dir: 'What happened in plain words, what it may affect (customers, data, service), what the security team is doing and what you need them to decide.' },
+    com_palabras: '{n} words',
+    com_ejemplo: 'See an example',
+    com_revisar: 'Check the message',
+    com_ok: 'Complete message: it has everything its reader needs.',
+    msg_crit: {
+      n2: {
+        que: ['What happened', 'Name the type of incident or the rule, with words from the case.'],
+        cuando: ['When', 'Give the time (HH:MM).'],
+        quien: ['Who or what is affected', 'Quote the account, the host or the IP.'],
+        evidencia: ['Evidence', 'Quote at least two facts from the logs.'],
+        accion: ['What you did or ask for', 'Say whether you contained it (disable, isolate, block) or what you need T2 to do.'],
+        urgencia: ['Priority', 'State the urgency: critical, high, medium or low.']
+      },
+      dir: {
+        llano: ['No jargon', 'Remove IPs, EventIDs, hashes, technique names and acronyms such as EDR or SIEM.'],
+        impacto: ['What it affects', 'Talk about customers, data, service, orders, payroll or money.'],
+        situacion: ['What is being done', 'Say the security team has contained it or is investigating it.'],
+        peticion: ['What you need', 'Ask for a decision or an authorisation, or confirm none is needed.'],
+        breve: ['Short', 'Between 25 and 120 words.']
+      }
+    },
+    xp_msg: '+{n} XP · {t} complete',
+    n2_titulo: 'Ask tier 2',
+    n2_sub: 'Irene Soler, tier 2 on call. You have {n} questions left this shift; each one takes {c} XP off this ticket.',
+    n2_sub_1: 'Irene Soler, tier 2 on call. You have 1 question left this shift; it takes {c} XP off this ticket.',
+    n2_q: { inicio: 'Where do I start?', falta: 'Which fact am I missing?', decision: 'Is my verdict on track?' },
+    n2_r: {
+      inicio: 'I would start with {f} at {h}. Read what happens just before and just after.',
+      falta: 'Check these facts: {c}. They are in the logs.',
+      falta_ok: 'Your key facts are right. Now, the summary.',
+      decision_nada: 'Pick a verdict first and I will tell you.',
+      decision_si: 'The verdict fits. For the action, run it through «Escalate or not?».',
+      decision_no: 'I would not choose that verdict. Go back to the guide: is there an authorisation? Did it take effect?'
+    },
+    n2_coste: 'Asked tier 2: −{n} XP on this ticket',
     guia_titulo: 'Investigation guide',
     guia_sub: 'triage, analysis and response',
     guia_si: 'If',
@@ -544,7 +625,7 @@ const I18N = {
     reto_t: 'Next alert',
     reto_repaso: 'Review your weakest one',
     reto_btn: 'Investigate',
-    xp_ganado: '+{n} XP · ticket {id} closed with {n}/100',
+    xp_ganado: '+{x} XP · ticket {id} closed with {n}/100',
     subes: 'Level up: {n}',
     meta_cumplida: 'Today\'s goal reached',
     racha_aviso: '{n}-day streak',
@@ -558,7 +639,8 @@ const I18N = {
       racha3: ['Consistency', 'Practise three days in a row'],
       semana: ['Full week', 'Close all 40 alerts'],
       revisor: ['AI reviewer', 'Catch three agent mistakes'],
-      rapido: ['Reflexes', 'Ten out of ten in quick triage']
+      rapido: ['Reflexes', 'Ten out of ten in quick triage'],
+      comunicador: ['Communicator', 'Five complete messages to T2 or management']
     },
 
     hist_ante: 'YOUR RECORD',

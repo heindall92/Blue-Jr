@@ -46,6 +46,19 @@ for (const [ancho, alto] of [[1440, 900], [390, 844]]) {
       await auditar(p, `resultado ${ancho} ${tema}`);
       if (ancho < 900) await p.click('[data-panel="caso"]');
       await p.fill('#filtro', 'vpn'); await auditar(p, `filtro ${ancho} ${tema}`);
+      // Comunícalo (con la lista corregida) y Pregunta al N2 con respuestas.
+      await p.goto(`${URL_APP}?test#T1`); await p.waitForSelector('.vista');
+      if (await p.getAttribute('html', 'data-theme') !== tema) await p.click('[data-tema]');
+      if (ancho < 900) await p.click('[data-panel="cola"]');
+      await p.click('.cola [data-caso="T1-01"]');
+      if (ancho < 900) await p.click('[data-panel="ticket"]');
+      await p.fill('#msg-texto', 'Login raro de r.ibanez'); await p.click('[data-msg-revisar]');
+      await auditar(p, `comunícalo ${ancho} ${tema}`);
+      if (ancho < 900) await p.click('[data-panel="cola"]');
+      await p.click('.cola [data-caso="T1-03"]');
+      if (ancho < 900) await p.click('[data-panel="ticket"]');
+      await p.click('[data-n2="inicio"]'); await p.click('[data-n2="decision"]');
+      await auditar(p, `pregunta al N2 ${ancho} ${tema}`);
       // Revisión de IA: rechazo con motivo y acción, y resultado.
       await p.goto(`${URL_APP}?test#revision`); await p.waitForSelector('.vista');
       if (await p.getAttribute('html', 'data-theme') !== tema) await p.click('[data-tema]');

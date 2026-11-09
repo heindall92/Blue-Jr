@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-07/amjWlXTsCMf9yOncRTmp4VP71FDEXYDIFQbSrnSY='; style-src 'sha256-8qlX+KzfSlAkQoroUkI8rGTrw2+LcVryxtZbaS/sWFM='; style-src-attr 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; manifest-src 'none'; worker-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-lkgYKVbA6D69pxMpaB4jbH4s5snHyD1O3sy8axJVCqk='; style-src 'sha256-F/dt1RUOpyom0Dd3XSD1mn3EJZcw4zhAeyLba/qlgPQ='; style-src-attr 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; manifest-src 'none'; worker-src 'none'">
 <title>BlueJr</title>
 <meta name="description" content="BlueJr: tu primer turno como analista SOC antes de tu primer empleo. Alertas, registros, tickets corregidos y un historial para la entrevista. Local-first, sin servidor.">
 <meta name="author" content="Yoandy Ramírez Delgado">
@@ -767,6 +767,36 @@ dialog.buscar { width: min(620px, calc(100% - 24px)); margin-top: 12dvh; }
   .modos { grid-template-columns: minmax(0, 1fr); }
 }
 
+/* ---------- Comunícalo y Pregunta al N2 ---------- */
+.comunica { display: grid; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--hair); }
+.comunica h3 { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.comunica h3 .ic { width: 17px; height: 17px; color: var(--accent); }
+.comunica .g-tabs .ic.ok { color: var(--ok); }
+.com-para { font-size: 0.82rem; color: var(--ink-2); }
+.com-revisar { justify-self: start; }
+.com-ej { font-size: 0.82rem; }
+.com-ej summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+.com-ej p { margin-top: 8px; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--hair); color: var(--ink-2); line-height: 1.5; }
+.msg-crit li .crit small { color: var(--ink-3); }
+.msg-ok { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--ok); font-size: 0.875rem; }
+.msg-ok .ic { width: 18px; height: 18px; }
+
+.n2 { display: grid; gap: 10px; padding: 12px 14px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--hair); }
+.n2-cab { display: flex; align-items: flex-start; gap: 10px; }
+.n2-cab h3 { font-size: 0.875rem; }
+.n2-cab .nota { font-size: 0.78rem; }
+.n2-av { display: grid; place-items: center; width: 34px; height: 34px; flex: none; border-radius: 50%; background: linear-gradient(135deg, #22b8a6, #2f7fe0); color: #fff; font: 700 0.75rem var(--font-sans); }
+.n2-hilo { display: grid; gap: 8px; }
+.n2-hilo li { display: grid; gap: 2px; padding: 9px 11px; border-radius: 12px; background: var(--surface); border: 1px solid var(--hair); font-size: 0.82rem; outline: none; }
+.n2-hilo li:focus-visible { box-shadow: 0 0 0 2px var(--accent); }
+.n2-hilo b { color: var(--ink-2); font-weight: 600; }
+.n2-hilo span { color: var(--ink); }
+.n2-qs { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip.n2-q { height: auto; min-height: 30px; padding: 5px 11px; font-family: var(--font-sans); cursor: pointer; }
+.chip.n2-q:hover:not(:disabled) { border-color: var(--accent); color: var(--ink); }
+.chip.n2-q:disabled { cursor: not-allowed; opacity: 0.6; }
+.vista .n2-hilo li:last-child { animation: guia-abre 240ms var(--ease-out); }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
@@ -964,7 +994,7 @@ const BJ = (() => {
 
   /** Deja solo lo que BlueJr sabe leer, con tipos, longitudes y listas permitidas. Recalcula la nota. */
   function sanearEstado(bruto, indice, indiceRev = {}) {
-    const out = { v: 1, perfil: { nombre: '' }, respuestas: {}, relevos: {}, revisiones: {}, repaso: {}, rapido: {} };
+    const out = { v: 1, perfil: { nombre: '' }, respuestas: {}, relevos: {}, revisiones: {}, repaso: {}, rapido: {}, mensajes: {}, n2: {} };
     if (!bruto || typeof bruto !== 'object') return out;
     out.perfil.nombre = corta(bruto.perfil?.nombre, LIMITES.nombre);
     const resp = bruto.respuestas && typeof bruto.respuestas === 'object' ? bruto.respuestas : {};
@@ -1010,6 +1040,31 @@ const BJ = (() => {
       const total = x.total, aciertos = x.aciertos, ms = x.ms;
       if (!Number.isInteger(total) || total < 1 || total > RAPIDO_N || !Number.isInteger(aciertos) || aciertos < 0 || aciertos > total) continue;
       out.rapido[d] = { aciertos, total, ms: Number.isInteger(ms) && ms >= 0 && ms <= 3600000 ? ms : 0 };
+    }
+    for (const [id, m] of Object.entries(obj(bruto.mensajes))) {
+      const caso = indice[id];
+      if (!caso || !m || typeof m !== 'object') continue;
+      const limpio = {};
+      for (const tipo of TIPOS_MENSAJE) if (typeof m[tipo] === 'string') limpio[tipo] = corta(m[tipo], LIMITES.ticket);
+      // Si el mensaje está completo se recalcula aquí; una copia no puede traer «completo» sin el texto.
+      limpio.ok = TIPOS_MENSAJE.filter((tipo) => limpio[tipo] && corregirMensaje(tipo, limpio[tipo], caso).completo);
+      limpio.cuando = typeof m.cuando === 'string' && !Number.isNaN(Date.parse(m.cuando)) ? m.cuando : null;
+      out.mensajes[id] = limpio;
+    }
+    for (const [id, lista] of Object.entries(obj(bruto.n2))) {
+      const caso = indice[id];
+      if (!caso || !Array.isArray(lista)) continue;
+      const ids = camposDe(caso).map((c) => c.id);
+      const vistas = new Set();
+      out.n2[id] = [];
+      for (const x of lista) {
+        if (!x || !PREGUNTAS_N2.includes(x.tipo) || vistas.has(x.tipo)) continue;
+        vistas.add(x.tipo);
+        // Se guarda la respuesta tal como era al preguntar: preguntar no puede servir para probar respuestas gratis.
+        if (x.tipo === 'decision') out.n2[id].push({ tipo: 'decision', v: x.v === true || x.v === false ? x.v : null });
+        else if (x.tipo === 'falta') out.n2[id].push({ tipo: 'falta', campos: Array.isArray(x.campos) ? x.campos.filter((c) => ids.includes(c)) : [] });
+        else out.n2[id].push({ tipo: 'inicio' });
+      }
     }
     return out;
   }
@@ -1059,6 +1114,7 @@ const BJ = (() => {
       ['racha3', racha >= 3],
       ['revisor', (extra.cazados || 0) >= 3],
       ['rapido', extra.rapidoPerfecto === true],
+      ['comunicador', (extra.mensajes || 0) >= 5],
       ['semana', hechos.length === casos.length && casos.length > 0]
     ];
     return lista.map(([id, ok]) => ({ id, ok }));
@@ -1110,6 +1166,90 @@ const BJ = (() => {
     return [...new Set(orden)].slice(0, n);
   }
 
+  /* ---------- Comunicar: mensajes corregidos en local ----------
+   * Dos mensajes por ticket cerrado: el escalado a N2 (técnico) y el aviso a dirección (llano).
+   * Se corrigen con criterios comprobables, en español o en inglés; no valoran el estilo, sino que
+   * estén las piezas que un N2 o una directora necesitan para actuar. */
+  const TIPOS_MENSAJE = Object.freeze(['n2', 'dir']);
+  const XP_MENSAJE = 10; // por cada mensaje que cumple todos los criterios
+  const plano = (t) => String(t ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const RE = {
+    hora: /\b([01]?\d|2[0-3]):[0-5]\d\b/,
+    accion: /\b(deshabilit|aisl|bloque|revoc|cort|elimin|purg|restablec|cambi|escal|investig|revis|contien|conten|disabl|isolat|block|revok|kill|remov|purg|reset|chang|escalat|investigat|review|contain)\w*/,
+    urgencia: /\b(critica|critico|alta|alto|media|medio|baja|bajo|urgente|prioridad|critical|high|medium|low|urgent|priority|p[1-4])\b/,
+    jerga: /\b(eventid|logontype|targetusername|subjectusername|sha256|hash|ioc|ttp|mitre|t\d{4}(?:\.\d{3})?|lsass|ntlm|kerberos|payload|powershell|cmd\.exe|udp|tcp|smb|rdp|dns|edr|siem|waf)\b|\b(?:\d{1,3}\.){3}\d{1,3}\b/,
+    impacto: /\b(client|dato|servicio|factur|pedido|nomina|operaci|reputaci|multa|ley|rgpd|dinero|pago|transferencia|venta|negocio|empleado|customer|data|service|invoice|order|payroll|operation|reputation|fine|law|gdpr|money|payment|transfer|sale|business|employee)\w*/,
+    situacion: /\b(contenid|controlad|bloquead|aislad|investig|equipo de seguridad|soc|contained|under control|blocked|isolated|investigat|security team)\w*/,
+    peticion: /\b(necesit|pedimos|decid|autoriz|aprob|llam|confirm|recomend|os pido|le pido|need|ask|decide|authori|approv|call|confirm|recommend|please)\w*/
+  };
+  const palabras = (t) => (String(t ?? '').trim().match(/\S+/g) || []).length;
+  function corregirMensaje(tipo, texto, caso) {
+    const t = plano(texto);
+    const citadas = caso.claves.filter((k) => t.includes(plano(k)));
+    // Lo que pasó: dos palabras con contenido del título o de la regla, o el ID de la técnica.
+    const VACIAS = new Set(['contra', 'desde', 'hacia', 'entre', 'sobre', 'durante', 'otros', 'otras', 'unos', 'from', 'after', 'about', 'their', 'there', 'other', 'within']);
+    const terminos = [...new Set(plano(`${caso.titulo?.es} ${caso.titulo?.en} ${caso.regla?.es} ${caso.regla?.en}`).match(/[a-z0-9]{5,}/g) || [])].filter((w) => !VACIAS.has(w));
+    const nTerm = terminos.filter((w) => t.includes(w)).length;
+    const que = nTerm >= 2 || (caso.mitre && t.includes(plano(caso.mitre).split('.')[0]));
+    const n = palabras(texto);
+    const criterios = tipo === 'n2' ? [
+      ['que', que],
+      ['cuando', RE.hora.test(t)],
+      ['quien', citadas.length >= 1],
+      ['evidencia', citadas.length >= Math.min(2, caso.claves.length)],
+      ['accion', RE.accion.test(t)],
+      ['urgencia', RE.urgencia.test(t)]
+    ] : [
+      ['llano', n > 0 && !RE.jerga.test(t)],
+      ['impacto', RE.impacto.test(t)],
+      ['situacion', RE.situacion.test(t)],
+      ['peticion', RE.peticion.test(t)],
+      ['breve', n >= 25 && n <= 120]
+    ];
+    const lista = criterios.map(([id, ok]) => ({ id, ok: !!ok }));
+    return { criterios: lista, completo: lista.every((c) => c.ok), palabras: n, citadas };
+  }
+
+  /** Mensaje de ejemplo para un caso escalado: se construye con los datos del caso y cumple su propia corrección. */
+  function modeloMensaje(tipo, caso, lang = 'es') {
+    const es = lang === 'es';
+    const sev = { critica: es ? 'crítica' : 'critical', alta: es ? 'alta' : 'high', media: es ? 'media' : 'medium', baja: es ? 'baja' : 'low' }[caso.sev];
+    const L = (o) => (o ? o[lang] ?? o.es : '');
+    if (tipo === 'n2') {
+      const ev = caso.logs.filter(([, , m]) => caso.claves.some((k) => m.includes(k))).slice(0, 2).map(([t, h, m]) => `${t} ${h} ${m}`);
+      const accion = caso.accion === 'contener'
+        ? (es ? 'He aplicado la contención del playbook y lo escalo para que revises el alcance.' : 'I have applied the playbook containment and I am escalating it so you can scope it.')
+        : (es ? 'No contengo: lo escalo para que decidáis con quien corresponda.' : 'I am not containing it: I am escalating it so you can decide with whoever is responsible.');
+      return es
+        ? `Prioridad ${sev}. ${L(caso.titulo)} (${L(caso.regla)}), a las ${caso.hora}. Datos clave: ${caso.claves.join(', ')}. Evidencia: ${ev.join(' | ')}. ${accion}`
+        : `Priority ${sev}. ${L(caso.titulo)} (${L(caso.regla)}), at ${caso.hora}. Key facts: ${caso.claves.join(', ')}. Evidence: ${ev.join(' | ')}. ${accion}`;
+    }
+    if (caso.accion === 'contener') return es
+      ? `Esta mañana, a las ${caso.hora}, hemos detectado un acceso o un programa no autorizado en un equipo de la empresa. El equipo de seguridad ya lo ha bloqueado y está investigando si ha afectado a datos de clientes o al servicio. Os pediremos que confirméis cualquier corte que afecte a la operación.`
+      : `This morning, at ${caso.hora}, we detected unauthorised access or software on a company computer. The security team has already blocked it and is investigating whether customer data or the service were affected. We will ask you to confirm any shutdown that affects operations.`;
+    return es
+      ? `Esta mañana, a las ${caso.hora}, hemos visto una situación que puede afectar a datos de la empresa o de clientes y que necesita la decisión de un responsable. El equipo de seguridad lo está investigando con discreción. Necesitamos que autoricéis la revisión con Recursos Humanos y Asesoría Jurídica.`
+      : `This morning, at ${caso.hora}, we saw a situation that may affect company or customer data and needs a manager's decision. The security team is investigating it discreetly. We need you to authorise the review with HR and Legal.`;
+  }
+
+  /* ---------- Pregunta al N2: pistas del propio caso, con coste ----------
+   * Tres preguntas por turno. Cada una resta XP al ticket (nunca nota): enseña cuándo merece la pena pedir ayuda. */
+  const PREGUNTAS_N2 = Object.freeze(['inicio', 'falta', 'decision']);
+  const LIMITE_N2 = 3;
+  const COSTE_N2 = 10;
+  function pistaN2(tipo, caso, resp = {}) {
+    if (tipo === 'inicio') {
+      // La primera línea de la señal que contiene un dato clave: dónde mirar, sin decir qué significa.
+      const l = caso.logs.find(([, , m]) => caso.claves.some((k) => m.includes(k))) || caso.logs[0];
+      return { tipo, hora: l[0], fuente: l[1] };
+    }
+    if (tipo === 'falta') {
+      const r = resp.campos || {};
+      return { tipo, campos: camposDe(caso).filter((c) => !campoBien(c, r[c.id])).map((c) => c.id) };
+    }
+    return { tipo, v: resp.veredicto ? resp.veredicto === caso.veredicto : null };
+  }
+
   /* ---------- Entidades de los registros (como los «campos interesantes» de un SIEM) ----------
    * Cuentas, IP y equipos con su número de apariciones, para pivotar sobre ellos. */
   const RE_CUENTA = /\b(?:user|TargetUserName|SubjectUserName|from|to|initiatedBy)=([^\s,;]+)/g;
@@ -1128,7 +1268,7 @@ const BJ = (() => {
     return { cuentas: top(cuenta.cuentas), ips: top(cuenta.ips), equipos: top(cuenta.equipos) };
   }
 
-  return { ERRORES_IA, DICTAMENES, PESOS_REV, corregirRevision, CAJAS, RAPIDO_N, XP_RAPIDO, repasar, sesionRapida, META_DIARIA, NIVELES, progreso, insignias, entidades, PESOS, UMBRAL_APTO, TICKET_MIN, VEREDICTOS, ACCIONES, SEVERIDADES, COMPETENCIAS, LIMITES, semilla, azar, registros, normalizar, camposDe, campoBien, clavesEn, corregir, resumenTurno, historial, safeParse, sanearEstado, celdaCsv, HORA };
+  return { TIPOS_MENSAJE, XP_MENSAJE, corregirMensaje, modeloMensaje, PREGUNTAS_N2, LIMITE_N2, COSTE_N2, pistaN2, ERRORES_IA, DICTAMENES, PESOS_REV, corregirRevision, CAJAS, RAPIDO_N, XP_RAPIDO, repasar, sesionRapida, META_DIARIA, NIVELES, progreso, insignias, entidades, PESOS, UMBRAL_APTO, TICKET_MIN, VEREDICTOS, ACCIONES, SEVERIDADES, COMPETENCIAS, LIMITES, semilla, azar, registros, normalizar, camposDe, campoBien, clavesEn, corregir, resumenTurno, historial, safeParse, sanearEstado, celdaCsv, HORA };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = BJ;
 /* ===== 00-i18n.js ===== */
@@ -1305,6 +1445,46 @@ const I18N = {
     modo_rap_txt: 'Diez alertas decididas en segundos, con repaso de lo que falles',
     modo_rev_ante: 'NIVEL 1,5',
     modo_rev_txt: 'Audita los veredictos de un agente de IA · {a} de {b} revisadas',
+    com_titulo: 'Comunícalo',
+    com_intro: 'Cerrar bien no basta: alguien tiene que entender qué ha pasado. Escribe el mensaje a N2 y el aviso a dirección, y revísalos con la lista.',
+    com_tipo: { n2: 'Escalado a N2', dir: 'Aviso a dirección' },
+    com_para: { n2: 'Para quien sigue la investigación: técnico, con datos, en pocas líneas.', dir: 'Para alguien que no es técnico: qué pasa, a qué afecta, qué se está haciendo y qué decisión necesitas. Sin jerga.' },
+    com_ph: { n2: 'Prioridad, qué ha pasado y a qué hora, cuentas, equipos o IP afectados, la evidencia y lo que has hecho o pides.', dir: 'Qué ha pasado en lenguaje llano, a qué puede afectar (clientes, datos, servicio), qué está haciendo el equipo de seguridad y qué necesitas que decidan.' },
+    com_palabras: '{n} palabras',
+    com_ejemplo: 'Ver un ejemplo',
+    com_revisar: 'Revisar el mensaje',
+    com_ok: 'Mensaje completo: tiene todo lo que necesita quien lo lee.',
+    msg_crit: {
+      n2: {
+        que: ['Qué ha pasado', 'Nombra el tipo de incidente o la regla, con palabras del caso.'],
+        cuando: ['Cuándo', 'Pon la hora (HH:MM).'],
+        quien: ['Quién o qué está afectado', 'Cita la cuenta, el equipo o la IP.'],
+        evidencia: ['Evidencia', 'Cita al menos dos datos de los registros.'],
+        accion: ['Qué has hecho o qué pides', 'Di si has contenido (deshabilitar, aislar, bloquear) o qué necesitas que haga N2.'],
+        urgencia: ['Prioridad', 'Indica la urgencia: crítica, alta, media o baja.']
+      },
+      dir: {
+        llano: ['Sin jerga', 'Quita IP, EventID, hashes, nombres de técnicas y siglas como EDR o SIEM.'],
+        impacto: ['A qué afecta', 'Habla de clientes, datos, servicio, pedidos, nóminas o dinero.'],
+        situacion: ['Qué se está haciendo', 'Di que el equipo de seguridad lo ha contenido o lo está investigando.'],
+        peticion: ['Qué necesitas', 'Pide una decisión, una autorización o confirma que no hace falta ninguna.'],
+        breve: ['Breve', 'Entre 25 y 120 palabras.']
+      }
+    },
+    xp_msg: '+{n} XP · {t} completo',
+    n2_titulo: 'Pregunta al N2',
+    n2_sub: 'Irene Soler, N2 de guardia. Te quedan {n} preguntas en este turno; cada una resta {c} XP a este ticket.',
+    n2_sub_1: 'Irene Soler, N2 de guardia. Te queda 1 pregunta en este turno; resta {c} XP a este ticket.',
+    n2_q: { inicio: '¿Por dónde empiezo?', falta: '¿Qué dato me falta?', decision: '¿Voy bien con el veredicto?' },
+    n2_r: {
+      inicio: 'Yo empezaría por {f} a las {h}. Lee qué pasa justo antes y justo después.',
+      falta: 'Revisa estos datos: {c}. Están en los registros.',
+      falta_ok: 'Tus datos clave cuadran. Ahora, el resumen.',
+      decision_nada: 'Primero elige un veredicto y te digo.',
+      decision_si: 'El veredicto encaja. Para la acción, pásalo por «¿Escalo o no?».',
+      decision_no: 'Yo no marcaría ese veredicto. Vuelve a la guía: ¿hay autorización?, ¿llegó a tener efecto?'
+    },
+    n2_coste: 'Pregunta al N2: −{n} XP en este ticket',
     guia_titulo: 'Guía de investigación',
     guia_sub: 'triaje, análisis y respuesta',
     guia_si: 'Si',
@@ -1352,7 +1532,7 @@ const I18N = {
     reto_t: 'Siguiente alerta',
     reto_repaso: 'Repasa la que peor te salió',
     reto_btn: 'Investigar',
-    xp_ganado: '+{n} XP · ticket {id} cerrado con {n}/100',
+    xp_ganado: '+{x} XP · ticket {id} cerrado con {n}/100',
     subes: 'Subes de nivel: {n}',
     meta_cumplida: 'Meta de hoy cumplida',
     racha_aviso: 'Racha de {n} días seguidos',
@@ -1366,7 +1546,8 @@ const I18N = {
       racha3: ['Constancia', 'Practica tres días seguidos'],
       semana: ['Semana completa', 'Cierra las 40 alertas'],
       revisor: ['Revisor de IA', 'Caza tres errores del agente'],
-      rapido: ['Reflejos', 'Diez de diez en el triaje rápido']
+      rapido: ['Reflejos', 'Diez de diez en el triaje rápido'],
+      comunicador: ['Comunicador', 'Cinco mensajes completos a N2 o a dirección']
     },
 
     hist_ante: 'TU HISTORIAL',
@@ -1631,6 +1812,46 @@ const I18N = {
     modo_rap_txt: 'Ten alerts decided in seconds, with review of what you miss',
     modo_rev_ante: 'TIER 1.5',
     modo_rev_txt: 'Audit an AI agent\'s verdicts · {a} of {b} reviewed',
+    com_titulo: 'Communicate it',
+    com_intro: 'Closing it well is not enough: someone has to understand what happened. Write the message to T2 and the note to management, and check them against the list.',
+    com_tipo: { n2: 'Escalation to T2', dir: 'Note to management' },
+    com_para: { n2: 'For whoever continues the investigation: technical, with data, in a few lines.', dir: 'For someone non-technical: what is happening, what it affects, what is being done and which decision you need. No jargon.' },
+    com_ph: { n2: 'Priority, what happened and when, affected accounts, hosts or IPs, the evidence and what you did or are asking for.', dir: 'What happened in plain words, what it may affect (customers, data, service), what the security team is doing and what you need them to decide.' },
+    com_palabras: '{n} words',
+    com_ejemplo: 'See an example',
+    com_revisar: 'Check the message',
+    com_ok: 'Complete message: it has everything its reader needs.',
+    msg_crit: {
+      n2: {
+        que: ['What happened', 'Name the type of incident or the rule, with words from the case.'],
+        cuando: ['When', 'Give the time (HH:MM).'],
+        quien: ['Who or what is affected', 'Quote the account, the host or the IP.'],
+        evidencia: ['Evidence', 'Quote at least two facts from the logs.'],
+        accion: ['What you did or ask for', 'Say whether you contained it (disable, isolate, block) or what you need T2 to do.'],
+        urgencia: ['Priority', 'State the urgency: critical, high, medium or low.']
+      },
+      dir: {
+        llano: ['No jargon', 'Remove IPs, EventIDs, hashes, technique names and acronyms such as EDR or SIEM.'],
+        impacto: ['What it affects', 'Talk about customers, data, service, orders, payroll or money.'],
+        situacion: ['What is being done', 'Say the security team has contained it or is investigating it.'],
+        peticion: ['What you need', 'Ask for a decision or an authorisation, or confirm none is needed.'],
+        breve: ['Short', 'Between 25 and 120 words.']
+      }
+    },
+    xp_msg: '+{n} XP · {t} complete',
+    n2_titulo: 'Ask tier 2',
+    n2_sub: 'Irene Soler, tier 2 on call. You have {n} questions left this shift; each one takes {c} XP off this ticket.',
+    n2_sub_1: 'Irene Soler, tier 2 on call. You have 1 question left this shift; it takes {c} XP off this ticket.',
+    n2_q: { inicio: 'Where do I start?', falta: 'Which fact am I missing?', decision: 'Is my verdict on track?' },
+    n2_r: {
+      inicio: 'I would start with {f} at {h}. Read what happens just before and just after.',
+      falta: 'Check these facts: {c}. They are in the logs.',
+      falta_ok: 'Your key facts are right. Now, the summary.',
+      decision_nada: 'Pick a verdict first and I will tell you.',
+      decision_si: 'The verdict fits. For the action, run it through «Escalate or not?».',
+      decision_no: 'I would not choose that verdict. Go back to the guide: is there an authorisation? Did it take effect?'
+    },
+    n2_coste: 'Asked tier 2: −{n} XP on this ticket',
     guia_titulo: 'Investigation guide',
     guia_sub: 'triage, analysis and response',
     guia_si: 'If',
@@ -1678,7 +1899,7 @@ const I18N = {
     reto_t: 'Next alert',
     reto_repaso: 'Review your weakest one',
     reto_btn: 'Investigate',
-    xp_ganado: '+{n} XP · ticket {id} closed with {n}/100',
+    xp_ganado: '+{x} XP · ticket {id} closed with {n}/100',
     subes: 'Level up: {n}',
     meta_cumplida: 'Today\'s goal reached',
     racha_aviso: '{n}-day streak',
@@ -1692,7 +1913,8 @@ const I18N = {
       racha3: ['Consistency', 'Practise three days in a row'],
       semana: ['Full week', 'Close all 40 alerts'],
       revisor: ['AI reviewer', 'Catch three agent mistakes'],
-      rapido: ['Reflexes', 'Ten out of ten in quick triage']
+      rapido: ['Reflexes', 'Ten out of ten in quick triage'],
+      comunicador: ['Communicator', 'Five complete messages to T2 or management']
     },
 
     hist_ante: 'YOUR RECORD',
@@ -1794,7 +2016,7 @@ const EMPRESA = DATOS.empresa;
 const TURNOS = ['t1', 't2', 't3', 't4', 't5'].map((k) => DATOS[k]);
 const REV_INDICE = Object.fromEntries(DATOS.revision.casos.map((c) => [c.id, c]));
 const CASOS = Object.fromEntries(TURNOS.flatMap((t) => t.casos.map((c) => [c.id, { ...c, turno: t.id }])));
-const VERSION = '0.4.0';
+const VERSION = '0.5.0';
 const ACENTOS = ['rosa', 'solar', 'glaciar', 'orquidea', 'verde', 'azul', 'rojo'];
 const REPO = 'https://github.com/heindall92/Blue-Jr';
 const TEST = /[?&]test\b/.test(location.search);
@@ -1823,7 +2045,7 @@ const P = {
 const guardarPrefs = () => escribir(CLAVE_PREFS, JSON.stringify(P));
 
 /* ---------- Estado de la interfaz (no se guarda) ---------- */
-const UI = { turno: null, caso: null, filtro: '', fuente: null, panel: 'caso', ultimoTurno: leer('bluejr-ultimo') || 'T1', borrarArmado: false, vistaAnimada: null, guia: null, guiaTab: 'triaje', investigado: new Set(), rev: null, rapido: null };
+const UI = { turno: null, caso: null, filtro: '', fuente: null, panel: 'caso', ultimoTurno: leer('bluejr-ultimo') || 'T1', borrarArmado: false, vistaAnimada: null, guia: null, guiaTab: 'triaje', investigado: new Set(), rev: null, rapido: null, msgTipo: null, msgRevisado: null };
 
 /* ---------- Textos ---------- */
 const T = (k, vars) => {
@@ -2296,7 +2518,7 @@ function panelTicket(c) {
   const listo = r.veredicto && r.accion;
   return `<h2 id="ticket-t" class="panel-t">${ic('file-text')}${esc(T('ticket'))} <span class="num id">${c.id}</span></h2>
     <div class="ticket-f">
-      ${bloqueado ? '' : tareasHtml(c)}
+      ${bloqueado ? '' : tareasHtml(c) + n2Html(c)}
       <fieldset><legend id="veredicto-t">${esc(T('veredicto'))}</legend>${opciones('veredicto', BJ.VEREDICTOS, r.veredicto)}</fieldset>
       <fieldset><legend id="accion-t">${esc(T('accion'))}</legend>${opciones('accion', BJ.ACCIONES, r.accion)}<button type="button" class="enlace decidir-b" data-decidir-abrir>${ic('split')}${esc(T('decidir_btn'))}</button></fieldset>
       <fieldset><legend>${esc(T('datos_clave'))}</legend><div class="campos">${campos}</div></fieldset>
@@ -2323,6 +2545,7 @@ function resultadoHtml(c) {
       <div class="res-cab"><p class="etq">${esc(T('resultado'))}</p><p class="nota-grande num">${res.nota}<span>/100</span></p></div>
       <ul class="criterios">${filas}</ul>
       <h3>${esc(T('explicacion'))}</h3><p class="explica">${esc(L(c.explica))}</p>
+      ${comunicaHtml(c)}
       <div class="ticket-pie"><button type="button" class="btn sec" data-reintentar="${c.id}">${ic('rotate-ccw')}${esc(T('reintentar'))}</button>${sig ? `<button type="button" class="btn" data-caso="${sig.id}">${esc(T('siguiente'))}${ic('chevron-right')}</button>` : ''}</div>
     </div>`;
 }
@@ -2374,6 +2597,9 @@ function historialMd() {
       if (s.ticket.trim()) o.push(...s.ticket.trim().split('\n').map((l) => '> ' + l), '');
       const ev = s.evidencias.map((n) => lineas.find((l) => l.n === n)).filter(Boolean);
       if (ev.length) o.push('```text', ...ev.map((l) => `${l.t} ${l.s} ${l.m}`), '```', '');
+      // Los mensajes completos también cuentan en una entrevista: cómo lo comunicaste.
+      const m = S.mensajes[c.id];
+      for (const tipo of BJ.TIPOS_MENSAJE) if (m?.ok?.includes(tipo) && m[tipo]?.trim()) o.push(`**${T('com_tipo.' + tipo)}**`, '', ...m[tipo].trim().split('\n').map((l) => '> ' + l), '');
     }
     if (S.relevos[t.id]) o.push(`**${T('relevo')}**`, '', ...S.relevos[t.id].trim().split('\n').map((l) => '> ' + l), '');
   }
@@ -2507,9 +2733,9 @@ function practicaHtml() {
 }
 
 /* ---------- Insignias (historial) ---------- */
-const ICONO_INSIGNIA = { primer: 'flag', perfecto: 'target', sin_alarma: 'filter', contencion: 'lock', turno: 'award', racha3: 'flame', semana: 'trophy', revisor: 'bot', rapido: 'zap' };
+const ICONO_INSIGNIA = { primer: 'flag', perfecto: 'target', sin_alarma: 'filter', contencion: 'lock', turno: 'award', racha3: 'flame', semana: 'trophy', revisor: 'bot', rapido: 'zap', comunicador: 'send' };
 function insigniasHtml() {
-  const lista = BJ.insignias(TURNOS, cerradas(), hoyLocal(), { racha: progresoActual().racha, cazados: cazados(), rapidoPerfecto: rapidoPerfecto() });
+  const lista = BJ.insignias(TURNOS, cerradas(), hoyLocal(), { racha: progresoActual().racha, cazados: cazados(), rapidoPerfecto: rapidoPerfecto(), mensajes: mensajesCompletos() });
   const n = lista.filter((x) => x.ok).length;
   return `<section class="panel insignias-p" data-entra aria-labelledby="ins-t"><h2 id="ins-t" class="panel-t">${ic('trophy')}${esc(T('insignias_t'))} <span class="pildora num">${esc(T('tareas_n', { a: n, b: lista.length }))}</span></h2>
     <ul class="insignias">${lista.map(({ id, ok }) => { const [nombre, como] = T('insignias.' + id); return `<li class="${ok ? 'ok' : ''}"><span class="ins-ic" aria-hidden="true">${ic(ICONO_INSIGNIA[id])}</span><b>${esc(nombre)}</b><small>${esc(como)}</small><span class="sr-only">${esc(ok ? T('conseguida') : T('pendiente'))}</span></li>`; }).join('')}</ul></section>`;
@@ -2517,7 +2743,7 @@ function insigniasHtml() {
 
 /* ---------- Avisos de XP al cerrar un ticket ---------- */
 function avisosXp(antes, despues, id, nota, texto) {
-  avisar(texto || T('xp_ganado', { n: nota, id }), 'zap');
+  avisar(texto || T('xp_ganado', { x: nota, n: nota, id }), 'zap');
   if (despues.nivelN > antes.nivelN) avisar(T('subes', { n: T('niveles.' + despues.nivel) }), 'trophy');
   if (antes.xpHoy < despues.meta && despues.xpHoy >= despues.meta) avisar(T('meta_cumplida'), 'circle-check');
   if (despues.racha > antes.racha && despues.racha > 1) avisar(T('racha_aviso', { n: despues.racha }), 'flame');
@@ -2536,7 +2762,10 @@ const revCerrada = (id) => S.revisiones[id]?.cerrado === true;
 /* XP y racha cuentan toda la práctica: tickets, revisiones y la primera ronda diaria del triaje rápido. */
 function entradasXp() {
   const rapido = Object.entries(S.rapido).map(([d, x]) => ({ nota: x.aciertos * BJ.XP_RAPIDO, cuando: d + 'T12:00:00Z' }));
-  return [...Object.values(S.respuestas), ...Object.values(S.revisiones), ...rapido];
+  // Cada pregunta al N2 resta XP a su ticket (nunca nota); cada mensaje completo suma.
+  const tickets = Object.entries(S.respuestas).map(([id, x]) => (typeof x.nota === 'number' ? { nota: Math.max(0, x.nota - BJ.COSTE_N2 * (S.n2[id]?.length || 0)), cuando: x.cuando } : x));
+  const mensajes = Object.values(S.mensajes).flatMap((m) => (m.ok || []).map(() => ({ nota: BJ.XP_MENSAJE, cuando: m.cuando })));
+  return [...tickets, ...Object.values(S.revisiones), ...rapido, ...mensajes];
 }
 const cazados = () => REVISION.casos.filter((c) => c.error !== null && revCerrada(c.id) && S.revisiones[c.id].dictamen === 'rechazar').length;
 const rapidoPerfecto = () => Object.values(S.rapido).some((x) => x.total === BJ.RAPIDO_N && x.aciertos === x.total);
@@ -2727,6 +2956,79 @@ function modosHtml() {
         <p>${esc(T('modo_rev_txt', { a: hechas, b: REVISION.casos.length }))}</p></div>${ic('chevron-right', 'modo-fl')}</a>
     </div>`;
 }
+/* ===== 04d-comunicar.js ===== */
+/* Comunicar y pedir ayuda.
+ * «Comunícalo»: tras cerrar un ticket escalado, el mensaje a N2 y el aviso a dirección, corregidos en local.
+ * «Pregunta al N2»: tres preguntas por turno a una mentora; cada una resta XP al ticket, nunca nota. */
+
+const msgDe = (id) => S.mensajes[id] || (S.mensajes[id] = { ok: [], cuando: null });
+const preguntasDe = (id) => S.n2[id] || [];
+const preguntasTurno = (turnoId) => turnoDe(turnoId).casos.reduce((a, c) => a + preguntasDe(c.id).length, 0);
+const mensajesCompletos = () => Object.values(S.mensajes).reduce((a, m) => a + (m.ok?.length || 0), 0);
+
+/* ---------- Comunícalo ---------- */
+function comunicaHtml(c) {
+  if (c.accion === 'cerrar') return '';
+  if (!UI.msgTipo) UI.msgTipo = 'n2';
+  const m = msgDe(c.id);
+  const tipo = UI.msgTipo;
+  const texto = m[tipo] || '';
+  const revisado = UI.msgRevisado === `${c.id}:${tipo}`;
+  const res = revisado ? BJ.corregirMensaje(tipo, texto, c) : null;
+  const lista = res ? `<ul class="criterios msg-crit" aria-live="polite">${res.criterios.map((k) => `<li class="${k.ok ? 'ok' : 'ko'}">${ic(k.ok ? 'circle-check' : 'circle-x')}<span class="crit"><b>${esc(T(`msg_crit.${tipo}.${k.id}`)[0])}</b>${k.ok ? '' : `<small>${esc(T(`msg_crit.${tipo}.${k.id}`)[1])}</small>`}</span></li>`).join('')}</ul>` : '';
+  return `<section class="comunica" aria-labelledby="com-t">
+      <h3 id="com-t">${ic('send')}${esc(T('com_titulo'))}</h3>
+      <p class="nota">${esc(T('com_intro'))}</p>
+      <div class="g-tabs" role="group" aria-label="${esc(T('com_titulo'))}">${BJ.TIPOS_MENSAJE.map((t) => `<button type="button" data-msg-tipo="${t}" aria-pressed="${tipo === t}">${ic(t === 'n2' ? 'send' : 'user')}${esc(T('com_tipo.' + t))}${m.ok.includes(t) ? ic('circle-check', 'ok') : ''}</button>`).join('')}</div>
+      <p class="com-para">${esc(T('com_para.' + tipo))}</p>
+      <label class="campo"><span class="sr-only">${esc(T('com_tipo.' + tipo))}</span><textarea id="msg-texto" rows="5" maxlength="${BJ.LIMITES.ticket}" placeholder="${esc(T('com_ph.' + tipo))}">${esc(texto)}</textarea><small class="num" id="msg-palabras">${esc(T('com_palabras', { n: (texto.trim().match(/\S+/g) || []).length }))}</small></label>
+      <button type="button" class="btn sec com-revisar" data-msg-revisar>${ic('list-checks')}${esc(T('com_revisar'))}</button>
+      <details class="com-ej"><summary>${esc(T('com_ejemplo'))}</summary><p>${esc(BJ.modeloMensaje(tipo, c, P.lang))}</p></details>
+      ${lista}${res && res.completo ? `<p class="msg-ok">${ic('circle-check')}${esc(T('com_ok'))}</p>` : ''}
+    </section>`;
+}
+function revisarMensaje() {
+  const c = CASOS[UI.caso]; const tipo = UI.msgTipo; const m = msgDe(c.id);
+  m[tipo] = $('#msg-texto').value.slice(0, BJ.LIMITES.ticket);
+  const res = BJ.corregirMensaje(tipo, m[tipo], c);
+  const antes = progresoActual();
+  const nuevo = res.completo && !m.ok.includes(tipo);
+  if (res.completo) { if (nuevo) m.ok.push(tipo); m.cuando = new Date().toISOString(); } else m.ok = m.ok.filter((t) => t !== tipo);
+  UI.msgRevisado = `${c.id}:${tipo}`;
+  guardar();
+  repintarComunica();
+  if (nuevo) avisosXp(antes, progresoActual(), '', 0, T('xp_msg', { n: BJ.XP_MENSAJE, t: T('com_tipo.' + tipo) }));
+  $('.msg-crit')?.focus?.();
+}
+function repintarComunica() { const s = $('.comunica'); if (s) s.outerHTML = comunicaHtml(CASOS[UI.caso]); pintarLateral(); }
+
+/* ---------- Pregunta al N2 ---------- */
+function n2Html(c) {
+  const hechas = preguntasDe(c.id);
+  const quedan = Math.max(0, BJ.LIMITE_N2 - preguntasTurno(c.turno));
+  const respuesta = (x) => {
+    if (x.tipo === 'inicio') { const p = BJ.pistaN2('inicio', c); return T('n2_r.inicio', { f: p.fuente, h: p.hora }); }
+    if (x.tipo === 'falta') return x.campos.length ? T('n2_r.falta', { c: x.campos.map((id) => L(BJ.camposDe(c).find((f) => f.id === id)?.label)).join(', ') }) : T('n2_r.falta_ok');
+    return x.v === null ? T('n2_r.decision_nada') : x.v ? T('n2_r.decision_si') : T('n2_r.decision_no');
+  };
+  return `<section class="n2" aria-labelledby="n2-t">
+      <div class="n2-cab"><span class="n2-av" aria-hidden="true">IS</span><div><h3 id="n2-t">${esc(T('n2_titulo'))}</h3><p class="nota">${esc(T(quedan === 1 ? 'n2_sub_1' : 'n2_sub', { n: quedan, c: BJ.COSTE_N2 }))}</p></div></div>
+      ${hechas.length ? `<ul class="n2-hilo">${hechas.map((x) => `<li><b>${esc(T('n2_q.' + x.tipo))}</b><span>${esc(respuesta(x))}</span></li>`).join('')}</ul>` : ''}
+      <div class="n2-qs">${BJ.PREGUNTAS_N2.filter((t) => !hechas.some((x) => x.tipo === t)).map((t) => `<button type="button" class="chip n2-q" data-n2="${t}"${quedan ? '' : ' disabled'}>${esc(T('n2_q.' + t))}</button>`).join('')}</div>
+    </section>`;
+}
+function preguntarN2(tipo) {
+  const c = CASOS[UI.caso];
+  if (cerrado(c.id) || preguntasTurno(c.turno) >= BJ.LIMITE_N2 || preguntasDe(c.id).some((x) => x.tipo === tipo)) return;
+  const p = BJ.pistaN2(tipo, c, respuesta(c.id));
+  const guardada = tipo === 'decision' ? { tipo, v: p.v } : tipo === 'falta' ? { tipo, campos: p.campos } : { tipo };
+  S.n2[c.id] = [...preguntasDe(c.id), guardada];
+  guardar();
+  const s = $('.n2'); if (s) s.outerHTML = n2Html(c);
+  avisar(T('n2_coste', { n: BJ.COSTE_N2 }), 'user');
+  $('.n2-hilo li:last-child')?.setAttribute('tabindex', '-1');
+  $('.n2-hilo li:last-child')?.focus();
+}
 /* ===== 05-events.js ===== */
 /* Eventos y arranque. Un único delegado por tipo de evento: la interfaz se repinta por zonas. */
 
@@ -2760,7 +3062,7 @@ function pintarTicket() { $('#ticket').innerHTML = panelTicket(CASOS[UI.caso]); 
 
 function abrirCaso(id, foco = true) {
   if (!CASOS[id]) return;
-  UI.caso = id; UI.filtro = ''; UI.fuente = null; UI.panel = 'caso';
+  UI.caso = id; UI.filtro = ''; UI.fuente = null; UI.panel = 'caso'; UI.msgRevisado = null;
   if (ruta().turno !== CASOS[id].turno) { location.hash = CASOS[id].turno; return; }
   pintarCaso();
   $('.puesto')?.setAttribute('data-panel-activo', 'caso');
@@ -2781,7 +3083,8 @@ function cerrarTicket() {
   const scroll = scrollY;
   pintar();
   scrollTo(0, scroll);
-  avisosXp(antes, progresoActual(), c.id, r.nota);
+  // La XP del ticket descuenta lo que costaron las preguntas al N2; la nota no cambia.
+  avisosXp(antes, progresoActual(), c.id, r.nota, T('xp_ganado', { x: Math.max(0, r.nota - BJ.COSTE_N2 * (S.n2[c.id]?.length || 0)), n: r.nota, id: c.id }));
   UI.panel = 'ticket';
   $('.puesto')?.setAttribute('data-panel-activo', 'ticket');
   $$('[data-panel]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.panel === 'ticket'));
@@ -2811,6 +3114,9 @@ document.addEventListener('click', (e) => {
     $$('[data-pivote]').forEach((x) => x.setAttribute('aria-pressed', x.dataset.pivote === UI.filtro));
     pintarLineas(); return actualizarTareas();
   }
+  if (d.msgTipo) { UI.msgTipo = d.msgTipo; repintarComunica(); return $(`[data-msg-tipo="${d.msgTipo}"]`)?.focus(); }
+  if ('msgRevisar' in d) return revisarMensaje();
+  if (d.n2) return preguntarN2(d.n2);
   if (d.rev) return abrirRev(d.rev);
   if (d.dictamen || d.motivo || d.raccion) {
     const k = d.dictamen ? 'dictamen' : d.motivo ? 'motivo' : 'raccion';
@@ -2876,6 +3182,7 @@ document.addEventListener('input', (e) => {
     pintarLineas(); return actualizarTareas();
   }
   if (t.dataset.campo) { respuesta(UI.caso).campos[t.dataset.campo] = t.value.slice(0, BJ.LIMITES.campo); guardar(); return actualizarTareas(); }
+  if (t.id === 'msg-texto') { msgDe(UI.caso)[UI.msgTipo] = t.value.slice(0, BJ.LIMITES.ticket); guardar(); $('#msg-palabras').textContent = T('com_palabras', { n: (t.value.trim().match(/\S+/g) || []).length }); return; }
   if (t.id === 'texto-ticket') { respuesta(UI.caso).ticket = t.value.slice(0, BJ.LIMITES.ticket); guardar(); $('#cuenta-ticket').textContent = T('caracteres', { n: t.value.trim().length, m: BJ.TICKET_MIN }); actualizarTareas(); }
 });
 

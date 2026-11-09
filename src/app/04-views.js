@@ -173,7 +173,7 @@ function panelTicket(c) {
   const listo = r.veredicto && r.accion;
   return `<h2 id="ticket-t" class="panel-t">${ic('file-text')}${esc(T('ticket'))} <span class="num id">${c.id}</span></h2>
     <div class="ticket-f">
-      ${bloqueado ? '' : tareasHtml(c)}
+      ${bloqueado ? '' : tareasHtml(c) + n2Html(c)}
       <fieldset><legend id="veredicto-t">${esc(T('veredicto'))}</legend>${opciones('veredicto', BJ.VEREDICTOS, r.veredicto)}</fieldset>
       <fieldset><legend id="accion-t">${esc(T('accion'))}</legend>${opciones('accion', BJ.ACCIONES, r.accion)}<button type="button" class="enlace decidir-b" data-decidir-abrir>${ic('split')}${esc(T('decidir_btn'))}</button></fieldset>
       <fieldset><legend>${esc(T('datos_clave'))}</legend><div class="campos">${campos}</div></fieldset>
@@ -200,6 +200,7 @@ function resultadoHtml(c) {
       <div class="res-cab"><p class="etq">${esc(T('resultado'))}</p><p class="nota-grande num">${res.nota}<span>/100</span></p></div>
       <ul class="criterios">${filas}</ul>
       <h3>${esc(T('explicacion'))}</h3><p class="explica">${esc(L(c.explica))}</p>
+      ${comunicaHtml(c)}
       <div class="ticket-pie"><button type="button" class="btn sec" data-reintentar="${c.id}">${ic('rotate-ccw')}${esc(T('reintentar'))}</button>${sig ? `<button type="button" class="btn" data-caso="${sig.id}">${esc(T('siguiente'))}${ic('chevron-right')}</button>` : ''}</div>
     </div>`;
 }
@@ -251,6 +252,9 @@ function historialMd() {
       if (s.ticket.trim()) o.push(...s.ticket.trim().split('\n').map((l) => '> ' + l), '');
       const ev = s.evidencias.map((n) => lineas.find((l) => l.n === n)).filter(Boolean);
       if (ev.length) o.push('```text', ...ev.map((l) => `${l.t} ${l.s} ${l.m}`), '```', '');
+      // Los mensajes completos también cuentan en una entrevista: cómo lo comunicaste.
+      const m = S.mensajes[c.id];
+      for (const tipo of BJ.TIPOS_MENSAJE) if (m?.ok?.includes(tipo) && m[tipo]?.trim()) o.push(`**${T('com_tipo.' + tipo)}**`, '', ...m[tipo].trim().split('\n').map((l) => '> ' + l), '');
     }
     if (S.relevos[t.id]) o.push(`**${T('relevo')}**`, '', ...S.relevos[t.id].trim().split('\n').map((l) => '> ' + l), '');
   }
