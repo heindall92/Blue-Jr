@@ -23,7 +23,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/capturas/portada-claro.png" alt="Portada en modo claro: «Tu primer turno empieza a las 08:00», ilustración del analista de guardia, cuenta atrás del turno, cuatro tarjetas de estadísticas y los cinco turnos" width="880"/>
+  <img src="docs/capturas/portada-claro.png" alt="Portada en modo claro y acento azul: título «Simulador SOC · Blue-Jr» con Blue-Jr en azul, ilustración del analista de guardia con la barra lateral y la lupa a la izquierda e idioma, tema y ayuda a la derecha de la cabeza, y debajo la práctica del día" width="880"/>
 </p>
 
 Para el primer empleo en ciberseguridad piden experiencia, y para tener experiencia hace falta el primer empleo. Las certificaciones y los CTF demuestran que *sabes*; no demuestran que *has trabajado*: qué haces el lunes a las 9 con una cola de alertas, mucho ruido y un ticket que escribir. **Blue-Jr te da esa semana:**
