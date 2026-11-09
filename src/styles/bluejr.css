@@ -803,23 +803,24 @@ dialog.buscar { width: min(620px, calc(100% - 24px)); margin-top: 12dvh; }
 #impresion { display: none; }
 @media print {
   @page { size: A4; margin: 14mm 14mm 12mm; }
-  html, body { background: #fff !important; color: #111 !important; }
-  body > *:not(#impresion) { display: none !important; }
-  #impresion { display: block; font: 10.5pt/1.4 var(--font-sans); color: #111; }
-  .hoja { display: flex; flex-direction: column; gap: 8pt; min-height: 268mm; break-after: page; }
-  .hoja:last-child { break-after: auto; }
-  .hoja-cab { display: flex; justify-content: space-between; gap: 12pt; padding-bottom: 6pt; border-bottom: 1.5pt solid #1d4ed8; font-size: 9pt; color: #333; }
-  .hoja-marca { display: flex; align-items: center; gap: 5pt; }
-  .hoja-marca .ic { width: 12pt; height: 12pt; color: #1d4ed8; }
-  .hoja h1 { margin: 4pt 0 0; font-size: 17pt; letter-spacing: -0.01em; color: #111; }
-  .hoja h2 { margin: 6pt 0 0; font-size: 11pt; color: #111; }
-  .hoja-res { font-size: 9.5pt; color: #333; }
-  .hoja table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
-  .hoja th { text-align: left; font: 600 8pt var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: #555; border-bottom: 1pt solid #999; padding: 4pt 5pt; }
-  .hoja td { vertical-align: top; padding: 5pt; border-bottom: 0.5pt solid #ccc; }
-  .hoja td:nth-child(2), .hoja td:last-child { white-space: nowrap; font-family: var(--font-mono); }
-  .hoja td.mal { color: #b42318; font-weight: 600; }
-  .hoja-relevo { white-space: pre-wrap; font-size: 9.5pt; padding: 6pt 8pt; border-left: 2pt solid #1d4ed8; background: #f3f5fa; }
-  .hoja-pie span:last-child { white-space: nowrap; }
-  .hoja-pie { margin-top: auto; display: flex; justify-content: space-between; gap: 12pt; padding-top: 6pt; border-top: 0.5pt solid #ccc; font-size: 7.5pt; color: #555; }
+  /* Solo al imprimir desde «Imprimir o guardar en PDF»: Ctrl+P en cualquier vista imprime la vista, como siempre. */
+  body.imprimiendo { background: #fff !important; color: #111 !important; }
+  body.imprimiendo > *:not(#impresion) { display: none !important; }
+  body.imprimiendo #impresion { display: block; font: 10.5pt/1.4 var(--font-sans); color: #111; }
+  body.imprimiendo .hoja { display: flex; flex-direction: column; gap: 8pt; min-height: 268mm; break-after: page; }
+  body.imprimiendo .hoja:last-child { break-after: auto; }
+  body.imprimiendo .hoja-cab { display: flex; justify-content: space-between; gap: 12pt; padding-bottom: 6pt; border-bottom: 1.5pt solid #1d4ed8; font-size: 9pt; color: #333; }
+  body.imprimiendo .hoja-marca { display: flex; align-items: center; gap: 5pt; }
+  body.imprimiendo .hoja-marca .ic { width: 12pt; height: 12pt; color: #1d4ed8; }
+  body.imprimiendo .hoja h1 { margin: 4pt 0 0; font-size: 17pt; letter-spacing: -0.01em; color: #111; }
+  body.imprimiendo .hoja h2 { margin: 6pt 0 0; font-size: 11pt; color: #111; }
+  body.imprimiendo .hoja-res { font-size: 9.5pt; color: #333; }
+  body.imprimiendo .hoja table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+  body.imprimiendo .hoja th { text-align: left; font: 600 8pt var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: #555; border-bottom: 1pt solid #999; padding: 4pt 5pt; }
+  body.imprimiendo .hoja td { vertical-align: top; padding: 5pt; border-bottom: 0.5pt solid #ccc; }
+  body.imprimiendo .hoja td:nth-child(2), .hoja td:last-child { white-space: nowrap; font-family: var(--font-mono); }
+  body.imprimiendo .hoja td.mal { color: #b42318; font-weight: 600; }
+  body.imprimiendo .hoja-relevo { white-space: pre-wrap; font-size: 9.5pt; padding: 6pt 8pt; border-left: 2pt solid #1d4ed8; background: #f3f5fa; }
+  body.imprimiendo .hoja-pie span:last-child { white-space: nowrap; }
+  body.imprimiendo .hoja-pie { margin-top: auto; display: flex; justify-content: space-between; gap: 12pt; padding-top: 6pt; border-top: 0.5pt solid #ccc; font-size: 7.5pt; color: #555; }
 }

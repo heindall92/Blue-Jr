@@ -9,8 +9,8 @@ import { build, VERSION } from '../scripts/build.mjs';
 
 const html = build();
 
-test('dist/index.html y bluejr.html están al día con src/', () => {
-  for (const f of ['dist/index.html', 'bluejr.html']) assert.equal(readFileSync(join(ROOT, f), 'utf8'), html, `${f} desactualizado: npm run build`);
+test('dist/index.html e index.html están al día con src/', () => {
+  for (const f of ['dist/index.html', 'index.html']) assert.equal(readFileSync(join(ROOT, f), 'utf8'), html, `${f} desactualizado: npm run build`);
 });
 
 test('CSP estricta por hashes y sin recursos externos', () => {
@@ -47,12 +47,15 @@ test('autoría y licencia', () => {
   assert.match(JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).author, /Yoandy Ramírez Delgado/);
 });
 
-test('GitHub Pages: la raíz de main lleva a la aplicación aunque Pages sirva main en lugar de gh-pages', () => {
-  const idx = readFileSync(join(ROOT, 'index.html'), 'utf8');
-  assert.match(idx, /http-equiv="refresh" content="0; url=bluejr\.html"/);
-  assert.match(idx, /<a href="bluejr\.html">/);
-  assert.ok(existsSync(join(ROOT, 'bluejr.html')), 'bluejr.html existe');
+test('GitHub Pages: index.html es la aplicación (en main y en dist/) y no queda ninguna dirección vieja', () => {
+  const app = readFileSync(join(ROOT, 'index.html'), 'utf8');
+  assert.match(app, /const BJ = /, 'la raíz es la aplicación, no una redirección');
+  assert.doesNotMatch(app, /http-equiv="refresh"/);
   assert.ok(existsSync(join(ROOT, '.nojekyll')), 'sin Jekyll: se sirve tal cual');
-  const style = idx.match(/<style>([\s\S]*?)<\/style>/)[1];
-  assert.ok(idx.includes(`'sha256-${createHash('sha256').update(style, 'utf8').digest('base64')}'`), 'CSP con el hash del estilo');
+  for (const f of ['bluejr.html', 'dist/bluejr.html']) assert.ok(!existsSync(join(ROOT, f)), `${f} ya no existe`);
+  // Ningún enlace al nombre de archivo ni a la dirección de antes del cambio de nombre.
+  const viejo = /bluejr\.html|github\.io\/bluejr\b|github\.com\/heindall92\/bluejr\b/i;
+  for (const f of ['README.md', 'CONTRIBUTING.md', 'SECURITY.md', 'ROADMAP.md', 'index.html', 'src/index.html', 'src/app/01-core.js', '.github/workflows/ci.yml', '.github/workflows/pages.yml', 'package.json']) {
+    assert.doesNotMatch(readFileSync(join(ROOT, f), 'utf8'), viejo, `${f} apunta a una dirección vieja`);
+  }
 });

@@ -11,7 +11,7 @@ Abre una incidencia con la propuesta antes de escribir código. Desarrollo:
 
 ```bash
 npm ci
-npm run build      # genera dist/index.html y bluejr.html
+npm run build      # genera index.html y dist/index.html
 npm test           # motor, casos y coherencia del repositorio
 npm run test:e2e   # navegador y axe (PW_CHROMIUM=/ruta/chrome si hace falta)
 ```

@@ -89,7 +89,8 @@ const isMain = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(imp
 if (isMain) {
   const args = process.argv.slice(2);
   const oi = args.indexOf('--out');
-  const outs = oi >= 0 ? [resolve(ROOT, args[oi + 1])] : [resolve(ROOT, 'dist/index.html'), resolve(ROOT, 'bluejr.html')];
+  // La aplicación es index.html (raíz de main y dist/ para gh-pages): una sola dirección, sin redirecciones.
+  const outs = oi >= 0 ? [resolve(ROOT, args[oi + 1])] : [resolve(ROOT, 'dist/index.html'), resolve(ROOT, 'index.html')];
   const html = build();
   const sha = createHash('sha256').update(html).digest('hex').slice(0, 16);
   for (const outPath of outs) {

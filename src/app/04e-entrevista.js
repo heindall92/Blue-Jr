@@ -53,6 +53,22 @@ function revisarDefensa() {
   repintarDefiende();
   if (completa && !completaAntes) avisosXp(antes, progresoActual(), '', 0, T('xp_def', { n: BJ.XP_DEFENSA, id: c.id }));
 }
+/** Guarda lo escrito. Si una respuesta completa deja de cumplir los criterios, deja de contar
+ *  (XP, insignia, historia STAR y PDF) en ese momento, igual que al recargar o importar. */
+function editarDefensa(valor) {
+  const c = CASOS[UI.caso];
+  const p = BJ.preguntasDefensa(c, S.respuestas[c.id]).find((x) => x.id === UI.defP);
+  if (!p) return;
+  const d = defensaDe(c.id);
+  d[p.id] = valor.slice(0, BJ.LIMITES.ticket);
+  if (d.ok.includes(p.id) && !BJ.corregirDefensa(p, d[p.id], c).completo) {
+    d.ok = d.ok.filter((x) => x !== p.id);
+    $(`[data-def-p="${p.id}"] .ic.ok`)?.remove();
+    const n = $('.def-pie .nota'); if (n) n.textContent = T('def_hecha', { n: d.ok.length });
+    pintarLateral();
+  }
+  guardar();
+}
 function repintarDefiende() { const s = $('.defiende'); if (s) s.outerHTML = defiendeHtml(CASOS[UI.caso]); pintarLateral(); }
 
 /* ---------- Historias STAR para Astrolabio ---------- */
@@ -99,5 +115,8 @@ function imprimirHistorial() {
   if (!caja) { caja = document.createElement('div'); caja.id = 'impresion'; document.body.append(caja); }
   caja.innerHTML = impresionHtml();
   if (!caja.children.length) return;
+  // La hoja solo existe mientras se imprime: después, Ctrl+P vuelve a imprimir la vista en la que estés.
+  document.body.classList.add('imprimiendo');
+  addEventListener('afterprint', () => { document.body.classList.remove('imprimiendo'); caja.replaceChildren(); }, { once: true });
   window.print();
 }

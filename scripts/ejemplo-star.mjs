@@ -10,7 +10,9 @@ const BJ = require('../src/engine/bluejr-engine.js');
 const leer = (p) => JSON.parse(readFileSync(new URL('../' + p, import.meta.url), 'utf8'));
 const TURNOS = [1, 2, 3, 4, 5].map((i) => leer(`src/data/t${i}.json`));
 const caso = (id) => TURNOS.flatMap((t) => t.casos.map((c) => ({ ...c, t }))).find((c) => c.id === id);
-const VERSION = leer('package.json').version;
+// Versión fija: el ejemplo describe el formato, que nació en la 0.6.0. Así una versión nueva de Blue-Jr
+// no obliga a tocar el ejemplo en Astrolabio; solo un cambio en las historias lo hace.
+const VERSION = '0.6.0';
 
 export function ejemplo() {
   const a = caso('T1-01'), b = caso('T1-02');
