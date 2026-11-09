@@ -7,7 +7,8 @@ Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [versionad
 ### Añadido
 - Portada con una ilustración por acento y tema: 14 WebP de 1600 px en `src/img/portada-<acento>-<claro|oscuro>.webp`, incrustadas como variables CSS. `scripts/build.mjs` saca la lista de acentos de `src/app/01-core.js` y cada `[data-accent]` fija `--portada-oscuro` y `--portada-claro`.
 - El brillo del ojo (`.p-ojo`) usa el color del aro de cada ilustración (`--ojo`), en vez de un azul fijo.
-- Pruebas: una unitaria (cada portada existe, es WebP, pesa menos de 120 KB, está incrustada y con su regla; ninguna imagen suelta en la raíz) y una e2e (14 combinaciones con el interruptor de tema y el selector de acento, ilustración y brillo del ojo).
+- En el móvil, «Ajustes» en la barra inferior (cinco botones) abre el perfil con el nombre y el color de acento: antes no se podía cambiar el acento ni el nombre en el móvil, porque estaban en la barra lateral oculta. El diálogo de perfil incluye los siete colores también en escritorio.
+- Pruebas: una unitaria (cada portada existe, es WebP, pesa menos de 120 KB, está incrustada y con su regla; ninguna imagen suelta en la raíz) y dos e2e (14 combinaciones con el interruptor de tema y el selector de acento, ilustración y brillo del ojo; «Ajustes» en el móvil a 320 y 390 px). axe audita el diálogo de perfil también en el móvil.
 
 ### Cambiado
 - Título de la portada en dos líneas: «Simulador SOC» (`hero_linea`) y «Blue-Jr» en Outfit de peso medio, más grande y en el color del acento, con la entrada palabra a palabra de siempre. El progreso de la semana abre la entradilla en negrita.

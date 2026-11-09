@@ -120,6 +120,11 @@ body.ya-cargado .lat-nav > a, body.ya-cargado .lat-nav li { animation: none; }
 .punto.ko { border-color: var(--alta); background: color-mix(in srgb, var(--alta) 18%, transparent); }
 .lat-pie { padding: 12px 10px 16px; border-top: 1px solid var(--hair); display: grid; gap: 12px; white-space: nowrap; }
 .acentos { display: flex; gap: 2px; padding-left: 4px; }
+.dlg-sub { margin-top: 18px; font-size: 0.95rem; }
+.dlg-acentos { display: grid; grid-template-columns: repeat(7, minmax(36px, 44px)); justify-content: space-between; gap: 4px; padding: 4px 0; }
+.dlg-acentos .acento-b { width: 100%; height: auto; aspect-ratio: 1; }
+.dlg-acentos .acento-b::before { width: 68%; height: 68%; }
+.dlg-acentos .acento-b[aria-pressed='true']::before { box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--ink-2); }
 .acento-b { width: 28px; height: 28px; border: 0; padding: 0; background: none; border-radius: 50%; display: grid; place-items: center; }
 .acento-b::before { content: ''; width: 18px; height: 18px; border-radius: 50%; background: var(--sw); box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.2); transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out); }
 .acento-b[aria-pressed='true']::before { box-shadow: 0 0 0 2px var(--sidebar), 0 0 0 4px var(--ink-2); }
@@ -519,7 +524,7 @@ dialog.buscar { width: min(620px, calc(100% - 24px)); margin-top: 12dvh; }
   .buscar-b { min-width: 0; padding: 0 10px; }
   .buscar-b .txt, .buscar-b kbd { display: none; }
   .columna { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); padding-bottom: 110px; }
-  .abajo { display: grid; grid-template-columns: repeat(4, 1fr); position: fixed; left: 12px; right: 12px; bottom: calc(10px + env(safe-area-inset-bottom)); z-index: 30; padding: 6px; border-radius: 24px; background: var(--glass-thick); border: 1px solid var(--hair); box-shadow: var(--sh-overlay); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+  .abajo { display: grid; grid-template-columns: repeat(5, 1fr); position: fixed; left: 12px; right: 12px; bottom: calc(10px + env(safe-area-inset-bottom)); z-index: 30; padding: 6px; border-radius: 24px; background: var(--glass-thick); border: 1px solid var(--hair); box-shadow: var(--sh-overlay); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
   .abajo a, .abajo button { display: grid; justify-items: center; gap: 2px; padding: 7px 2px; border: 0; border-radius: 18px; background: none; color: var(--ink-2); text-decoration: none; font-size: 0.6875rem; font-weight: 500; }
   .abajo [aria-current='page'] { background: var(--tint); color: var(--ink); }
   .abajo [aria-current='page'] .ic { color: var(--accent); }

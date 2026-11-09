@@ -86,7 +86,8 @@ for (const [ancho, alto] of [[1440, 900], [390, 844]]) {
       await auditar(p, `búsqueda ${ancho} ${tema}`, '#dlg-buscar');
       await p.keyboard.press('Escape'); // el primer Escape vacía el campo de búsqueda
       await p.keyboard.press('Escape');
-      if (ancho > 900) { await p.click('[data-perfil]'); await auditar(p, `perfil ${ancho} ${tema}`, '#dlg-perfil'); }
+      // Perfil y color de acento: en escritorio desde la cuenta de la barra lateral; en el móvil, desde «Ajustes».
+      await p.click(ancho > 900 ? '.cuenta-b' : '#abajo [data-perfil]'); await auditar(p, `perfil y acento ${ancho} ${tema}`, '#dlg-perfil');
       await ctx.close();
     });
   }

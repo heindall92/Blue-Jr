@@ -698,3 +698,28 @@ test('portada: cambia de imagen con el interruptor de tema y con cada color de a
   assert.deepEqual(p.fallos, []);
   await p.context().close();
 });
+
+test('móvil: «Ajustes» en la barra inferior cambia el color de acento y la portada (no hay barra lateral)', async () => {
+  for (const ancho of [320, 390]) {
+    const p = await pagina({ viewport: { width: ancho, height: 780 }, isMobile: true, hasTouch: true, colorScheme: 'light' });
+    await ir(p, 'turnos');
+    assert.equal(await p.locator('.lateral .acentos').isVisible(), false, 'en el móvil la barra lateral no se ve');
+    await p.click('#abajo [data-perfil]');
+    await p.waitForSelector('#dlg-perfil[open]');
+    const botones = p.locator('#dlg-perfil [data-accent-pick]');
+    assert.equal(await botones.count(), 7);
+    const tam = await botones.evaluateAll((bs) => bs.map((b) => [Math.round(b.getBoundingClientRect().width), Math.round(b.getBoundingClientRect().top)]));
+    assert.ok(tam.every(([w]) => w >= 24), `${ancho} px: botones de al menos 24 px (${tam})`);
+    assert.equal(new Set(tam.map(([, t]) => t)).size, 1, `${ancho} px: los siete colores en una fila`);
+    await p.click('#dlg-perfil [data-accent-pick="rojo"]');
+    assert.equal(await p.getAttribute('html', 'data-accent'), 'rojo');
+    assert.equal(await p.getAttribute('#dlg-perfil [data-accent-pick="rojo"]', 'aria-pressed'), 'true');
+    assert.equal(await p.evaluate(() => JSON.parse(localStorage.getItem('bluejr-prefs')).accent), 'rojo');
+    const huella = readFileSync(new URL('../src/img/portada-rojo-claro.webp', import.meta.url)).toString('base64').slice(0, 160);
+    assert.ok((await p.evaluate(() => getComputedStyle(document.querySelector('.p-fondo')).backgroundImage)).includes(huella), 'la portada pasa a la ilustración roja');
+    await p.keyboard.press('Escape');
+    assert.ok(await desborda(p) <= 0, `${ancho} px desborda con cinco botones abajo`);
+    assert.deepEqual(p.fallos, []);
+    await p.context().close();
+  }
+});

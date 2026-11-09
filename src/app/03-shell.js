@@ -72,7 +72,9 @@ function pintarAbajo() {
   $('#abajo').innerHTML = it('#turnos', 'calendar-clock', T('nav_turnos'), r.vista === 'turnos')
     + it('#' + turno, 'siren', `${T('nav_turno_actual')} ${turno.slice(1)}`, r.vista === 'turno')
     + it('#historial', 'award', T('nav_historial'), r.vista === 'historial')
-    + `<button type="button" data-ayuda>${ic('circle-help')}<span>${esc(T('nav_ayuda'))}</span></button>`;
+    + `<button type="button" data-ayuda>${ic('circle-help')}<span>${esc(T('nav_ayuda'))}</span></button>`
+    // En el móvil no hay barra lateral: el nombre y el color de acento se cambian desde aquí.
+    + `<button type="button" data-perfil>${ic('palette')}<span>${esc(T('nav_ajustes'))}</span></button>`;
   $('#abajo').setAttribute('aria-label', T('nav_secciones'));
 }
 
@@ -172,7 +174,10 @@ function abrirPerfil() {
   const d = $('#dlg-perfil');
   d.setAttribute('aria-labelledby', 'perfil-t');
   d.innerHTML = `<form method="dialog" class="perfil-f" id="f-perfil"><div class="dlg-cab"><h2 id="perfil-t">${esc(T('perfil_titulo'))}</h2><button type="button" class="icono-b" data-cerrar-dlg aria-label="${esc(T('cerrar'))}">${ic('x')}</button></div>
-    <div class="dlg-cuerpo"><label class="campo">${esc(T('perfil'))}<input name="nombre" maxlength="${BJ.LIMITES.nombre}" autocomplete="name" value="${esc(S.perfil.nombre)}"></label><p class="nota">${esc(T('perfil_ayuda'))}</p></div>
+    <div class="dlg-cuerpo"><label class="campo">${esc(T('perfil'))}<input name="nombre" maxlength="${BJ.LIMITES.nombre}" autocomplete="name" value="${esc(S.perfil.nombre)}"></label><p class="nota">${esc(T('perfil_ayuda'))}</p>
+      <h3 id="acento-t" class="dlg-sub">${esc(T('acento'))}</h3>
+      <div class="acentos dlg-acentos" role="group" aria-labelledby="acento-t">${ACENTOS.map((a) => `<button type="button" class="acento-b" data-accent-pick="${a}" aria-pressed="${P.accent === a}" title="${esc(T('acentos.' + a))}" aria-label="${esc(T('acentos.' + a))}"></button>`).join('')}</div>
+      <p class="nota">${esc(T('acento_ayuda'))}</p></div>
     <div class="dlg-pie"><button type="button" class="btn sec" data-cerrar-dlg>${esc(T('cancelar'))}</button><button type="submit" class="btn">${esc(T('guardar'))}</button></div></form>`;
   abrirDialogo(d, 'input');
 }
