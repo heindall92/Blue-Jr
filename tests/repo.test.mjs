@@ -1,7 +1,7 @@
 /* Coherencia del repositorio: build al día, CSP, i18n, versión y enlaces del README. */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { ROOT, BJ, I18N } from './_util.mjs';
@@ -52,6 +52,26 @@ test('README: las etiquetas <p> están emparejadas (sin aperturas ni cierres hu�
     }
   }
   assert.equal(abiertos, 0, 'queda un <p> sin cerrar');
+});
+
+test('portada: una imagen WebP por acento y tema, todas incrustadas, y ninguna imagen suelta en la raíz', async () => {
+  const { ACENTOS, TEMAS_PORTADA, buildImagenes } = await import('../scripts/build.mjs');
+  assert.equal(ACENTOS.length, 7);
+  const css = buildImagenes();
+  for (const a of ACENTOS) {
+    for (const t of TEMAS_PORTADA) {
+      const f = join(ROOT, 'src/img', `portada-${a}-${t}.webp`);
+      assert.ok(existsSync(f), `falta src/img/portada-${a}-${t}.webp`);
+      const b = readFileSync(f);
+      assert.equal(b.subarray(8, 12).toString(), 'WEBP', `${a}-${t} no es WebP`);
+      assert.ok(b.length < 120 * 1024, `${a}-${t} pesa demasiado (${b.length} bytes)`);
+      assert.ok(css.includes(`--portada-${a}-${t}: url(data:image/webp;base64,`), `${a}-${t} sin incrustar`);
+    }
+    assert.ok(css.includes(`[data-accent='${a}'] { --portada-oscuro: var(--portada-${a}-oscuro); --portada-claro: var(--portada-${a}-claro); }`), `${a} sin regla`);
+  }
+  assert.ok(css.indexOf(':root { --portada-oscuro') < css.indexOf("[data-accent='rosa']"), 'el azul por defecto va antes que los acentos');
+  const sueltas = readdirSync(ROOT).filter((f) => /\.(png|jpe?g|webp|gif)$/i.test(f));
+  assert.deepEqual(sueltas, [], 'imágenes sueltas en la raíz del repositorio');
 });
 
 test('autoría y licencia', () => {

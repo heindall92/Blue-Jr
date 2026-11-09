@@ -14,7 +14,8 @@ function vTurnos() {
   const hoy = Object.values(S.respuestas).filter((r) => r.cerrado && r.cuando?.slice(0, 10) === hoyIso()).length;
   const sig = TURNOS.find((t) => !BJ.resumenTurno(t, resp).completo);
   const quedan = h.total - h.tickets;
-  const titulo = !h.tickets ? T('hero_titulo') : quedan ? T('hero_titulo_sigue', { n: quedan }) : T('hero_titulo_fin');
+  // El progreso de la semana abre la entradilla; el título es la marca, con Blue-Jr en el color del acento.
+  const estadoSemana = !h.tickets ? '' : quedan ? T('hero_titulo_sigue', { n: quedan }) : T('hero_titulo_fin');
   const cta = !h.tickets ? `<a class="btn grande" href="#T1">${ic('play')}${esc(T('hero_empezar'))}</a>`
     : sig ? `<a class="btn grande" href="#${sig.id}">${ic('play')}${esc(T('hero_continuar', { n: numTurno(sig) }))}</a>`
     : `<a class="btn grande" href="#historial">${ic('award')}${esc(T('hero_repasar'))}</a>`;
@@ -41,14 +42,16 @@ function vTurnos() {
       <div class="tc-pie">${estado}${r.hechos ? `<span class="nota-media num">${esc(T('nota_media'))} <b>${r.media}</b></span>` : ''}<a class="btn${r.completo ? ' sec' : ''}" href="#${t.id}">${esc(boton)}${ic('chevron-right')}</a></div>
     </li>`;
   }).join('');
-  // El titular entra palabra a palabra (cada palabra sube desde su propia máscara).
-  const palabras = titulo.split(' ').map((p, i) => `<span class="pal"><span style="--i:${i}">${esc(p)}</span></span>`).join(' ');
+  // El titular entra palabra a palabra (cada palabra sube desde su propia máscara), en dos líneas como un rótulo.
+  const linea = T('hero_linea');
+  const n1 = linea.split(' ').length;
+  const pals = (texto, desde) => texto.split(' ').map((p, i) => `<span class="pal"><span style="--i:${desde + i}">${esc(p)}</span></span>`).join(' ');
   return `<section class="portada" aria-labelledby="portada-t">
       ${arteHtml()}
       <div class="p-txt">
         <p class="ante">${ic('radar')}${esc(T('inicio_ante'))}</p>
-        <h1 id="portada-t" aria-label="${esc(titulo)}"><span aria-hidden="true">${palabras}</span></h1>
-        <p class="entradilla">${esc(T('hero_texto'))}</p>
+        <h1 id="portada-t" aria-label="${esc(linea)} Blue-Jr"><span aria-hidden="true"><span class="h1-linea">${pals(linea, 0)}</span><span class="h1-marca">${pals('Blue-Jr', n1)}</span></span></h1>
+        <p class="entradilla">${estadoSemana ? `<b>${esc(estadoSemana)}</b> ` : ''}${esc(T('hero_texto'))}</p>
         <div class="p-cta">${cta}<button type="button" class="btn sec grande" data-ayuda>${ic('book-open')}${esc(T('hero_como'))}</button></div>
         <p class="reloj num" role="timer" id="reloj">${esc(textoReloj())}</p>
       </div>

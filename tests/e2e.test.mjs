@@ -679,3 +679,22 @@ test('historial imprimible: una página A4 por turno con tickets (pdfinfo y pdft
   assert.deepEqual(p.fallos, []);
   await p.context().close();
 });
+
+test('portada: cambia de imagen con el interruptor de tema y con cada color de acento', async () => {
+  const p = await pagina({ colorScheme: 'light' });
+  await ir(p, 'turnos');
+  const huella = (a, t) => readFileSync(new URL(`../src/img/portada-${a}-${t}.webp`, import.meta.url)).toString('base64').slice(0, 160);
+  const fondo = () => p.evaluate(() => getComputedStyle(document.querySelector('.p-fondo')).backgroundImage);
+  for (const tema of ['light', 'dark']) {
+    if (await p.getAttribute('html', 'data-theme') !== tema) await p.click('[data-tema]');
+    for (const a of ['rosa', 'solar', 'glaciar', 'orquidea', 'verde', 'azul', 'rojo']) {
+      await p.click(`[data-accent-pick="${a}"]`);
+      assert.ok((await fondo()).includes(huella(a, tema === 'light' ? 'claro' : 'oscuro')), `${a} en ${tema}`);
+      // El brillo del ojo va del color del aro de esa ilustración, no siempre azul.
+      const ojo = await p.evaluate(() => getComputedStyle(document.querySelector('.p-ojo')).boxShadow);
+      assert.ok(ojo.includes({ rosa: 'rgba(255, 72, 160', solar: 'rgba(255, 200, 30', glaciar: 'rgba(34, 211, 238', orquidea: 'rgba(196, 120, 255', verde: 'rgba(40, 220, 100', azul: 'rgba(56, 128, 255', rojo: 'rgba(255, 40, 56' }[a]), `ojo de ${a}: ${ojo}`);
+    }
+  }
+  assert.deepEqual(p.fallos, []);
+  await p.context().close();
+});
