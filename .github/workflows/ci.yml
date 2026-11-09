@@ -21,7 +21,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: dist/index.html y bluejr.html están al día con src/
+      - name: dist/index.html, index.html y la redirección bluejr.html están al día con src/
         run: npm run check
       - name: Tests unitarios (motor, casos, repositorio)
         run: npm test

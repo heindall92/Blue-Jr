@@ -100,8 +100,9 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
 
 ## <img src="docs/assets/icons/sparkles.svg" width="20" height="20" valign="middle"/> Novedades
 
-### 0.6.1 · noviembre de 2026 · Imprimir como siempre
+### 0.6.1 · noviembre de 2026 · index.html e imprimir como siempre
 
+- **La aplicación es `index.html`.** La web abre sin pasar por una redirección y el archivo descargable se llama `index.html`. `bluejr.html` sigue funcionando: redirige a la nueva dirección. El progreso guardado no se pierde (va con el dominio, no con el archivo).
 - **Ctrl+P vuelve a imprimir la vista** en la que estés. En la 0.6.0 salía una página en blanco si no se había pulsado antes «Imprimir o guardar en PDF», y después de usarlo imprimía la hoja vieja del historial. La hoja de turnos solo existe mientras se imprime desde ese botón.
 - **«Defiende tu ticket» no da por completa una respuesta que has estropeado al editarla.** Deja de contar al momento (XP, insignia, historia STAR y PDF), igual que ya pasaba al recargar.
 
@@ -146,7 +147,7 @@ Blue-Jr deja de ser solo un examen y pasa a enseñar cómo se trabaja en un SOC,
 ### 0.2.1 · noviembre de 2026
 
 - **Portada ilustrada:** el analista de guardia, una figura encapuchada con casco, en versión clara y oscura según el tema. El texto va a la izquierda sobre el fondo plano. Al cargar, la ilustración entra con un leve desplazamiento y el aro del ojo se enciende y late. En tableta y móvil la figura pasa arriba y el texto debajo. Las dos imágenes van incrustadas en WebP (45 y 77 KB): ni una petición más.
-- **GitHub Pages abre la aplicación** sirva Pages `main` o `gh-pages`: la raíz de `main` lleva a `bluejr.html`.
+- **GitHub Pages abre la aplicación** sirva Pages `main` o `gh-pages`: en los dos casos `index.html` es la aplicación (desde la 0.6.1; `bluejr.html` redirige a ella).
 - **Marca nueva:** el escudo, el icono más gastado de la ciberseguridad, deja paso a un radar. Lo que hace un analista de nivel 1 es barrer el ruido hasta encontrar la señal. Cambia en la barra lateral, la portada, el favicon y la cabecera y el pie del README.
 
 ### 0.2.0 · noviembre de 2026
@@ -364,7 +365,7 @@ Paleta oscura sin negro ni blanco puros (superficies `#1D2127` / `#252930`, text
 
 **En el navegador:** abre [heindall92.github.io/Blue-Jr](https://heindall92.github.io/Blue-Jr/).
 
-**Sin conexión:** descarga [bluejr.html](bluejr.html) y ábrelo con doble clic. Es el mismo fichero que se publica.
+**Sin conexión:** descarga [index.html](index.html) y ábrelo con doble clic. Es el mismo fichero que se publica.
 
 **Desarrollo** (Node 20 o superior):
 
@@ -372,7 +373,7 @@ Paleta oscura sin negro ni blanco puros (superficies `#1D2127` / `#252930`, text
 git clone https://github.com/heindall92/Blue-Jr.git
 cd Blue-Jr
 npm ci
-npm run build      # src/ → dist/index.html y bluejr.html
+npm run build      # src/ → index.html y dist/index.html
 npm test           # motor, integridad de los 40 casos y coherencia del repositorio
 npm run test:e2e   # navegador real con la red bloqueada, y axe
 npm run capturas   # regenera docs/capturas/
@@ -475,7 +476,7 @@ Blue-Jr/
 ├── 🛠️ scripts/                   build.mjs · iconos.mjs · capturas.mjs · ejemplo-star.mjs
 ├── 🧪 tests/                     Motor, casos, repositorio, e2e y accesibilidad
 ├── 📄 docs/                      Capturas, cabecera, pie e iconos del README
-├── 🌐 bluejr.html · dist/        El HTML compilado (descargable y publicado)
+├── 🌐 index.html · dist/         El HTML compilado (descargable y publicado); bluejr.html redirige
 └── ⚖️ LICENSE                    MIT
 ```
 
