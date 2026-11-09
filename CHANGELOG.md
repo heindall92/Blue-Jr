@@ -2,6 +2,17 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [versionado semántico](https://semver.org/lang/es/).
 
+## [0.5.0] - 2026-11-09
+
+### Añadido
+- «Comunícalo» en el resultado de cada ticket escalado: mensaje a N2 y aviso a dirección, corregidos en local (`BJ.corregirMensaje`) con criterios comprobables en español y en inglés, y un ejemplo construido con los datos del caso (`BJ.modeloMensaje`). Cada mensaje completo suma 10 XP y se incluye en el historial exportable.
+- «Pregunta al N2» en el ticket abierto: tres preguntas por turno (por dónde empezar, qué dato falta, si el veredicto va bien), con pistas del propio caso (`BJ.pistaN2`). Cada pregunta resta 10 XP al ticket, nunca nota, y la respuesta se guarda tal como era al preguntar.
+- Insignia «Comunicador»; saneado de mensajes y preguntas importados (lo completo se recalcula).
+- Pruebas: 5 unitarias y 2 e2e nuevas; axe en «Comunícalo» y «Pregunta al N2».
+
+### Corregido
+- El aviso de XP al cerrar un ticket descuenta lo que costaron las preguntas al N2.
+
 ## [0.4.0] - 2026-11-09
 
 ### Añadido

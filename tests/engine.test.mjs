@@ -256,3 +256,63 @@ test('práctica: la XP suma tickets, revisiones y la primera ronda diaria del tr
   const ins = Object.fromEntries(BJ.insignias(TURNOS, {}, '2026-11-09', { racha: 3, cazados: 3, rapidoPerfecto: true }).map((i) => [i.id, i.ok]));
   assert.equal(ins.racha3, true); assert.equal(ins.revisor, true); assert.equal(ins.rapido, true);
 });
+
+/* ---------- Comunicar y Pregunta al N2 ---------- */
+const C1 = INDICE['T1-01'];
+const BUENO_N2 = 'Prioridad alta. A las 08:05 fuerza bruta contra la VPN desde 203.0.113.45 que termina en login OK de r.ibanez y acceso SMB a SRV-FS01. He deshabilitado la cuenta y bloqueado la IP; lo escalo para revisar el alcance.';
+const BUENO_DIR = 'Esta mañana alguien de fuera consiguió entrar con la cuenta de un empleado de almacén. El equipo de seguridad ya ha bloqueado el acceso y está investigando si llegó a ver datos de clientes o pedidos. Necesitamos que confirméis si podemos cortar hoy su acceso remoto mientras termina la revisión.';
+const crit = (tipo, texto) => Object.fromEntries(BJ.corregirMensaje(tipo, texto, C1).criterios.map((c) => [c.id, c.ok]));
+
+test('mensaje a N2: un texto bueno cumple todo y cada criterio falla con su texto malo', () => {
+  assert.ok(BJ.corregirMensaje('n2', BUENO_N2, C1).completo);
+  assert.equal(crit('n2', 'A las 08:05 r.ibanez desde 203.0.113.45, deshabilitada. Prioridad alta.').que, false, 'sin decir qué pasó');
+  assert.equal(crit('n2', BUENO_N2.replace('A las 08:05 ', '')).cuando, false, 'sin hora');
+  assert.equal(crit('n2', 'Prioridad alta. A las 08:05 fuerza bruta contra la VPN. He deshabilitado la cuenta.').quien, false, 'sin datos del caso');
+  assert.equal(crit('n2', 'Prioridad alta. A las 08:05 fuerza bruta contra la VPN de r.ibanez. He deshabilitado la cuenta.').evidencia, false, 'un solo dato');
+  assert.equal(crit('n2', 'Prioridad alta. A las 08:05 fuerza bruta contra la VPN desde 203.0.113.45 a r.ibanez.').accion, false, 'sin acción');
+  assert.equal(crit('n2', 'A las 08:05 fuerza bruta contra la VPN desde 203.0.113.45 a r.ibanez; deshabilito la cuenta mediante el playbook.').urgencia, false, '«mediante» no es «media»');
+  assert.ok(BJ.corregirMensaje('n2', 'Priority high. At 08:05 VPN brute force from 203.0.113.45 ends in a login OK for r.ibanez. I disabled the account and I am escalating.', C1).completo, 'también en inglés');
+});
+
+test('aviso a dirección: lenguaje llano, impacto, situación, petición y brevedad', () => {
+  assert.ok(BJ.corregirMensaje('dir', BUENO_DIR, C1).completo);
+  assert.equal(crit('dir', BUENO_DIR.replace('alguien de fuera', 'la IP 203.0.113.45')).llano, false, 'una IP es jerga para dirección');
+  assert.equal(crit('dir', BUENO_DIR + ' Técnica T1110.').llano, false, 'un ID de técnica también');
+  assert.equal(crit('dir', 'Esta mañana alguien de fuera consiguió entrar con una cuenta. El equipo de seguridad ya lo ha bloqueado y lo está investigando a fondo con calma. Necesitamos que confirméis si podemos cortar hoy su acceso remoto mientras termina la revisión de todo.').impacto, false, 'sin impacto');
+  assert.equal(crit('dir', 'Esta mañana alguien de fuera consiguió entrar con la cuenta de un empleado y pudo ver datos de clientes y pedidos de hoy. Necesitamos que confirméis si podemos cortar hoy su acceso remoto mientras termina la revisión de todo.').situacion, false, 'sin decir qué se hace');
+  assert.equal(crit('dir', 'Esta mañana alguien de fuera consiguió entrar con la cuenta de un empleado. El equipo de seguridad ya ha bloqueado el acceso y está investigando si llegó a ver datos de clientes o pedidos de hoy.').peticion, false, 'sin petición');
+  assert.equal(crit('dir', 'Hemos bloqueado un acceso; afecta a datos de clientes. Necesitamos vuestra decisión.').breve, false, 'demasiado corto');
+});
+
+test('mensajes de ejemplo: los de todos los casos escalados cumplen su propia corrección, en los dos idiomas', () => {
+  for (const c of CASOS.filter((x) => x.accion !== 'cerrar')) for (const lang of ['es', 'en']) for (const tipo of BJ.TIPOS_MENSAJE) {
+    const r = BJ.corregirMensaje(tipo, BJ.modeloMensaje(tipo, c, lang), c);
+    assert.ok(r.completo, `${c.id} ${lang} ${tipo}: ${r.criterios.filter((x) => !x.ok).map((x) => x.id)}`);
+  }
+});
+
+test('Pregunta al N2: pistas del caso sin dar la respuesta', () => {
+  const ini = BJ.pistaN2('inicio', C1);
+  assert.ok(C1.logs.some(([t, s, m]) => t === ini.hora && s === ini.fuente && C1.claves.some((k) => m.includes(k))), 'señala una línea con un dato clave');
+  assert.deepEqual(BJ.pistaN2('falta', C1, { campos: { ip: '203.0.113.45' } }).campos, ['usuario', 'mitre']);
+  assert.deepEqual(BJ.pistaN2('falta', C1, respuestaPerfecta(C1)).campos, []);
+  assert.equal(BJ.pistaN2('decision', C1, {}).v, null);
+  assert.equal(BJ.pistaN2('decision', C1, { veredicto: 'vp' }).v, true);
+  assert.equal(BJ.pistaN2('decision', C1, { veredicto: 'fp' }).v, false);
+  assert.equal(BJ.pistaN2('decision', C1, { veredicto: 'vp', accion: 'cerrar' }).accion, undefined, 'nunca dice la acción');
+});
+
+test('saneado: mensajes y preguntas al N2 importados se recalculan y se limpian', () => {
+  const indice = Object.fromEntries(CASOS.map((c) => [c.id, c]));
+  const s = BJ.sanearEstado({
+    mensajes: { 'T1-01': { n2: BUENO_N2, dir: 'corto', ok: ['n2', 'dir'] }, 'T1-02': { ok: ['n2'] }, 'ZZ': { n2: BUENO_N2 } },
+    n2: { 'T1-01': [{ tipo: 'inicio' }, { tipo: 'inicio' }, { tipo: 'decision', v: 'si' }, { tipo: 'falta', campos: ['usuario', '<img>'] }, { tipo: 'trampa' }], 'XX': [{ tipo: 'inicio' }] }
+  }, indice, {});
+  assert.deepEqual(s.mensajes['T1-01'].ok, ['n2'], 'solo cuenta lo que cumple de verdad');
+  assert.deepEqual(s.mensajes['T1-02'].ok, [], 'sin texto no hay mensaje completo');
+  assert.equal(s.mensajes.ZZ, undefined);
+  assert.deepEqual(s.n2['T1-01'], [{ tipo: 'inicio' }, { tipo: 'decision', v: null }, { tipo: 'falta', campos: ['usuario'] }]);
+  assert.equal(s.n2.XX, undefined);
+  const ins = Object.fromEntries(BJ.insignias(TURNOS, {}, '2026-11-09', { mensajes: 5 }).map((i) => [i.id, i.ok]));
+  assert.equal(ins.comunicador, true);
+});

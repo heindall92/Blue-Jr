@@ -170,7 +170,7 @@ const BJ = (() => {
 
   /** Deja solo lo que BlueJr sabe leer, con tipos, longitudes y listas permitidas. Recalcula la nota. */
   function sanearEstado(bruto, indice, indiceRev = {}) {
-    const out = { v: 1, perfil: { nombre: '' }, respuestas: {}, relevos: {}, revisiones: {}, repaso: {}, rapido: {} };
+    const out = { v: 1, perfil: { nombre: '' }, respuestas: {}, relevos: {}, revisiones: {}, repaso: {}, rapido: {}, mensajes: {}, n2: {} };
     if (!bruto || typeof bruto !== 'object') return out;
     out.perfil.nombre = corta(bruto.perfil?.nombre, LIMITES.nombre);
     const resp = bruto.respuestas && typeof bruto.respuestas === 'object' ? bruto.respuestas : {};
@@ -216,6 +216,31 @@ const BJ = (() => {
       const total = x.total, aciertos = x.aciertos, ms = x.ms;
       if (!Number.isInteger(total) || total < 1 || total > RAPIDO_N || !Number.isInteger(aciertos) || aciertos < 0 || aciertos > total) continue;
       out.rapido[d] = { aciertos, total, ms: Number.isInteger(ms) && ms >= 0 && ms <= 3600000 ? ms : 0 };
+    }
+    for (const [id, m] of Object.entries(obj(bruto.mensajes))) {
+      const caso = indice[id];
+      if (!caso || !m || typeof m !== 'object') continue;
+      const limpio = {};
+      for (const tipo of TIPOS_MENSAJE) if (typeof m[tipo] === 'string') limpio[tipo] = corta(m[tipo], LIMITES.ticket);
+      // Si el mensaje está completo se recalcula aquí; una copia no puede traer «completo» sin el texto.
+      limpio.ok = TIPOS_MENSAJE.filter((tipo) => limpio[tipo] && corregirMensaje(tipo, limpio[tipo], caso).completo);
+      limpio.cuando = typeof m.cuando === 'string' && !Number.isNaN(Date.parse(m.cuando)) ? m.cuando : null;
+      out.mensajes[id] = limpio;
+    }
+    for (const [id, lista] of Object.entries(obj(bruto.n2))) {
+      const caso = indice[id];
+      if (!caso || !Array.isArray(lista)) continue;
+      const ids = camposDe(caso).map((c) => c.id);
+      const vistas = new Set();
+      out.n2[id] = [];
+      for (const x of lista) {
+        if (!x || !PREGUNTAS_N2.includes(x.tipo) || vistas.has(x.tipo)) continue;
+        vistas.add(x.tipo);
+        // Se guarda la respuesta tal como era al preguntar: preguntar no puede servir para probar respuestas gratis.
+        if (x.tipo === 'decision') out.n2[id].push({ tipo: 'decision', v: x.v === true || x.v === false ? x.v : null });
+        else if (x.tipo === 'falta') out.n2[id].push({ tipo: 'falta', campos: Array.isArray(x.campos) ? x.campos.filter((c) => ids.includes(c)) : [] });
+        else out.n2[id].push({ tipo: 'inicio' });
+      }
     }
     return out;
   }
@@ -265,6 +290,7 @@ const BJ = (() => {
       ['racha3', racha >= 3],
       ['revisor', (extra.cazados || 0) >= 3],
       ['rapido', extra.rapidoPerfecto === true],
+      ['comunicador', (extra.mensajes || 0) >= 5],
       ['semana', hechos.length === casos.length && casos.length > 0]
     ];
     return lista.map(([id, ok]) => ({ id, ok }));
@@ -316,6 +342,90 @@ const BJ = (() => {
     return [...new Set(orden)].slice(0, n);
   }
 
+  /* ---------- Comunicar: mensajes corregidos en local ----------
+   * Dos mensajes por ticket cerrado: el escalado a N2 (técnico) y el aviso a dirección (llano).
+   * Se corrigen con criterios comprobables, en español o en inglés; no valoran el estilo, sino que
+   * estén las piezas que un N2 o una directora necesitan para actuar. */
+  const TIPOS_MENSAJE = Object.freeze(['n2', 'dir']);
+  const XP_MENSAJE = 10; // por cada mensaje que cumple todos los criterios
+  const plano = (t) => String(t ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const RE = {
+    hora: /\b([01]?\d|2[0-3]):[0-5]\d\b/,
+    accion: /\b(deshabilit|aisl|bloque|revoc|cort|elimin|purg|restablec|cambi|escal|investig|revis|contien|conten|disabl|isolat|block|revok|kill|remov|purg|reset|chang|escalat|investigat|review|contain)\w*/,
+    urgencia: /\b(critica|critico|alta|alto|media|medio|baja|bajo|urgente|prioridad|critical|high|medium|low|urgent|priority|p[1-4])\b/,
+    jerga: /\b(eventid|logontype|targetusername|subjectusername|sha256|hash|ioc|ttp|mitre|t\d{4}(?:\.\d{3})?|lsass|ntlm|kerberos|payload|powershell|cmd\.exe|udp|tcp|smb|rdp|dns|edr|siem|waf)\b|\b(?:\d{1,3}\.){3}\d{1,3}\b/,
+    impacto: /\b(client|dato|servicio|factur|pedido|nomina|operaci|reputaci|multa|ley|rgpd|dinero|pago|transferencia|venta|negocio|empleado|customer|data|service|invoice|order|payroll|operation|reputation|fine|law|gdpr|money|payment|transfer|sale|business|employee)\w*/,
+    situacion: /\b(contenid|controlad|bloquead|aislad|investig|equipo de seguridad|soc|contained|under control|blocked|isolated|investigat|security team)\w*/,
+    peticion: /\b(necesit|pedimos|decid|autoriz|aprob|llam|confirm|recomend|os pido|le pido|need|ask|decide|authori|approv|call|confirm|recommend|please)\w*/
+  };
+  const palabras = (t) => (String(t ?? '').trim().match(/\S+/g) || []).length;
+  function corregirMensaje(tipo, texto, caso) {
+    const t = plano(texto);
+    const citadas = caso.claves.filter((k) => t.includes(plano(k)));
+    // Lo que pasó: dos palabras con contenido del título o de la regla, o el ID de la técnica.
+    const VACIAS = new Set(['contra', 'desde', 'hacia', 'entre', 'sobre', 'durante', 'otros', 'otras', 'unos', 'from', 'after', 'about', 'their', 'there', 'other', 'within']);
+    const terminos = [...new Set(plano(`${caso.titulo?.es} ${caso.titulo?.en} ${caso.regla?.es} ${caso.regla?.en}`).match(/[a-z0-9]{5,}/g) || [])].filter((w) => !VACIAS.has(w));
+    const nTerm = terminos.filter((w) => t.includes(w)).length;
+    const que = nTerm >= 2 || (caso.mitre && t.includes(plano(caso.mitre).split('.')[0]));
+    const n = palabras(texto);
+    const criterios = tipo === 'n2' ? [
+      ['que', que],
+      ['cuando', RE.hora.test(t)],
+      ['quien', citadas.length >= 1],
+      ['evidencia', citadas.length >= Math.min(2, caso.claves.length)],
+      ['accion', RE.accion.test(t)],
+      ['urgencia', RE.urgencia.test(t)]
+    ] : [
+      ['llano', n > 0 && !RE.jerga.test(t)],
+      ['impacto', RE.impacto.test(t)],
+      ['situacion', RE.situacion.test(t)],
+      ['peticion', RE.peticion.test(t)],
+      ['breve', n >= 25 && n <= 120]
+    ];
+    const lista = criterios.map(([id, ok]) => ({ id, ok: !!ok }));
+    return { criterios: lista, completo: lista.every((c) => c.ok), palabras: n, citadas };
+  }
+
+  /** Mensaje de ejemplo para un caso escalado: se construye con los datos del caso y cumple su propia corrección. */
+  function modeloMensaje(tipo, caso, lang = 'es') {
+    const es = lang === 'es';
+    const sev = { critica: es ? 'crítica' : 'critical', alta: es ? 'alta' : 'high', media: es ? 'media' : 'medium', baja: es ? 'baja' : 'low' }[caso.sev];
+    const L = (o) => (o ? o[lang] ?? o.es : '');
+    if (tipo === 'n2') {
+      const ev = caso.logs.filter(([, , m]) => caso.claves.some((k) => m.includes(k))).slice(0, 2).map(([t, h, m]) => `${t} ${h} ${m}`);
+      const accion = caso.accion === 'contener'
+        ? (es ? 'He aplicado la contención del playbook y lo escalo para que revises el alcance.' : 'I have applied the playbook containment and I am escalating it so you can scope it.')
+        : (es ? 'No contengo: lo escalo para que decidáis con quien corresponda.' : 'I am not containing it: I am escalating it so you can decide with whoever is responsible.');
+      return es
+        ? `Prioridad ${sev}. ${L(caso.titulo)} (${L(caso.regla)}), a las ${caso.hora}. Datos clave: ${caso.claves.join(', ')}. Evidencia: ${ev.join(' | ')}. ${accion}`
+        : `Priority ${sev}. ${L(caso.titulo)} (${L(caso.regla)}), at ${caso.hora}. Key facts: ${caso.claves.join(', ')}. Evidence: ${ev.join(' | ')}. ${accion}`;
+    }
+    if (caso.accion === 'contener') return es
+      ? `Esta mañana, a las ${caso.hora}, hemos detectado un acceso o un programa no autorizado en un equipo de la empresa. El equipo de seguridad ya lo ha bloqueado y está investigando si ha afectado a datos de clientes o al servicio. Os pediremos que confirméis cualquier corte que afecte a la operación.`
+      : `This morning, at ${caso.hora}, we detected unauthorised access or software on a company computer. The security team has already blocked it and is investigating whether customer data or the service were affected. We will ask you to confirm any shutdown that affects operations.`;
+    return es
+      ? `Esta mañana, a las ${caso.hora}, hemos visto una situación que puede afectar a datos de la empresa o de clientes y que necesita la decisión de un responsable. El equipo de seguridad lo está investigando con discreción. Necesitamos que autoricéis la revisión con Recursos Humanos y Asesoría Jurídica.`
+      : `This morning, at ${caso.hora}, we saw a situation that may affect company or customer data and needs a manager's decision. The security team is investigating it discreetly. We need you to authorise the review with HR and Legal.`;
+  }
+
+  /* ---------- Pregunta al N2: pistas del propio caso, con coste ----------
+   * Tres preguntas por turno. Cada una resta XP al ticket (nunca nota): enseña cuándo merece la pena pedir ayuda. */
+  const PREGUNTAS_N2 = Object.freeze(['inicio', 'falta', 'decision']);
+  const LIMITE_N2 = 3;
+  const COSTE_N2 = 10;
+  function pistaN2(tipo, caso, resp = {}) {
+    if (tipo === 'inicio') {
+      // La primera línea de la señal que contiene un dato clave: dónde mirar, sin decir qué significa.
+      const l = caso.logs.find(([, , m]) => caso.claves.some((k) => m.includes(k))) || caso.logs[0];
+      return { tipo, hora: l[0], fuente: l[1] };
+    }
+    if (tipo === 'falta') {
+      const r = resp.campos || {};
+      return { tipo, campos: camposDe(caso).filter((c) => !campoBien(c, r[c.id])).map((c) => c.id) };
+    }
+    return { tipo, v: resp.veredicto ? resp.veredicto === caso.veredicto : null };
+  }
+
   /* ---------- Entidades de los registros (como los «campos interesantes» de un SIEM) ----------
    * Cuentas, IP y equipos con su número de apariciones, para pivotar sobre ellos. */
   const RE_CUENTA = /\b(?:user|TargetUserName|SubjectUserName|from|to|initiatedBy)=([^\s,;]+)/g;
@@ -334,6 +444,6 @@ const BJ = (() => {
     return { cuentas: top(cuenta.cuentas), ips: top(cuenta.ips), equipos: top(cuenta.equipos) };
   }
 
-  return { ERRORES_IA, DICTAMENES, PESOS_REV, corregirRevision, CAJAS, RAPIDO_N, XP_RAPIDO, repasar, sesionRapida, META_DIARIA, NIVELES, progreso, insignias, entidades, PESOS, UMBRAL_APTO, TICKET_MIN, VEREDICTOS, ACCIONES, SEVERIDADES, COMPETENCIAS, LIMITES, semilla, azar, registros, normalizar, camposDe, campoBien, clavesEn, corregir, resumenTurno, historial, safeParse, sanearEstado, celdaCsv, HORA };
+  return { TIPOS_MENSAJE, XP_MENSAJE, corregirMensaje, modeloMensaje, PREGUNTAS_N2, LIMITE_N2, COSTE_N2, pistaN2, ERRORES_IA, DICTAMENES, PESOS_REV, corregirRevision, CAJAS, RAPIDO_N, XP_RAPIDO, repasar, sesionRapida, META_DIARIA, NIVELES, progreso, insignias, entidades, PESOS, UMBRAL_APTO, TICKET_MIN, VEREDICTOS, ACCIONES, SEVERIDADES, COMPETENCIAS, LIMITES, semilla, azar, registros, normalizar, camposDe, campoBien, clavesEn, corregir, resumenTurno, historial, safeParse, sanearEstado, celdaCsv, HORA };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = BJ;

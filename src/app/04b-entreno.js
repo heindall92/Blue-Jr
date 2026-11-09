@@ -125,9 +125,9 @@ function practicaHtml() {
 }
 
 /* ---------- Insignias (historial) ---------- */
-const ICONO_INSIGNIA = { primer: 'flag', perfecto: 'target', sin_alarma: 'filter', contencion: 'lock', turno: 'award', racha3: 'flame', semana: 'trophy', revisor: 'bot', rapido: 'zap' };
+const ICONO_INSIGNIA = { primer: 'flag', perfecto: 'target', sin_alarma: 'filter', contencion: 'lock', turno: 'award', racha3: 'flame', semana: 'trophy', revisor: 'bot', rapido: 'zap', comunicador: 'send' };
 function insigniasHtml() {
-  const lista = BJ.insignias(TURNOS, cerradas(), hoyLocal(), { racha: progresoActual().racha, cazados: cazados(), rapidoPerfecto: rapidoPerfecto() });
+  const lista = BJ.insignias(TURNOS, cerradas(), hoyLocal(), { racha: progresoActual().racha, cazados: cazados(), rapidoPerfecto: rapidoPerfecto(), mensajes: mensajesCompletos() });
   const n = lista.filter((x) => x.ok).length;
   return `<section class="panel insignias-p" data-entra aria-labelledby="ins-t"><h2 id="ins-t" class="panel-t">${ic('trophy')}${esc(T('insignias_t'))} <span class="pildora num">${esc(T('tareas_n', { a: n, b: lista.length }))}</span></h2>
     <ul class="insignias">${lista.map(({ id, ok }) => { const [nombre, como] = T('insignias.' + id); return `<li class="${ok ? 'ok' : ''}"><span class="ins-ic" aria-hidden="true">${ic(ICONO_INSIGNIA[id])}</span><b>${esc(nombre)}</b><small>${esc(como)}</small><span class="sr-only">${esc(ok ? T('conseguida') : T('pendiente'))}</span></li>`; }).join('')}</ul></section>`;
@@ -135,7 +135,7 @@ function insigniasHtml() {
 
 /* ---------- Avisos de XP al cerrar un ticket ---------- */
 function avisosXp(antes, despues, id, nota, texto) {
-  avisar(texto || T('xp_ganado', { n: nota, id }), 'zap');
+  avisar(texto || T('xp_ganado', { x: nota, n: nota, id }), 'zap');
   if (despues.nivelN > antes.nivelN) avisar(T('subes', { n: T('niveles.' + despues.nivel) }), 'trophy');
   if (antes.xpHoy < despues.meta && despues.xpHoy >= despues.meta) avisar(T('meta_cumplida'), 'circle-check');
   if (despues.racha > antes.racha && despues.racha > 1) avisar(T('racha_aviso', { n: despues.racha }), 'flame');

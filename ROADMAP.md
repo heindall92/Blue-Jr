@@ -33,11 +33,12 @@ Sale de la [investigación de noviembre de 2026](docs/investigacion-juniors.md).
 - [x] Insignias «Revisor de IA» y «Reflejos»; la XP y la racha cuentan toda la práctica.
 - Aceptación cumplida: el agente solo cita lo que existe en los registros salvo cuando alucina, y hay al menos un caso de cada tipo de error (`tests/casos.test.mjs`); saneado de revisiones, repaso y triaje importados (`tests/engine.test.mjs`); e2e de la revisión y del triaje rápido; axe sin infracciones en las vistas nuevas.
 
-## 0.5.0 · Comunicar y pedir ayuda
+## 0.5.0 · Comunicar y pedir ayuda (hecho)
 
-- [ ] Mensaje de escalado a N2, relevo y «explícaselo a dirección» corregidos en local con una lista de criterios (qué, cuándo, quién, evidencia, acción y recomendación).
-- [ ] «Pregunta al N2»: tres preguntas por turno a un mentor, con coste en XP, para aprender cuándo pedir ayuda.
-- Aceptación: cada criterio de la corrección tiene prueba con textos buenos y malos; nada sale del navegador.
+- [x] «Comunícalo»: escalado a N2 (qué, cuándo, quién, evidencia, acción y prioridad) y aviso a dirección (sin jerga, impacto, situación, petición y brevedad), corregidos en local con una lista de criterios y un ejemplo por caso.
+- [x] «Pregunta al N2»: tres preguntas por turno a una mentora, con coste en XP y respuesta congelada al preguntar.
+- [x] Insignia «Comunicador» y mensajes completos en el historial exportable.
+- Aceptación cumplida: cada criterio tiene prueba con un texto bueno y uno malo, y los ejemplos de los 27 casos escalados cumplen su propia corrección en los dos idiomas (`tests/engine.test.mjs`); nada sale del navegador; axe sin infracciones.
 
 ## 0.6.0 · Del ticket a la entrevista
 
