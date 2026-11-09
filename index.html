@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-tRWcqL3AazflmUTCMpVUtx9MclBg96mgPib/bEKO+uo='; style-src 'sha256-xry4EAy3iE95VV7t3PAAFcFI2h+Lb5Fq98qRwGeUCRU='; style-src-attr 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; manifest-src 'none'; worker-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-amP0D6pl9BoBpm7eHRS/aWyT7CyZEQFNwliCMXjrMtM='; style-src 'sha256-xry4EAy3iE95VV7t3PAAFcFI2h+Lb5Fq98qRwGeUCRU='; style-src-attr 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; manifest-src 'none'; worker-src 'none'">
 <title>Blue-Jr</title>
 <meta name="description" content="Blue-Jr: tu primer turno como analista SOC antes de tu primer empleo. Alertas, registros, tickets corregidos y un historial para la entrevista. Local-first, sin servidor.">
 <meta name="author" content="Yoandy Ramírez Delgado">
@@ -2305,7 +2305,7 @@ const EMPRESA = DATOS.empresa;
 const TURNOS = ['t1', 't2', 't3', 't4', 't5'].map((k) => DATOS[k]);
 const REV_INDICE = Object.fromEntries(DATOS.revision.casos.map((c) => [c.id, c]));
 const CASOS = Object.fromEntries(TURNOS.flatMap((t) => t.casos.map((c) => [c.id, { ...c, turno: t.id }])));
-const VERSION = '0.6.1';
+const VERSION = '0.6.2';
 const ACENTOS = ['rosa', 'solar', 'glaciar', 'orquidea', 'verde', 'azul', 'rojo'];
 const REPO = 'https://github.com/heindall92/Blue-Jr';
 const TEST = /[?&]test\b/.test(location.search);

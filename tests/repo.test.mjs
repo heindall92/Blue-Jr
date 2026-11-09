@@ -42,6 +42,18 @@ test('el README enlaza ficheros que existen y sus cifras cuadran con el código'
   assert.ok(md.includes(`${BJ.UMBRAL_APTO}`), 'umbral en el README');
 });
 
+test('README: las etiquetas <p> están emparejadas (sin aperturas ni cierres huérfanos)', () => {
+  const md = readFileSync(join(ROOT, 'README.md'), 'utf8').replace(/```[\s\S]*?```/g, '').replace(/`[^`\n]*`/g, ''); // el código no son etiquetas
+  let abiertos = 0;
+  for (const [i, linea] of md.split('\n').entries()) {
+    for (const m of linea.matchAll(/<(\/?)p(?=[\s>])/g)) {
+      abiertos += m[1] ? -1 : 1;
+      assert.ok(abiertos >= 0 && abiertos <= 1, `README.md:${i + 1}: <p> ${m[1] ? 'cerrado sin abrir' : 'anidado'}`);
+    }
+  }
+  assert.equal(abiertos, 0, 'queda un <p> sin cerrar');
+});
+
 test('autoría y licencia', () => {
   assert.match(readFileSync(join(ROOT, 'LICENSE'), 'utf8'), /Yoandy Ramírez Delgado/);
   assert.match(JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).author, /Yoandy Ramírez Delgado/);
