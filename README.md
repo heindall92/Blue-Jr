@@ -1,6 +1,7 @@
 <img width="2172" height="724" alt="Banner premium minimalista Blue-Jr" src="https://github.com/user-attachments/assets/86701960-5fc3-4061-bd67-deb383308fe8" />
 
 
+<p align="center">
   <b>Una semana de turnos de nivel 1 en el SOC de una empresa ficticia: 40 alertas con registros reales y ruido, decisiones que se corrigen al momento y un historial que puedes llevar a la entrevista. Un solo HTML, sin servidor, sin cuenta y sin una sola petición a Internet.</b>
 </p>
 
@@ -10,7 +11,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/badge/licencia-MIT-4169A1?style=flat"/></a>
-  <img alt="Versión 0.6.1" src="https://img.shields.io/badge/versi%C3%B3n-0.6.1-6B9BFF?style=flat"/>
+  <img alt="Versión 0.6.2" src="https://img.shields.io/badge/versi%C3%B3n-0.6.2-6B9BFF?style=flat"/>
   <img alt="40 alertas" src="https://img.shields.io/badge/alertas-40-7C4DFF?style=flat"/>
   <img alt="5 turnos" src="https://img.shields.io/badge/turnos-5-2E9E7A?style=flat"/>
   <img alt="MITRE ATT&CK" src="https://img.shields.io/badge/MITRE-ATT%26CK-E07B39?style=flat"/>
@@ -74,7 +75,7 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
     </tr>
     <tr>
       <td valign="top"><code>├─ ◈ pruebas:</code><br><br>
-        <img alt="Unitarias" src="https://img.shields.io/badge/unitarias-59-2E8B57?style=for-the-badge"/>
+        <img alt="Unitarias" src="https://img.shields.io/badge/unitarias-60-2E8B57?style=for-the-badge"/>
         <img alt="E2E" src="https://img.shields.io/badge/e2e-25-2E8B57?style=for-the-badge"/>
         <img alt="axe" src="https://img.shields.io/badge/axe-0%20infracciones-2E8B57?style=for-the-badge"/><br>
         <sub><code>cada caso se resuelve leyendo sus registros · red bloqueada en el e2e · claro y oscuro, 1440 y 390 px</code></sub>
@@ -89,7 +90,7 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
   </tbody>
   <tfoot>
     <tr>
-      <td colspan="2"><code>version: 0.6.1&nbsp;&nbsp;·&nbsp;&nbsp;nivel: SOC N1&nbsp;&nbsp;·&nbsp;&nbsp;empresa: Norte Logística (ficticia)&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
+      <td colspan="2"><code>version: 0.6.2&nbsp;&nbsp;·&nbsp;&nbsp;nivel: SOC N1&nbsp;&nbsp;·&nbsp;&nbsp;empresa: Norte Logística (ficticia)&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
     </tr>
   </tfoot>
 </table>
@@ -425,7 +426,7 @@ Detalle en [SECURITY.md](SECURITY.md).
 | Motor | 31 | Corrección por criterio, normalización, MITRE, ruido determinista que nunca cita entidades del caso, historial, saneado de importaciones, CSV contra fórmulas, XP, racha (con el corte de un día sin práctica), niveles, insignias y entidades; corrección de la revisión de IA, repaso espaciado, selección del triaje rápido y saneado de revisiones, repaso y triaje importados; corrección de los mensajes (cada criterio con su texto bueno y su texto malo), ejemplos que cumplen su propia corrección, pistas del N2 y saneado de mensajes y preguntas |
 | Casos | 13 | Cada caso se resuelve leyendo sus registros, textos bilingües, solo IP de documentación y dominios `.example`, referencias cruzadas válidas; cada caso en una sola guía, su acción correcta siempre entre las salidas de la guía, ninguna guía cita datos de un caso y el árbol de decisión cubre las tres acciones y los tres veredictos; el turno de revisión cubre los cinco tipos de error y el agente solo cita lo que existe en los registros, salvo cuando alucina |
 | Entrevista | 8 | Preguntas según lo decidido (defender o reconocer el error), cada criterio con su texto bueno y su texto malo, 2160 respuestas de ejemplo que cumplen su corrección, historias STAR dentro de lo que acepta Astrolabio en los 40 casos y con textos al límite, saneado y el ejemplo compartido con Astrolabio al día |
-| Repositorio | 7 | HTML al día, CSP sin `unsafe-inline` en scripts, paridad de claves ES/EN, versión única, enlaces y cifras de este README, y la raíz que lleva a la aplicación en Pages |
+| Repositorio | 8 | HTML al día, CSP sin `unsafe-inline` en scripts, paridad de claves ES/EN, versión única, enlaces y cifras de este README, y la raíz que lleva a la aplicación en Pages, y etiquetas `<p>` del README emparejadas |
 | E2E | 25 | Alerta de punta a punta, teclado, ayuda, inglés sin restos de español, exportar e importar, importación hostil, relevo, móvil, tema, movimiento (entrada antes de 450 ms), lateral plegable y portada; guía por pestañas, pivote por entidad, tareas que se marcan solas, XP y racha al cerrar, las cinco salidas del árbol de decisión e insignias; revisión de IA (aprobar, cazar un error, nota recalculada) y triaje rápido (bloqueo, teclas, XP solo en la primera ronda, repaso); Pregunta al N2 (límite por turno, coste en XP, respuesta congelada) y Comunícalo (corrección, XP y exportación); barra superior del móvil en 320, 390 y 430 px; Defiende tu ticket (XP, error y reinicio al reabrir), historias STAR de un ticket o de todos y PDF de una página por turno comprobado con `pdfinfo` |
 | Accesibilidad | 4 | axe en vistas, estados y todos los diálogos, en claro y oscuro, a 1440 y 390 px: 0 infracciones |
 

@@ -2,6 +2,11 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [versionado semántico](https://semver.org/lang/es/).
 
+## [0.6.2] - 2026-11-09
+
+### Corregido
+- README: el subtítulo bajo el banner cerraba un `</p>` sin apertura y no salía centrado. Lleva su `<p align="center">` y una prueba comprueba que las etiquetas `<p>` del README están emparejadas.
+
 ## [0.6.1] - 2026-11-09
 
 ### Cambiado
