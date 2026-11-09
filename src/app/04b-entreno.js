@@ -125,9 +125,9 @@ function practicaHtml() {
 }
 
 /* ---------- Insignias (historial) ---------- */
-const ICONO_INSIGNIA = { primer: 'flag', perfecto: 'target', sin_alarma: 'filter', contencion: 'lock', turno: 'award', racha3: 'flame', semana: 'trophy', revisor: 'bot', rapido: 'zap', comunicador: 'send' };
+const ICONO_INSIGNIA = { primer: 'flag', perfecto: 'target', sin_alarma: 'filter', contencion: 'lock', turno: 'award', racha3: 'flame', semana: 'trophy', revisor: 'bot', rapido: 'zap', comunicador: 'send', entrevista: 'mic' };
 function insigniasHtml() {
-  const lista = BJ.insignias(TURNOS, cerradas(), hoyLocal(), { racha: progresoActual().racha, cazados: cazados(), rapidoPerfecto: rapidoPerfecto(), mensajes: mensajesCompletos() });
+  const lista = BJ.insignias(TURNOS, cerradas(), hoyLocal(), { racha: progresoActual().racha, cazados: cazados(), rapidoPerfecto: rapidoPerfecto(), mensajes: mensajesCompletos(), defensas: defensasCompletas() });
   const n = lista.filter((x) => x.ok).length;
   return `<section class="panel insignias-p" data-entra aria-labelledby="ins-t"><h2 id="ins-t" class="panel-t">${ic('trophy')}${esc(T('insignias_t'))} <span class="pildora num">${esc(T('tareas_n', { a: n, b: lista.length }))}</span></h2>
     <ul class="insignias">${lista.map(({ id, ok }) => { const [nombre, como] = T('insignias.' + id); return `<li class="${ok ? 'ok' : ''}"><span class="ins-ic" aria-hidden="true">${ic(ICONO_INSIGNIA[id])}</span><b>${esc(nombre)}</b><small>${esc(como)}</small><span class="sr-only">${esc(ok ? T('conseguida') : T('pendiente'))}</span></li>`; }).join('')}</ul></section>`;

@@ -1,7 +1,7 @@
 name: Publicar en GitHub Pages
 
 # Cada push a la rama por defecto reconstruye dist/, pasa las pruebas y publica el resultado
-# en la rama gh-pages, que GitHub Pages sirve en https://heindall92.github.io/bluejr/
+# en la rama gh-pages, que GitHub Pages sirve en https://heindall92.github.io/Blue-Jr/
 on:
   push:
   workflow_dispatch:

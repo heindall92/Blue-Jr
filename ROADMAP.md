@@ -1,6 +1,6 @@
 # Hoja de ruta
 
-BlueJr resuelve un problema: **la paradoja de la experiencia** del primer empleo en un SOC. Cada versión se mide por si acerca a un junior a poder decir «esto lo he hecho».
+Blue-Jr resuelve un problema: **la paradoja de la experiencia** del primer empleo en un SOC. Cada versión se mide por si acerca a un junior a poder decir «esto lo he hecho».
 
 ## 0.1.0 · Primera semana (hecho)
 
@@ -40,12 +40,12 @@ Sale de la [investigación de noviembre de 2026](docs/investigacion-juniors.md).
 - [x] Insignia «Comunicador» y mensajes completos en el historial exportable.
 - Aceptación cumplida: cada criterio tiene prueba con un texto bueno y uno malo, y los ejemplos de los 27 casos escalados cumplen su propia corrección en los dos idiomas (`tests/engine.test.mjs`); nada sale del navegador; axe sin infracciones.
 
-## 0.6.0 · Del ticket a la entrevista
+## 0.6.0 · Del ticket a la entrevista (hecho)
 
-- [ ] «Defiende tu ticket»: preguntas de entrevista sobre los propios casos (por qué escalaste y no contuviste).
-- [ ] Exportar cada ticket como historia STAR para **Astrolabio** (formato JSON compartido y prueba en los dos repositorios).
-- [ ] Historial en PDF de una página por turno.
-- Aceptación: la importación en Astrolabio tiene prueba e2e y el PDF se verifica con `pdfinfo`.
+- [x] «Defiende tu ticket»: tres preguntas de entrevista sobre la decisión propia (veredicto frente a la alternativa, acción frente a la alternativa y la línea que se daría al N2); si la decisión fue un error, la pregunta pide reconocerlo y decir qué se haría ahora. Corrección local por criterios, respuesta de ejemplo por caso, 15 XP e insignia «Lista para la entrevista».
+- [x] Exportar cada ticket (o todos) como historia STAR para **Astrolabio** en el sobre `yrd-ecosistema` (tipo `historias`, `app: "blue-jr"`); Astrolabio 0.8.2 la suma a las historias propias sin borrar nada.
+- [x] Historial imprimible de una página A4 por turno con tickets, sin librerías: la hoja de impresión del navegador.
+- Aceptación cumplida: el mismo archivo de ejemplo (`tests/fixtures/historias-blue-jr.json`, generado por `scripts/ejemplo-star.mjs`) se prueba en los dos repositorios; aquí, que es lo que genera el motor y que las 80 historias posibles (40 casos × 2 idiomas) caben en lo que acepta Astrolabio; allí, el saneado sin pérdidas y la importación e2e. El PDF se verifica con `pdfinfo` (páginas y A4) y `pdftotext` (un turno por página) en la CI.
 
 ## 0.7.0 · Contexto español
 

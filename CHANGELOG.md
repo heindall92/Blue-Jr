@@ -2,6 +2,28 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [versionado semántico](https://semver.org/lang/es/).
 
+## [0.6.0] - 2026-11-09
+
+### Añadido
+- «Defiende tu ticket» en el resultado de cada ticket cerrado: tres preguntas de entrevista según lo decidido (`BJ.preguntasDefensa`), corregidas en local con criterios en español y en inglés (`BJ.corregirDefensa`: el porqué, un dato del caso, el riesgo, la alternativa, la hora, reconocer el error, qué harías ahora y la extensión) y una respuesta de ejemplo construida con el caso (`BJ.modeloDefensa`). Las tres completas suman 15 XP; reabrir el ticket borra su entrevista.
+- Historias STAR para Astrolabio (`BJ.historiaStar`, `BJ.sobreHistorias`): de un ticket desde su resultado o de todos desde Historial, con el resumen del ticket, la defensa, los mensajes completos y el resultado contado tal cual (también los fallos).
+- Historial imprimible: una página A4 por turno con tickets cerrados (estilos `@media print`, sin librerías).
+- Insignia «Lista para la entrevista» (tres tickets defendidos); paso nuevo en la guía de la ayuda.
+- `scripts/ejemplo-star.mjs` y `tests/fixtures/historias-blue-jr.json`: el ejemplo del formato compartido, también en el repositorio de Astrolabio. `tests/fixtures/contrato-astrolabio.json` resume lo que Astrolabio acepta.
+- Pruebas: 8 unitarias (`tests/entrevista.test.mjs`), 3 e2e y axe en «Defiende tu ticket». La CI instala `poppler-utils` para `pdfinfo` y `pdftotext`.
+
+## [0.5.1] - 2026-11-09
+
+### Cambiado
+- El nombre visible pasa a ser «Blue-Jr» en la interfaz (barra lateral, cabecera móvil, título de la pestaña, ayuda, mensajes y historial exportado), en README, ROADMAP, SECURITY, la investigación y los SVG de cabecera y pie. El paquete npm pasa a `blue-jr`.
+- La web y el repositorio apuntan a `https://heindall92.github.io/Blue-Jr/` y `https://github.com/heindall92/Blue-Jr` (también el comentario del flujo de Pages).
+
+### Corregido
+- En el móvil, la barra superior encogía el botón de buscar hasta 22 px a 360 px de ancho (ya pasaba antes del cambio de nombre; con el guion, la marca además se partía en dos líneas). Ahora los botones no se encogen, la marca no se corta y, por debajo de 430 px, se muestra solo el logo y el nombre queda para los lectores de pantalla. Prueba e2e nueva en 320, 390 y 430 px.
+
+### Sin cambios a propósito
+- Las claves de `localStorage`, el nombre del archivo `bluejr.html` y los nombres de las copias exportadas: cambiarlos rompería el progreso guardado y los enlaces existentes.
+
 ## [0.5.0] - 2026-11-09
 
 ### Añadido

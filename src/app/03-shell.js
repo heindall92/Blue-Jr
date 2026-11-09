@@ -26,7 +26,7 @@ function pintarLateral() {
   }).join('');
   // Cada sección tiene su propio gesto en el icono al pasar el ratón (data-anim).
   $('#lateral').innerHTML = `
-    <div class="lat-cab">${logo()}<div class="marca-txt"><b>BlueJr</b><span>${esc(T('submarca'))}</span></div></div>
+    <div class="lat-cab">${logo()}<div class="marca-txt"><b>Blue-Jr</b><span>${esc(T('submarca'))}</span></div></div>
     <nav aria-label="${esc(T('nav_secciones'))}" class="lat-nav">
       <span class="lat-ind" aria-hidden="true"></span>
       <a href="#turnos" data-anim="reloj" style="--i:0" title="${esc(T('nav_turnos'))}"${actual(r.vista === 'turnos')}>${ic('calendar-clock')}<span class="txt">${esc(T('nav_turnos'))}</span></a>
@@ -52,7 +52,7 @@ function pintarBarra() {
   $('#barra').innerHTML = `
     <div class="barra-in">
       <button type="button" class="icono-b solo-escritorio" data-alternar-lateral aria-label="${esc(T('lateral_alternar'))}" aria-expanded="${P.lateral}" title="${esc(T('lateral_alternar'))} ( [ )">${ic('panel-left')}</button>
-      <a href="#turnos" class="marca-movil">${logo()}<b>BlueJr</b></a>
+      <a href="#turnos" class="marca-movil">${logo()}<b>Blue-Jr</b></a>
       <span class="hueco"></span>
       <button type="button" class="buscar-b" data-buscar aria-label="${esc(T('buscar'))}">${ic('search')}<span class="txt">${esc(T('buscar'))}</span><kbd>${mac ? '⌘K' : 'Ctrl K'}</kbd></button>
       <div class="idioma" role="group" aria-label="${esc(T('idioma'))}">
@@ -122,7 +122,7 @@ function panelAyuda(t) {
       <p class="enlaces"><a href="https://github.com/heindall92" rel="noopener" target="_blank">${ic('github')}GitHub</a><a href="mailto:yoandyramirezdelgado@gmail.com">${ic('mail')}yoandyramirezdelgado@gmail.com</a></p></div></div>
     <h3>${esc(T('acerca_herramienta'))}</h3><p>${esc(T('acerca_version', { v: VERSION }))}</p><p class="nota">${esc(T('acerca_aviso'))}</p>
     <h3>${esc(T('acerca_ecosistema'))}</h3><ul class="eco">${eco.map(([k, n, r]) => `<li><div><b>${esc(n)}</b><span>${esc(T('eco.' + k))}</span></div><a class="btn sec peq" href="https://github.com/heindall92/${r}" rel="noopener" target="_blank">${ic('github')}${esc(T('codigo'))}</a></li>`).join('')}</ul>
-    <h3>${esc(T('acerca_dudas'))}</h3><p class="enlaces"><a href="${REPO}/issues/new" rel="noopener" target="_blank">${ic('flag')}${esc(T('acerca_incidencia'))}</a><a href="mailto:yoandyramirezdelgado@gmail.com?subject=BlueJr">${ic('send')}${esc(T('acerca_escribir'))}</a></p>`;
+    <h3>${esc(T('acerca_dudas'))}</h3><p class="enlaces"><a href="${REPO}/issues/new" rel="noopener" target="_blank">${ic('flag')}${esc(T('acerca_incidencia'))}</a><a href="mailto:yoandyramirezdelgado@gmail.com?subject=Blue-Jr">${ic('send')}${esc(T('acerca_escribir'))}</a></p>`;
 }
 
 /* ---------- Búsqueda (Ctrl K) ---------- */

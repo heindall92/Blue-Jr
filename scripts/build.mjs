@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* BlueJr · build
+/* Blue-Jr · build
  * Ensambla src/ en un único HTML autocontenido (dist/index.html) que funciona abriéndolo desde el disco
  * o desde GitHub Pages, sin pedir nada a terceros.
  *

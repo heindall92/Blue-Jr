@@ -1,0 +1,12 @@
+{
+  "_fuente": "Lo que Astrolabio acepta al importar una historia: app/src/engine/sanitize.js (sanitizeStory), app/src/engine/constants.js (LIMITES, TIPOS) y app/src/content/competencias.js (COMPETENCIA_IDS). Si Astrolabio cambia, se actualiza aquí y la prueba avisa.",
+  "formato": "yrd-ecosistema",
+  "version": 1,
+  "tipo": "historias",
+  "id": "^[a-z0-9_-]{1,40}$",
+  "fecha": "^\\d{4}-\\d{2}-\\d{2}$",
+  "tipos": ["real", "ensayo"],
+  "limites": { "titulo": 120, "bloque": 4000, "competenciasPorHistoria": 6 },
+  "bloques": ["s", "t", "a", "r", "l"],
+  "competencias": ["iniciativa", "cliente", "aprendizaje", "analisis", "problemas", "comunicacion", "equipo", "liderazgo", "conflictos", "presion", "etica", "resultados"]
+}

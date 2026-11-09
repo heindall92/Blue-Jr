@@ -84,7 +84,7 @@ function iniciarFlujo() {
   if (reloj) relojTimer = setInterval(() => { if (!document.contains(reloj)) { clearInterval(relojTimer); relojTimer = null; return; } reloj.textContent = textoReloj(); }, 1000);
 }
 
-/* ---------- Regleta del turno: la firma visual de BlueJr ----------
+/* ---------- Regleta del turno: la firma visual de Blue-Jr ----------
  * Una línea de tiempo de 08:00 a 14:30 con una marca por alerta. El tamaño dice la severidad,
  * el relleno dice si está cerrada y su nota; cada marca es un botón de 24 px que abre la alerta. */
 const INI = 8 * 60, FIN = 14.5 * 60;
@@ -201,6 +201,7 @@ function resultadoHtml(c) {
       <ul class="criterios">${filas}</ul>
       <h3>${esc(T('explicacion'))}</h3><p class="explica">${esc(L(c.explica))}</p>
       ${comunicaHtml(c)}
+      ${defiendeHtml(c)}
       <div class="ticket-pie"><button type="button" class="btn sec" data-reintentar="${c.id}">${ic('rotate-ccw')}${esc(T('reintentar'))}</button>${sig ? `<button type="button" class="btn" data-caso="${sig.id}">${esc(T('siguiente'))}${ic('chevron-right')}</button>` : ''}</div>
     </div>`;
 }
@@ -219,6 +220,10 @@ function vHistorial() {
       <section class="panel" data-entra aria-labelledby="ht-t"><h2 id="ht-t" class="panel-t">${ic('calendar-clock')}${esc(T('turnos_titulo'))}</h2><ul class="hist-turnos">${turnos}</ul>
         <h2 class="panel-t sep">${ic('archive')}${esc(T('datos_titulo'))}</h2>
         <div class="acciones-datos"><button type="button" class="btn" data-exportar-md>${ic('download')}${esc(T('exportar_md'))}</button><button type="button" class="btn sec" data-exportar-json>${ic('download')}${esc(T('exportar_json'))}</button><button type="button" class="btn sec" data-importar>${ic('upload')}${esc(T('importar'))}</button><button type="button" class="btn peligro" data-borrar>${ic('rotate-ccw')}${esc(UI.borrarArmado ? T('borrar_confirmar') : T('borrar'))}</button></div>
+        <h2 class="panel-t sep">${ic('mic')}${esc(T('def_titulo'))}</h2>
+        <p class="nota">${esc(T('star_nota'))}</p>
+        <div class="acciones-datos"><button type="button" class="btn" data-star-todas${tickets.length ? '' : ' disabled'}>${ic('star')}${esc(T('star_todas'))}</button><button type="button" class="btn sec" data-imprimir${tickets.length ? '' : ' disabled'}>${ic('printer')}${esc(T('imprimir'))}</button></div>
+        <p class="nota">${esc(T('imprimir_nota'))}</p>
       </section>
     </div>
     ${insigniasHtml()}
@@ -231,9 +236,9 @@ function historialMd() {
   const fecha = new Date().toLocaleDateString(locale(), { day: 'numeric', month: 'long', year: 'numeric' });
   const es = P.lang === 'es';
   const o = [];
-  o.push(es ? '# Historial de turnos SOC · BlueJr' : '# SOC shift record · BlueJr', '');
+  o.push(es ? '# Historial de turnos SOC · Blue-Jr' : '# SOC shift record · Blue-Jr', '');
   o.push(`**${S.perfil.nombre || (es ? 'Analista' : 'Analyst')}** · ${T('perfil_rol')} · ${fecha}`, '');
-  o.push(`> ${es ? 'Simulación formativa de BlueJr con una empresa ficticia (Norte Logística). Las decisiones y los textos son del analista; la corrección es automática.' : 'BlueJr training simulation with a made-up company (Norte Logística). Decisions and texts are the analyst\'s; grading is automatic.'} ${REPO}`, '');
+  o.push(`> ${es ? 'Simulación formativa de Blue-Jr con una empresa ficticia (Norte Logística). Las decisiones y los textos son del analista; la corrección es automática.' : 'Blue-Jr training simulation with a made-up company (Norte Logística). Decisions and texts are the analyst\'s; grading is automatic.'} ${REPO}`, '');
   o.push(`| ${T('kpi_tickets')} | ${T('kpi_media')} | ${T('kpi_veredicto')} | ${T('kpi_errores')} |`, '|---|---|---|---|', `| ${h.tickets}/${h.total} | ${h.media} | ${h.precisionVeredicto} % | ${h.cerradosPorError} |`, '');
   o.push(`## ${T('competencias_titulo')}`, '', `| ${es ? 'Competencia' : 'Competence'} | ${T('kpi_media')} | ${es ? 'Casos' : 'Cases'} |`, '|---|---|---|');
   for (const c of h.competencias) o.push(`| ${T('comp.' + c.id)} | ${c.media ?? '—'} | ${c.casos}/${c.total} |`);

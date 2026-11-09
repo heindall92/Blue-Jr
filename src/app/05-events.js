@@ -8,7 +8,7 @@ function pintar() {
   const main = $('#main');
   main.innerHTML = `<div class="vista">${r.vista === 'turno' ? vTurno(r.turno) : r.vista === 'historial' ? vHistorial() : r.vista === 'revision' ? vRevision() : r.vista === 'rapido' ? vRapido() : vTurnos()}</div>`;
   const titulo = r.vista === 'turno' ? `${T('turno_n', { n: r.turno.slice(1) })} · ${diaDe(turnoDe(r.turno))}` : r.vista === 'historial' ? T('nav_historial') : r.vista === 'revision' ? T('rev_corto') : r.vista === 'rapido' ? T('rap_titulo') : T('nav_turnos');
-  document.title = `${titulo} · BlueJr`;
+  document.title = `${titulo} · Blue-Jr`;
   $('.saltar').textContent = T('saltar');
   // La entrada solo se reproduce al cambiar de vista (y al arrancar), no en cada repintado.
   const clave = r.vista + (r.turno || '');
@@ -118,12 +118,18 @@ document.addEventListener('click', (e) => {
   }
   if ('cerrarTicket' in d) return cerrarTicket();
   if (d.reintentar) {
-    const r = respuesta(d.reintentar); delete r.cerrado; delete r.nota; guardar();
+    // La entrevista depende de lo que se decidió: al reabrir el ticket, se empieza de cero.
+    const r = respuesta(d.reintentar); delete r.cerrado; delete r.nota; delete S.defensas[d.reintentar]; guardar();
     pintar(); return $('[data-veredicto]')?.focus();
   }
   if (d.guardarRelevo) { S.relevos[d.guardarRelevo] = $('#relevo').value.slice(0, BJ.LIMITES.relevo); guardar(); return avisar(T('relevo_guardado')); }
   if ('exportarMd' in d) return descargar(`bluejr-historial-${new Date().toISOString().slice(0, 10)}.md`, historialMd(), 'text/markdown;charset=utf-8');
   if ('exportarJson' in d) return descargar(`bluejr-copia-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({ app: 'bluejr', version: VERSION, ...S }, null, 2), 'application/json');
+  if (d.defP) { UI.defP = d.defP; UI.defRevisado = null; repintarDefiende(); return $(`[data-def-p="${d.defP}"]`)?.focus(); }
+  if ('defRevisar' in d) return revisarDefensa();
+  if (d.star) return exportarStar([d.star]);
+  if ('starTodas' in d) return exportarStar(Object.keys(CASOS).filter(cerrado));
+  if ('imprimir' in d) return imprimirHistorial();
   if ('importar' in d) return $('#archivo').click();
   if ('borrar' in d) {
     if (!UI.borrarArmado) { UI.borrarArmado = true; b.lastChild.textContent = T('borrar_confirmar'); setTimeout(() => { UI.borrarArmado = false; if (document.contains(b)) b.lastChild.textContent = T('borrar'); }, 4000); return; }
@@ -150,6 +156,7 @@ document.addEventListener('input', (e) => {
     pintarLineas(); return actualizarTareas();
   }
   if (t.dataset.campo) { respuesta(UI.caso).campos[t.dataset.campo] = t.value.slice(0, BJ.LIMITES.campo); guardar(); return actualizarTareas(); }
+  if (t.id === 'def-texto') { defensaDe(UI.caso)[UI.defP] = t.value.slice(0, BJ.LIMITES.ticket); guardar(); $('#def-palabras').textContent = T('com_palabras', { n: (t.value.trim().match(/\S+/g) || []).length }); return; }
   if (t.id === 'msg-texto') { msgDe(UI.caso)[UI.msgTipo] = t.value.slice(0, BJ.LIMITES.ticket); guardar(); $('#msg-palabras').textContent = T('com_palabras', { n: (t.value.trim().match(/\S+/g) || []).length }); return; }
   if (t.id === 'texto-ticket') { respuesta(UI.caso).ticket = t.value.slice(0, BJ.LIMITES.ticket); guardar(); $('#cuenta-ticket').textContent = T('caracteres', { n: t.value.trim().length, m: BJ.TICKET_MIN }); actualizarTareas(); }
 });

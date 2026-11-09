@@ -27,6 +27,8 @@ jobs:
         run: npm test
       - name: Navegador para E2E
         run: npx playwright install --with-deps chromium
+      - name: pdfinfo y pdftotext para comprobar el historial en PDF
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils
       - name: Tests E2E (Chromium)
         run: npm run test:e2e
       - name: Auditoría de dependencias
