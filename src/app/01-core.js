@@ -2,6 +2,7 @@
 const DATOS = JSON.parse(document.getElementById('datos').textContent);
 const EMPRESA = DATOS.empresa;
 const TURNOS = ['t1', 't2', 't3', 't4', 't5'].map((k) => DATOS[k]);
+const REV_INDICE = Object.fromEntries(DATOS.revision.casos.map((c) => [c.id, c]));
 const CASOS = Object.fromEntries(TURNOS.flatMap((t) => t.casos.map((c) => [c.id, { ...c, turno: t.id }])));
 const VERSION = '__APP_VERSION__';
 const ACENTOS = ['rosa', 'solar', 'glaciar', 'orquidea', 'verde', 'azul', 'rojo'];
@@ -16,7 +17,7 @@ const CLAVE_PREFS = 'bluejr-prefs';
 
 function cargarEstado() {
   const r = BJ.safeParse(leer(CLAVE));
-  return r.ok ? BJ.sanearEstado(r.valor, CASOS) : BJ.sanearEstado(null, CASOS);
+  return r.ok ? BJ.sanearEstado(r.valor, CASOS, REV_INDICE) : BJ.sanearEstado(null, CASOS, REV_INDICE);
 }
 let S = cargarEstado();
 const guardar = () => escribir(CLAVE, JSON.stringify(S));
@@ -32,7 +33,7 @@ const P = {
 const guardarPrefs = () => escribir(CLAVE_PREFS, JSON.stringify(P));
 
 /* ---------- Estado de la interfaz (no se guarda) ---------- */
-const UI = { turno: null, caso: null, filtro: '', fuente: null, panel: 'caso', ultimoTurno: leer('bluejr-ultimo') || 'T1', borrarArmado: false, vistaAnimada: null, guia: null, guiaTab: 'triaje', investigado: new Set() };
+const UI = { turno: null, caso: null, filtro: '', fuente: null, panel: 'caso', ultimoTurno: leer('bluejr-ultimo') || 'T1', borrarArmado: false, vistaAnimada: null, guia: null, guiaTab: 'triaje', investigado: new Set(), rev: null, rapido: null };
 
 /* ---------- Textos ---------- */
 const T = (k, vars) => {

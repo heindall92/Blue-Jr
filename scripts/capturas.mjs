@@ -52,6 +52,9 @@ await captura('resultado-oscuro.png', { tema: 'dark', hash: 'T1', caso: 'T1-03' 
 await captura('guia-claro.png', { hash: 'T1', caso: 'T1-01', antes: async (p) => { await p.click('#guia summary'); await p.click('[data-guia-tab="respuesta"]'); await p.click('[data-pivote="203.0.113.45"]'); await p.evaluate(() => { const g = document.querySelector('#guia'); scrollTo(0, g.getBoundingClientRect().top + scrollY - 110); }); } });
 await captura('guia-oscuro.png', { tema: 'dark', hash: 'T1', caso: 'T1-04', antes: async (p) => { await p.click('#guia summary'); } });
 await captura('decidir-claro.png', { hash: 'T1', caso: 'T1-04', antes: async (p) => { await p.click('.decidir-b'); await p.waitForSelector('#dlg-ayuda[open] .d-preg'); for (const r of ['si', 'si', 'no']) await p.click(`#panel-ayuda .d-preg [data-decidir="${r}"]`); } });
+await captura('revision-claro.png', { hash: 'revision', antes: async (p) => { await p.click('.cola [data-rev="R-04"]'); await p.click('[data-dictamen="rechazar"]'); await p.click('[data-motivo="alucinacion"]'); await p.click('[data-raccion="contener"]'); await p.evaluate(() => scrollTo(0, 0)); } });
+await captura('revision-oscuro.png', { tema: 'dark', hash: 'revision', antes: async (p) => { await p.click('.cola [data-rev="R-07"]'); await p.click('[data-dictamen="aprobar"]'); await p.click('[data-enviar-rev]'); await p.evaluate(() => scrollTo(0, 0)); } });
+await captura('rapido-oscuro.png', { tema: 'dark', hash: 'rapido', antes: async (p) => { await p.keyboard.press('3'); } });
 await captura('historial-claro.png', { hash: 'historial' });
 await captura('historial-oscuro.png', { tema: 'dark', hash: 'historial' });
 await captura('ingles-claro.png', { lang: 'en' });

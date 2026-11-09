@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { BJ, CASOS, INDICE, TURNOS, respuestaPerfecta } from './_util.mjs';
 
 test('los pesos suman 100 y el umbral está dentro', () => {
@@ -194,4 +195,64 @@ test('entidades: cuentas, IP y equipos ordenados por apariciones', () => {
     const todas = [...ent.cuentas, ...ent.ips, ...ent.equipos].map(([v]) => v.toLowerCase());
     assert.ok(todas.length > 0, c.id);
   }
+});
+
+/* ---------- Revisión de IA y triaje rápido ---------- */
+const REVISION = JSON.parse(readFileSync(new URL('../src/data/revision.json', import.meta.url), 'utf8'));
+
+test('revisión: aprobar un acierto o rechazar un error con motivo y acción da 100; lo contrario, 0', () => {
+  for (const it of REVISION.casos) {
+    const perfecta = it.error === null ? { dictamen: 'aprobar' } : { dictamen: 'rechazar', motivo: it.error, accion: it.accion };
+    assert.equal(BJ.corregirRevision(it, perfecta).nota, 100, it.id);
+    assert.equal(BJ.corregirRevision(it, { dictamen: it.error === null ? 'rechazar' : 'aprobar' }).nota, 0, it.id);
+  }
+  const malo = REVISION.casos.find((x) => x.error);
+  assert.equal(BJ.corregirRevision(malo, { dictamen: 'rechazar' }).nota, BJ.PESOS_REV.dictamen, 'detectar el error sin saber cuál');
+  assert.equal(Object.values(BJ.PESOS_REV).reduce((a, b) => a + b, 0), 100);
+});
+
+test('repaso espaciado: fallar vuelve mañana y acertar aleja la siguiente vez hasta 14 días', () => {
+  assert.deepEqual(BJ.repasar(undefined, false, '2026-11-09'), { caja: 0, proximo: '2026-11-10' });
+  let e;
+  const dias = [];
+  for (let i = 0; i < 6; i++) { e = BJ.repasar(e, true, '2026-11-09'); dias.push(e.proximo); }
+  assert.deepEqual(dias, ['2026-11-11', '2026-11-13', '2026-11-16', '2026-11-23', '2026-11-23', '2026-11-23']);
+  assert.equal(BJ.repasar({ caja: 4, proximo: '2026-11-23' }, false, '2026-11-09').caja, 0);
+});
+
+test('triaje rápido: solo alertas cerradas, primero las que tocan repaso y luego las falladas', () => {
+  const casos = CASOS.slice(0, 16);
+  const resp = Object.fromEntries(casos.slice(0, 12).map((c, i) => [c.id, { nota: 80, accion: i === 5 ? 'cerrar' : c.accion }]));
+  const repaso = { [casos[3].id]: { caja: 1, proximo: '2026-11-09' }, [casos[4].id]: { caja: 2, proximo: '2026-11-20' } };
+  const s = BJ.sesionRapida(casos, resp, repaso, '2026-11-09');
+  assert.equal(s.length, 10);
+  assert.ok(s.every((c) => resp[c.id]), 'nunca enseña una alerta que no se ha trabajado');
+  assert.equal(s[0].id, casos[3].id, 'primero lo que toca repasar hoy');
+  if (casos[5].accion !== 'cerrar') assert.equal(s[1].id, casos[5].id, 'después lo que se falló en el turno');
+  assert.deepEqual(BJ.sesionRapida(casos, resp, repaso, '2026-11-09').map((c) => c.id), s.map((c) => c.id), 'determinista por día');
+  assert.equal(BJ.sesionRapida(casos, {}, {}, '2026-11-09').length, 0);
+});
+
+test('saneado: revisiones, repaso y triaje rápido hostiles se descartan y las notas se recalculan', () => {
+  const indice = Object.fromEntries(CASOS.map((c) => [c.id, c]));
+  const rev = Object.fromEntries(REVISION.casos.map((c) => [c.id, c]));
+  const malo = REVISION.casos.find((x) => x.error);
+  const s = BJ.sanearEstado({
+    revisiones: { [malo.id]: { dictamen: 'aprobar', cerrado: true, nota: 100 }, 'R-99': { dictamen: 'aprobar', cerrado: true }, __proto__: { x: 1 } },
+    repaso: { 'T1-01': { caja: 9, proximo: '2026-11-10' }, 'T1-02': { caja: 1, proximo: 'mañana' }, 'T1-03': { caja: 2, proximo: '2026-11-12' }, 'XX': { caja: 0, proximo: '2026-11-10' } },
+    rapido: { '2026-11-09': { aciertos: 50, total: 10 }, '2026-11-08': { aciertos: 7, total: 10, ms: 1e12 }, 'ayer': { aciertos: 1, total: 1 } }
+  }, indice, rev);
+  assert.deepEqual(Object.keys(s.revisiones), [malo.id]);
+  assert.equal(s.revisiones[malo.id].nota, 0, 'la nota se recalcula');
+  assert.deepEqual(s.repaso, { 'T1-03': { caja: 2, proximo: '2026-11-12' } });
+  assert.deepEqual(s.rapido, { '2026-11-08': { aciertos: 7, total: 10, ms: 0 } });
+});
+
+test('práctica: la XP suma tickets, revisiones y la primera ronda diaria del triaje rápido', () => {
+  const entradas = [{ nota: 80, cuando: '2026-11-09T08:00:00Z' }, { nota: 100, cuando: '2026-11-08T08:00:00Z' }, { nota: 9 * BJ.XP_RAPIDO, cuando: '2026-11-07T12:00:00Z' }];
+  const p = BJ.progreso(entradas, '2026-11-09');
+  assert.equal(p.xp, 225);
+  assert.equal(p.racha, 3, 'el triaje rápido también mantiene la racha');
+  const ins = Object.fromEntries(BJ.insignias(TURNOS, {}, '2026-11-09', { racha: 3, cazados: 3, rapidoPerfecto: true }).map((i) => [i.id, i.ok]));
+  assert.equal(ins.racha3, true); assert.equal(ins.revisor, true); assert.equal(ins.rapido, true);
 });

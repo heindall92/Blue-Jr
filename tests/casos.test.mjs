@@ -55,7 +55,7 @@ test('mezcla de veredictos realista: hay falsos positivos y benignos en cada tur
 test('solo datos de documentación: IP públicas RFC 5737, red interna 10.20/16 y dominios .example', () => {
   const ip = /\b(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})\b/g;
   const permitida = (a, b, c) => (a === 10 && b === 20) || (a === 192 && b === 0 && c === 2) || (a === 198 && b === 51 && c === 100) || (a === 203 && b === 0 && c === 113);
-  const todo = JSON.stringify([...TURNOS, leerJson('src/data/empresa.json')]);
+  const todo = JSON.stringify([...TURNOS, leerJson('src/data/empresa.json'), leerJson('src/data/revision.json')]);
   for (const m of todo.matchAll(ip)) assert.ok(permitida(+m[1], +m[2], +m[3]), `IP no permitida ${m[0]}`);
   // eicar.com es el nombre del fichero de prueba EICAR, no un dominio.
   for (const m of todo.matchAll(/\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(com|net|org|es|io|ru|cn)\b/gi)) if (m[0].toLowerCase() !== 'eicar.com') assert.fail(`dominio real ${m[0]}`);
@@ -110,4 +110,36 @@ test('árbol de decisión: todas las ramas llegan a un resultado válido y bilin
   const res = Object.values(D.resultados);
   assert.deepEqual([...new Set(res.map((r) => r.accion))].sort(), [...BJ.ACCIONES].sort());
   assert.deepEqual([...new Set(res.map((r) => r.veredicto))].sort(), [...BJ.VEREDICTOS].sort());
+});
+
+/* ---------- Turno de revisión del agente de IA ---------- */
+const REVISION = leerJson('src/data/revision.json');
+
+test('revisión: diez alertas bilingües, aciertos y errores del agente mezclados, todos los tipos de error', () => {
+  const casos = REVISION.casos;
+  assert.equal(casos.length, 10);
+  assert.equal(new Set(casos.map((c) => c.id)).size, 10);
+  assert.deepEqual(casos.map((c) => c.hora), [...casos.map((c) => c.hora)].sort());
+  for (const c of casos) {
+    assert.ok(bil(c.titulo) && bil(c.regla) && bil(c.resumen) && bil(c.explica) && bil(c.agente.razonamiento), c.id);
+    assert.ok(BJ.VEREDICTOS.includes(c.veredicto) && BJ.ACCIONES.includes(c.accion), c.id);
+    assert.ok(BJ.VEREDICTOS.includes(c.agente.veredicto) && BJ.ACCIONES.includes(c.agente.accion), c.id);
+    assert.ok(c.agente.confianza >= 50 && c.agente.confianza <= 99, c.id);
+    c.agente.comprobaciones.forEach((x) => assert.ok(bil(x), c.id));
+    for (const l of c.logs) assert.ok(Array.isArray(l) && l.length === 3 && BJ.HORA.test(l[0]), `${c.id} línea mal formada`);
+    if (c.error === null) assert.ok(c.agente.veredicto === c.veredicto && c.agente.accion === c.accion, `${c.id}: si acierta, coincide`);
+    else { assert.ok(BJ.ERRORES_IA.includes(c.error), c.id); assert.ok(c.agente.veredicto !== c.veredicto || c.agente.accion !== c.accion, `${c.id}: si se equivoca, la decisión no coincide`); }
+  }
+  const errores = casos.filter((c) => c.error).map((c) => c.error);
+  assert.ok(casos.filter((c) => !c.error).length >= 3, 'hay aciertos que aprobar');
+  for (const e of BJ.ERRORES_IA) assert.ok(errores.includes(e), `falta un caso de ${e}`);
+});
+
+test('revisión: el agente solo cita lo que existe en los registros, salvo cuando alucina', () => {
+  for (const c of REVISION.casos) {
+    const texto = c.logs.map((l) => l.join(' ')).join('\n');
+    const existe = texto.includes(c.agente.cita);
+    if (c.error === 'alucinacion') assert.ok(!existe, `${c.id}: la cita inventada no puede estar en los registros`);
+    else assert.ok(existe, `${c.id}: «${c.agente.cita}» no aparece en los registros`);
+  }
 });

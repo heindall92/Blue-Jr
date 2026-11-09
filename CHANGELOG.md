@@ -2,6 +2,19 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [versionado semántico](https://semver.org/lang/es/).
 
+## [0.4.0] - 2026-11-09
+
+### Añadido
+- Turno de revisión del agente de IA (nivel 1,5), en `#revision`: diez alertas resueltas por un agente con su veredicto, acción, confianza, razonamiento y comprobaciones; se aprueban o se rechazan diciendo qué falló y qué acción tocaba. Datos en `src/data/revision.json`; corrección en `BJ.corregirRevision`.
+- Triaje rápido diario, en `#rapido`: diez alertas ya trabajadas, decididas con 1, 2 y 3, con repaso espaciado de lo fallado (`BJ.repasar`, `BJ.sesionRapida`). Solo la primera ronda del día suma XP.
+- Tarjetas de los dos modos en la portada y enlaces en el lateral; insignias «Revisor de IA» y «Reflejos»; la XP y la racha cuentan revisiones y triaje rápido.
+- Saneado de revisiones, repaso y triaje importados: las notas se recalculan y se descarta lo que no encaja.
+- `docs/investigacion-juniors.md`: la investigación que orienta la hoja de ruta.
+- Pruebas: 7 unitarias y 2 e2e nuevas; axe en las vistas nuevas y en la pestaña «¿Escalo?».
+
+### Cambiado
+- Hoja de ruta reordenada según la investigación: comunicación y «Pregunta al N2» (0.5.0), entrevista y Astrolabio (0.6.0), contexto español (0.7.0); los turnos con reloj bajan de prioridad.
+
 ## [0.3.0] - 2026-11-09
 
 ### Añadido
