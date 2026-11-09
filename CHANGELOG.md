@@ -2,6 +2,14 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [versionado semántico](https://semver.org/lang/es/).
 
+## [0.6.1] - 2026-11-09
+
+### Corregido
+- Ctrl+P imprimía una página en blanco desde cualquier vista, y la hoja vieja del historial después de usar «Imprimir o guardar en PDF». Los estilos de impresión de la hoja solo se aplican con `body.imprimiendo`, que se pone al pulsar el botón y se quita, junto con la hoja, en `afterprint`.
+- Una respuesta de «Defiende tu ticket» seguía contando como completa si se editaba después hasta dejar de cumplir los criterios (solo se corregía al recargar). Ahora deja de contar al escribir.
+- El ejemplo compartido con Astrolabio lleva la versión del formato (0.6.0) y no la de la aplicación, para que cada versión de Blue-Jr no obligue a cambiarlo en los dos repositorios.
+- Pruebas: las e2e de impresión y de la entrevista cubren los dos fallos (fallan con la 0.6.0).
+
 ## [0.6.0] - 2026-11-09
 
 ### Añadido

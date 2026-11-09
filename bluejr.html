@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-3QG1mLhbzZETLHMfidEHjs2Q19NJKpFCViZ35LM65b4='; style-src 'sha256-CX2Ns9+yk0ZqoinQa8OYacg9+enmsOJ5yrlzMDzn/x4='; style-src-attr 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; manifest-src 'none'; worker-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-tRWcqL3AazflmUTCMpVUtx9MclBg96mgPib/bEKO+uo='; style-src 'sha256-xry4EAy3iE95VV7t3PAAFcFI2h+Lb5Fq98qRwGeUCRU='; style-src-attr 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; manifest-src 'none'; worker-src 'none'">
 <title>Blue-Jr</title>
 <meta name="description" content="Blue-Jr: tu primer turno como analista SOC antes de tu primer empleo. Alertas, registros, tickets corregidos y un historial para la entrevista. Local-first, sin servidor.">
 <meta name="author" content="Yoandy Ramírez Delgado">
@@ -820,25 +820,26 @@ dialog.buscar { width: min(620px, calc(100% - 24px)); margin-top: 12dvh; }
 #impresion { display: none; }
 @media print {
   @page { size: A4; margin: 14mm 14mm 12mm; }
-  html, body { background: #fff !important; color: #111 !important; }
-  body > *:not(#impresion) { display: none !important; }
-  #impresion { display: block; font: 10.5pt/1.4 var(--font-sans); color: #111; }
-  .hoja { display: flex; flex-direction: column; gap: 8pt; min-height: 268mm; break-after: page; }
-  .hoja:last-child { break-after: auto; }
-  .hoja-cab { display: flex; justify-content: space-between; gap: 12pt; padding-bottom: 6pt; border-bottom: 1.5pt solid #1d4ed8; font-size: 9pt; color: #333; }
-  .hoja-marca { display: flex; align-items: center; gap: 5pt; }
-  .hoja-marca .ic { width: 12pt; height: 12pt; color: #1d4ed8; }
-  .hoja h1 { margin: 4pt 0 0; font-size: 17pt; letter-spacing: -0.01em; color: #111; }
-  .hoja h2 { margin: 6pt 0 0; font-size: 11pt; color: #111; }
-  .hoja-res { font-size: 9.5pt; color: #333; }
-  .hoja table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
-  .hoja th { text-align: left; font: 600 8pt var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: #555; border-bottom: 1pt solid #999; padding: 4pt 5pt; }
-  .hoja td { vertical-align: top; padding: 5pt; border-bottom: 0.5pt solid #ccc; }
-  .hoja td:nth-child(2), .hoja td:last-child { white-space: nowrap; font-family: var(--font-mono); }
-  .hoja td.mal { color: #b42318; font-weight: 600; }
-  .hoja-relevo { white-space: pre-wrap; font-size: 9.5pt; padding: 6pt 8pt; border-left: 2pt solid #1d4ed8; background: #f3f5fa; }
-  .hoja-pie span:last-child { white-space: nowrap; }
-  .hoja-pie { margin-top: auto; display: flex; justify-content: space-between; gap: 12pt; padding-top: 6pt; border-top: 0.5pt solid #ccc; font-size: 7.5pt; color: #555; }
+  /* Solo al imprimir desde «Imprimir o guardar en PDF»: Ctrl+P en cualquier vista imprime la vista, como siempre. */
+  body.imprimiendo { background: #fff !important; color: #111 !important; }
+  body.imprimiendo > *:not(#impresion) { display: none !important; }
+  body.imprimiendo #impresion { display: block; font: 10.5pt/1.4 var(--font-sans); color: #111; }
+  body.imprimiendo .hoja { display: flex; flex-direction: column; gap: 8pt; min-height: 268mm; break-after: page; }
+  body.imprimiendo .hoja:last-child { break-after: auto; }
+  body.imprimiendo .hoja-cab { display: flex; justify-content: space-between; gap: 12pt; padding-bottom: 6pt; border-bottom: 1.5pt solid #1d4ed8; font-size: 9pt; color: #333; }
+  body.imprimiendo .hoja-marca { display: flex; align-items: center; gap: 5pt; }
+  body.imprimiendo .hoja-marca .ic { width: 12pt; height: 12pt; color: #1d4ed8; }
+  body.imprimiendo .hoja h1 { margin: 4pt 0 0; font-size: 17pt; letter-spacing: -0.01em; color: #111; }
+  body.imprimiendo .hoja h2 { margin: 6pt 0 0; font-size: 11pt; color: #111; }
+  body.imprimiendo .hoja-res { font-size: 9.5pt; color: #333; }
+  body.imprimiendo .hoja table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+  body.imprimiendo .hoja th { text-align: left; font: 600 8pt var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: #555; border-bottom: 1pt solid #999; padding: 4pt 5pt; }
+  body.imprimiendo .hoja td { vertical-align: top; padding: 5pt; border-bottom: 0.5pt solid #ccc; }
+  body.imprimiendo .hoja td:nth-child(2), .hoja td:last-child { white-space: nowrap; font-family: var(--font-mono); }
+  body.imprimiendo .hoja td.mal { color: #b42318; font-weight: 600; }
+  body.imprimiendo .hoja-relevo { white-space: pre-wrap; font-size: 9.5pt; padding: 6pt 8pt; border-left: 2pt solid #1d4ed8; background: #f3f5fa; }
+  body.imprimiendo .hoja-pie span:last-child { white-space: nowrap; }
+  body.imprimiendo .hoja-pie { margin-top: auto; display: flex; justify-content: space-between; gap: 12pt; padding-top: 6pt; border-top: 0.5pt solid #ccc; font-size: 7.5pt; color: #555; }
 }
 </style>
 </head>
@@ -2304,7 +2305,7 @@ const EMPRESA = DATOS.empresa;
 const TURNOS = ['t1', 't2', 't3', 't4', 't5'].map((k) => DATOS[k]);
 const REV_INDICE = Object.fromEntries(DATOS.revision.casos.map((c) => [c.id, c]));
 const CASOS = Object.fromEntries(TURNOS.flatMap((t) => t.casos.map((c) => [c.id, { ...c, turno: t.id }])));
-const VERSION = '0.6.0';
+const VERSION = '0.6.1';
 const ACENTOS = ['rosa', 'solar', 'glaciar', 'orquidea', 'verde', 'azul', 'rojo'];
 const REPO = 'https://github.com/heindall92/Blue-Jr';
 const TEST = /[?&]test\b/.test(location.search);
@@ -3379,6 +3380,22 @@ function revisarDefensa() {
   repintarDefiende();
   if (completa && !completaAntes) avisosXp(antes, progresoActual(), '', 0, T('xp_def', { n: BJ.XP_DEFENSA, id: c.id }));
 }
+/** Guarda lo escrito. Si una respuesta completa deja de cumplir los criterios, deja de contar
+ *  (XP, insignia, historia STAR y PDF) en ese momento, igual que al recargar o importar. */
+function editarDefensa(valor) {
+  const c = CASOS[UI.caso];
+  const p = BJ.preguntasDefensa(c, S.respuestas[c.id]).find((x) => x.id === UI.defP);
+  if (!p) return;
+  const d = defensaDe(c.id);
+  d[p.id] = valor.slice(0, BJ.LIMITES.ticket);
+  if (d.ok.includes(p.id) && !BJ.corregirDefensa(p, d[p.id], c).completo) {
+    d.ok = d.ok.filter((x) => x !== p.id);
+    $(`[data-def-p="${p.id}"] .ic.ok`)?.remove();
+    const n = $('.def-pie .nota'); if (n) n.textContent = T('def_hecha', { n: d.ok.length });
+    pintarLateral();
+  }
+  guardar();
+}
 function repintarDefiende() { const s = $('.defiende'); if (s) s.outerHTML = defiendeHtml(CASOS[UI.caso]); pintarLateral(); }
 
 /* ---------- Historias STAR para Astrolabio ---------- */
@@ -3425,6 +3442,9 @@ function imprimirHistorial() {
   if (!caja) { caja = document.createElement('div'); caja.id = 'impresion'; document.body.append(caja); }
   caja.innerHTML = impresionHtml();
   if (!caja.children.length) return;
+  // La hoja solo existe mientras se imprime: después, Ctrl+P vuelve a imprimir la vista en la que estés.
+  document.body.classList.add('imprimiendo');
+  addEventListener('afterprint', () => { document.body.classList.remove('imprimiendo'); caja.replaceChildren(); }, { once: true });
   window.print();
 }
 /* ===== 05-events.js ===== */
@@ -3586,7 +3606,7 @@ document.addEventListener('input', (e) => {
     pintarLineas(); return actualizarTareas();
   }
   if (t.dataset.campo) { respuesta(UI.caso).campos[t.dataset.campo] = t.value.slice(0, BJ.LIMITES.campo); guardar(); return actualizarTareas(); }
-  if (t.id === 'def-texto') { defensaDe(UI.caso)[UI.defP] = t.value.slice(0, BJ.LIMITES.ticket); guardar(); $('#def-palabras').textContent = T('com_palabras', { n: (t.value.trim().match(/\S+/g) || []).length }); return; }
+  if (t.id === 'def-texto') { editarDefensa(t.value); $('#def-palabras').textContent = T('com_palabras', { n: (t.value.trim().match(/\S+/g) || []).length }); return; }
   if (t.id === 'msg-texto') { msgDe(UI.caso)[UI.msgTipo] = t.value.slice(0, BJ.LIMITES.ticket); guardar(); $('#msg-palabras').textContent = T('com_palabras', { n: (t.value.trim().match(/\S+/g) || []).length }); return; }
   if (t.id === 'texto-ticket') { respuesta(UI.caso).ticket = t.value.slice(0, BJ.LIMITES.ticket); guardar(); $('#cuenta-ticket').textContent = T('caracteres', { n: t.value.trim().length, m: BJ.TICKET_MIN }); actualizarTareas(); }
 });

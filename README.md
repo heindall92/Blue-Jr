@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/badge/licencia-MIT-4169A1?style=flat"/></a>
-  <img alt="Versión 0.6.0" src="https://img.shields.io/badge/versi%C3%B3n-0.6.0-6B9BFF?style=flat"/>
+  <img alt="Versión 0.6.1" src="https://img.shields.io/badge/versi%C3%B3n-0.6.1-6B9BFF?style=flat"/>
   <img alt="40 alertas" src="https://img.shields.io/badge/alertas-40-7C4DFF?style=flat"/>
   <img alt="5 turnos" src="https://img.shields.io/badge/turnos-5-2E9E7A?style=flat"/>
   <img alt="MITRE ATT&CK" src="https://img.shields.io/badge/MITRE-ATT%26CK-E07B39?style=flat"/>
@@ -89,7 +89,7 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
   </tbody>
   <tfoot>
     <tr>
-      <td colspan="2"><code>version: 0.6.0&nbsp;&nbsp;·&nbsp;&nbsp;nivel: SOC N1&nbsp;&nbsp;·&nbsp;&nbsp;empresa: Norte Logística (ficticia)&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
+      <td colspan="2"><code>version: 0.6.1&nbsp;&nbsp;·&nbsp;&nbsp;nivel: SOC N1&nbsp;&nbsp;·&nbsp;&nbsp;empresa: Norte Logística (ficticia)&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
     </tr>
   </tfoot>
 </table>
@@ -99,6 +99,11 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
 ---
 
 ## <img src="docs/assets/icons/sparkles.svg" width="20" height="20" valign="middle"/> Novedades
+
+### 0.6.1 · noviembre de 2026 · Imprimir como siempre
+
+- **Ctrl+P vuelve a imprimir la vista** en la que estés. En la 0.6.0 salía una página en blanco si no se había pulsado antes «Imprimir o guardar en PDF», y después de usarlo imprimía la hoja vieja del historial. La hoja de turnos solo existe mientras se imprime desde ese botón.
+- **«Defiende tu ticket» no da por completa una respuesta que has estropeado al editarla.** Deja de contar al momento (XP, insignia, historia STAR y PDF), igual que ya pasaba al recargar.
 
 ### 0.6.0 · noviembre de 2026 · Del ticket a la entrevista
 

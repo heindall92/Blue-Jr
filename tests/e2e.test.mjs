@@ -601,6 +601,11 @@ test('Defiende tu ticket: tres preguntas sobre tu decisión, XP al completarlas 
   assert.notEqual(await p.evaluate(() => document.querySelector('.cuenta-txt small')?.textContent), xpAntes);
   const s = await p.evaluate(() => JSON.parse(localStorage.getItem('bluejr-v1')));
   assert.deepEqual(s.defensas['T1-01'].ok, ['veredicto', 'accion', 'evidencia']);
+  // Editar una respuesta completa hasta romperla le quita la marca al momento (como al recargar).
+  await p.fill('#def-texto', 'Lo que sea.');
+  assert.deepEqual(await p.evaluate(() => JSON.parse(localStorage.getItem('bluejr-v1')).defensas['T1-01'].ok), ['veredicto', 'accion']);
+  assert.match(await p.textContent('.def-pie'), /2 de 3/);
+  assert.equal(await p.locator('[data-def-p="evidencia"] .ic.ok').count(), 0);
   // Un ticket con la acción equivocada pregunta por el error.
   await p.click('.cola [data-caso="T1-02"]');
   await p.click('[data-def-p="accion"]');
@@ -642,6 +647,10 @@ test('historial imprimible: una página A4 por turno con tickets (pdfinfo y pdft
   const p = await pagina({ colorScheme: 'light' });
   await sembrarCerrados(p, { 'T1-01': cerradoComo('T1-01'), 'T1-02': cerradoComo('T1-02'), 'T3-01': cerradoComo('T3-01'), 'T5-01': cerradoComo('T5-01') }, { relevos: { T1: 'VPN de r.ibanez contenida; pendiente de revisión del N2.' } });
   await ir(p, 'historial');
+  // Ctrl+P sin pulsar el botón imprime la vista, no una página en blanco.
+  await p.emulateMedia({ media: 'print' });
+  assert.ok(await p.locator('h1').first().isVisible(), 'Ctrl+P imprime la vista');
+  await p.emulateMedia({ media: 'screen' });
   await p.click('[data-imprimir]');
   assert.equal(await p.evaluate(() => window.__impreso), 1);
   await p.emulateMedia({ media: 'print' });
@@ -661,6 +670,12 @@ test('historial imprimible: una página A4 por turno con tickets (pdfinfo y pdft
   // En pantalla, la hoja de impresión no se ve.
   await p.emulateMedia({ media: 'screen' });
   assert.equal(await p.locator('#impresion').isVisible(), false);
+  // Al terminar de imprimir, la hoja desaparece: el siguiente Ctrl+P vuelve a imprimir la vista.
+  await p.evaluate(() => dispatchEvent(new Event('afterprint')));
+  await p.emulateMedia({ media: 'print' });
+  assert.equal(await p.evaluate(() => document.body.classList.contains('imprimiendo')), false);
+  assert.equal(await p.locator('#impresion .hoja').count(), 0);
+  assert.ok(await p.locator('h1').first().isVisible(), 'tras imprimir, Ctrl+P imprime la vista');
   assert.deepEqual(p.fallos, []);
   await p.context().close();
 });
