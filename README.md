@@ -102,7 +102,7 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
 
 ### 0.6.1 · noviembre de 2026 · index.html e imprimir como siempre
 
-- **La aplicación es `index.html`.** La web abre sin pasar por una redirección y el archivo descargable se llama `index.html`. `bluejr.html` sigue funcionando: redirige a la nueva dirección. El progreso guardado no se pierde (va con el dominio, no con el archivo).
+- **Una sola dirección: `index.html`.** La aplicación compilada es `index.html` y la web, [heindall92.github.io/Blue-Jr](https://heindall92.github.io/Blue-Jr/), la abre directamente. El archivo antiguo desaparece y nada enlaza ya a él. El progreso guardado no se pierde (va con el dominio, no con el archivo).
 - **Ctrl+P vuelve a imprimir la vista** en la que estés. En la 0.6.0 salía una página en blanco si no se había pulsado antes «Imprimir o guardar en PDF», y después de usarlo imprimía la hoja vieja del historial. La hoja de turnos solo existe mientras se imprime desde ese botón.
 - **«Defiende tu ticket» no da por completa una respuesta que has estropeado al editarla.** Deja de contar al momento (XP, insignia, historia STAR y PDF), igual que ya pasaba al recargar.
 
@@ -147,7 +147,7 @@ Blue-Jr deja de ser solo un examen y pasa a enseñar cómo se trabaja en un SOC,
 ### 0.2.1 · noviembre de 2026
 
 - **Portada ilustrada:** el analista de guardia, una figura encapuchada con casco, en versión clara y oscura según el tema. El texto va a la izquierda sobre el fondo plano. Al cargar, la ilustración entra con un leve desplazamiento y el aro del ojo se enciende y late. En tableta y móvil la figura pasa arriba y el texto debajo. Las dos imágenes van incrustadas en WebP (45 y 77 KB): ni una petición más.
-- **GitHub Pages abre la aplicación** sirva Pages `main` o `gh-pages`: en los dos casos `index.html` es la aplicación (desde la 0.6.1; `bluejr.html` redirige a ella).
+- **GitHub Pages abre la aplicación** sirva Pages `main` o `gh-pages`: en los dos casos `index.html` es la aplicación.
 - **Marca nueva:** el escudo, el icono más gastado de la ciberseguridad, deja paso a un radar. Lo que hace un analista de nivel 1 es barrer el ruido hasta encontrar la señal. Cambia en la barra lateral, la portada, el favicon y la cabecera y el pie del README.
 
 ### 0.2.0 · noviembre de 2026
@@ -476,7 +476,7 @@ Blue-Jr/
 ├── 🛠️ scripts/                   build.mjs · iconos.mjs · capturas.mjs · ejemplo-star.mjs
 ├── 🧪 tests/                     Motor, casos, repositorio, e2e y accesibilidad
 ├── 📄 docs/                      Capturas, cabecera, pie e iconos del README
-├── 🌐 index.html · dist/         El HTML compilado (descargable y publicado); bluejr.html redirige
+├── 🌐 index.html · dist/         El HTML compilado (descargable y publicado)
 └── ⚖️ LICENSE                    MIT
 ```
 

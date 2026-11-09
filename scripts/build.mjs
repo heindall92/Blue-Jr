@@ -85,39 +85,13 @@ export function build({ csp = true } = {}) {
   return fin;
 }
 
-/* Redirección de bluejr.html (el nombre de la aplicación hasta la 0.6.0) a index.html. */
-const ESTILO_REDIRECCION = 'body{margin:0;min-height:100vh;display:grid;place-items:center;font:16px system-ui,sans-serif;background:#1d2127;color:#d1d7e0}a{color:#6b9bff}';
-export const REDIRECCION = `<!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-${createHash('sha256').update(ESTILO_REDIRECCION, 'utf8').digest('base64')}'">
-<meta http-equiv="refresh" content="0; url=index.html">
-<link rel="canonical" href="https://heindall92.github.io/Blue-Jr/">
-<title>Blue-Jr</title>
-<style>${ESTILO_REDIRECCION}</style>
-</head>
-<body>
-<p>Blue-Jr ahora está en <a href="index.html">index.html</a>. Abriendo…</p>
-</body>
-</html>
-`;
-
 const isMain = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   const args = process.argv.slice(2);
   const oi = args.indexOf('--out');
-  // La aplicación es index.html (raíz de main y dist/ para gh-pages): la web abre sin redirecciones.
-  // bluejr.html queda como redirección para los enlaces y marcadores de antes de la 0.6.1.
+  // La aplicación es index.html (raíz de main y dist/ para gh-pages): una sola dirección, sin redirecciones.
   const outs = oi >= 0 ? [resolve(ROOT, args[oi + 1])] : [resolve(ROOT, 'dist/index.html'), resolve(ROOT, 'index.html')];
   const html = build();
-  const extras = oi >= 0 ? [] : [[resolve(ROOT, 'bluejr.html'), REDIRECCION], [resolve(ROOT, 'dist/bluejr.html'), REDIRECCION]];
-  for (const [outPath, texto] of extras) {
-    if (args.includes('--check')) {
-      if ((existsSync(outPath) ? readFileSync(outPath, 'utf8') : '') !== texto) { console.error(`✗ ${outPath} está desactualizado: ejecuta «npm run build».`); process.exit(1); }
-    } else writeFileSync(outPath, texto);
-  }
   const sha = createHash('sha256').update(html).digest('hex').slice(0, 16);
   for (const outPath of outs) {
     if (args.includes('--check')) {

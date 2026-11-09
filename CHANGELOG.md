@@ -5,7 +5,7 @@ Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [versionad
 ## [0.6.1] - 2026-11-09
 
 ### Cambiado
-- La aplicación compilada es `index.html` en la raíz (y en `dist/`), así que `https://heindall92.github.io/Blue-Jr/` la abre sin redirección. `bluejr.html` (y `dist/bluejr.html`) pasa a ser una redirección a `index.html`, generada por `scripts/build.mjs` y comprobada con `--check`, para no romper enlaces ni marcadores. El progreso en `localStorage` es por dominio y no se pierde.
+- La aplicación compilada es `index.html` en la raíz y en `dist/`: `https://heindall92.github.io/Blue-Jr/` la abre directamente. `bluejr.html` se elimina y no queda ningún enlace a él ni a la dirección anterior al cambio de nombre (una prueba lo vigila). El progreso en `localStorage` es por dominio y no se pierde.
 
 ### Corregido
 - Ctrl+P imprimía una página en blanco desde cualquier vista, y la hoja vieja del historial después de usar «Imprimir o guardar en PDF». Los estilos de impresión de la hoja solo se aplican con `body.imprimiendo`, que se pone al pulsar el botón y se quita, junto con la hoja, en `afterprint`.

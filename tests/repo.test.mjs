@@ -47,17 +47,15 @@ test('autoría y licencia', () => {
   assert.match(JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).author, /Yoandy Ramírez Delgado/);
 });
 
-test('GitHub Pages: index.html es la aplicación (en main y en dist/) y bluejr.html redirige a ella', () => {
+test('GitHub Pages: index.html es la aplicación (en main y en dist/) y no queda ninguna dirección vieja', () => {
   const app = readFileSync(join(ROOT, 'index.html'), 'utf8');
-  assert.match(app, /<script id="datos-empresa"|const BJ = /, 'la raíz es la aplicación, no una redirección');
+  assert.match(app, /const BJ = /, 'la raíz es la aplicación, no una redirección');
   assert.doesNotMatch(app, /http-equiv="refresh"/);
   assert.ok(existsSync(join(ROOT, '.nojekyll')), 'sin Jekyll: se sirve tal cual');
-  for (const f of ['bluejr.html', 'dist/bluejr.html']) {
-    const r = readFileSync(join(ROOT, f), 'utf8');
-    assert.match(r, /http-equiv="refresh" content="0; url=index\.html"/, f);
-    assert.match(r, /<a href="index\.html">/, f);
-    assert.match(r, /rel="canonical" href="https:\/\/heindall92\.github\.io\/Blue-Jr\/"/, f);
-    const style = r.match(/<style>([\s\S]*?)<\/style>/)[1];
-    assert.ok(r.includes(`'sha256-${createHash('sha256').update(style, 'utf8').digest('base64')}'`), `${f}: CSP con el hash del estilo`);
+  for (const f of ['bluejr.html', 'dist/bluejr.html']) assert.ok(!existsSync(join(ROOT, f)), `${f} ya no existe`);
+  // Ningún enlace al nombre de archivo ni a la dirección de antes del cambio de nombre.
+  const viejo = /bluejr\.html|github\.io\/bluejr\b|github\.com\/heindall92\/bluejr\b/i;
+  for (const f of ['README.md', 'CONTRIBUTING.md', 'SECURITY.md', 'ROADMAP.md', 'index.html', 'src/index.html', 'src/app/01-core.js', '.github/workflows/ci.yml', '.github/workflows/pages.yml', 'package.json']) {
+    assert.doesNotMatch(readFileSync(join(ROOT, f), 'utf8'), viejo, `${f} apunta a una dirección vieja`);
   }
 });
