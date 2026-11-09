@@ -2,6 +2,20 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [versionado semántico](https://semver.org/lang/es/).
 
+## [0.6.3] - 2026-11-09
+
+### Añadido
+- Portada con una ilustración por acento y tema: 14 WebP de 1600 px en `src/img/portada-<acento>-<claro|oscuro>.webp`, incrustadas como variables CSS. `scripts/build.mjs` saca la lista de acentos de `src/app/01-core.js` y cada `[data-accent]` fija `--portada-oscuro` y `--portada-claro`.
+- El brillo del ojo (`.p-ojo`) usa el color del aro de cada ilustración (`--ojo`), en vez de un azul fijo.
+- En el móvil, «Ajustes» en la barra inferior (cinco botones) abre el perfil con el nombre y el color de acento: antes no se podía cambiar el acento ni el nombre en el móvil, porque estaban en la barra lateral oculta. El diálogo de perfil incluye los siete colores también en escritorio.
+- Pruebas: una unitaria (cada portada existe, es WebP, pesa menos de 120 KB, está incrustada y con su regla; ninguna imagen suelta en la raíz) y dos e2e (14 combinaciones con el interruptor de tema y el selector de acento, ilustración y brillo del ojo; «Ajustes» en el móvil a 320 y 390 px). axe audita el diálogo de perfil también en el móvil.
+
+### Cambiado
+- Título de la portada en dos líneas: «Simulador SOC» (`hero_linea`) y «Blue-Jr» en Outfit de peso medio, más grande y en el color del acento, con la entrada palabra a palabra de siempre. El progreso de la semana abre la entradilla en negrita.
+- El acento solar pasa de mostaza a naranja eléctrico: `#ff7a1a` en oscuro (7,4:1 sobre el fondo) y `#c43f00` en claro (5,2:1 con el texto blanco de los botones y 4,9:1 sobre el fondo).
+- Las 12 imágenes originales subidas a la raíz del repositorio (unos 23 MB) se convierten y se mueven a `src/img/`; las dos azules pasan a llamarse `portada-azul-claro.webp` y `portada-azul-oscuro.webp`.
+- El HTML pasa de unos 0,6 MB a 1,4 MB.
+
 ## [0.6.2] - 2026-11-09
 
 ### Corregido

@@ -48,13 +48,22 @@ export function buildFonts() {
   return FONTS.map((f) => `@font-face { font-family: "${f.family}"; font-style: normal; font-display: swap; font-weight: ${f.weight};\n  src: url(data:font/woff2;base64,${readFileSync(join(ROOT, 'src/fonts', f.file)).toString('base64')}) format("woff2"); unicode-range: ${LATIN}; }`).join('\n');
 }
 
-/* Ilustraciones de la portada (WebP, 1600 px), incrustadas como variables CSS: img-src solo admite data:. */
-export const IMAGENES = [
-  { file: 'portada-oscuro.webp', variable: '--portada-oscuro' },
-  { file: 'portada-claro.webp', variable: '--portada-claro' }
-];
+/* Ilustraciones de la portada (WebP, 1600 px): una por acento y tema, incrustadas como variables CSS
+ * (img-src solo admite data:). La lista de acentos sale de la aplicación, así que no hay dos listas que mantener.
+ * Cada acento pone --portada-oscuro y --portada-claro, que son las que usa la hoja de estilos. */
+export const ACENTOS = JSON.parse(rd('src/app/01-core.js').match(/const ACENTOS = (\[[^\]]*\])/)[1].replace(/'/g, '"'));
+export const TEMAS_PORTADA = ['claro', 'oscuro'];
+export const IMAGENES = ACENTOS.flatMap((a) => TEMAS_PORTADA.map((t) => ({ file: `portada-${a}-${t}.webp`, variable: `--portada-${a}-${t}` })));
 export function buildImagenes() {
-  return `:root { ${IMAGENES.map((i) => `${i.variable}: url(data:image/webp;base64,${readFileSync(join(ROOT, 'src/img', i.file)).toString('base64')});`).join(' ')} }`;
+  const vars = IMAGENES.map((i) => {
+    const ruta = join(ROOT, 'src/img', i.file);
+    if (!existsSync(ruta)) throw new Error(`Falta la portada ${i.file} en src/img/`);
+    return `${i.variable}: url(data:image/webp;base64,${readFileSync(ruta).toString('base64')});`;
+  }).join(' ');
+  // Azul por defecto primero: :root y [data-accent] pesan lo mismo, así que cada acento debe ir después.
+  const regla = (sel, a) => `${sel} { --portada-oscuro: var(--portada-${a}-oscuro); --portada-claro: var(--portada-${a}-claro); }`;
+  const porAcento = [regla(':root', 'azul'), ...ACENTOS.map((a) => regla(`[data-accent='${a}']`, a))].join('\n');
+  return `:root { ${vars} }\n${porAcento}`;
 }
 
 /* CSP por <meta>: hashes SHA-256 de cada <script>/<style> en línea del documento final.

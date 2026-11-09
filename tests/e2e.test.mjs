@@ -679,3 +679,47 @@ test('historial imprimible: una página A4 por turno con tickets (pdfinfo y pdft
   assert.deepEqual(p.fallos, []);
   await p.context().close();
 });
+
+test('portada: cambia de imagen con el interruptor de tema y con cada color de acento', async () => {
+  const p = await pagina({ colorScheme: 'light' });
+  await ir(p, 'turnos');
+  const huella = (a, t) => readFileSync(new URL(`../src/img/portada-${a}-${t}.webp`, import.meta.url)).toString('base64').slice(0, 160);
+  const fondo = () => p.evaluate(() => getComputedStyle(document.querySelector('.p-fondo')).backgroundImage);
+  for (const tema of ['light', 'dark']) {
+    if (await p.getAttribute('html', 'data-theme') !== tema) await p.click('[data-tema]');
+    for (const a of ['rosa', 'solar', 'glaciar', 'orquidea', 'verde', 'azul', 'rojo']) {
+      await p.click(`[data-accent-pick="${a}"]`);
+      assert.ok((await fondo()).includes(huella(a, tema === 'light' ? 'claro' : 'oscuro')), `${a} en ${tema}`);
+      // El brillo del ojo va del color del aro de esa ilustración, no siempre azul.
+      const ojo = await p.evaluate(() => getComputedStyle(document.querySelector('.p-ojo')).boxShadow);
+      assert.ok(ojo.includes({ rosa: 'rgba(255, 72, 160', solar: 'rgba(255, 200, 30', glaciar: 'rgba(34, 211, 238', orquidea: 'rgba(196, 120, 255', verde: 'rgba(40, 220, 100', azul: 'rgba(56, 128, 255', rojo: 'rgba(255, 40, 56' }[a]), `ojo de ${a}: ${ojo}`);
+    }
+  }
+  assert.deepEqual(p.fallos, []);
+  await p.context().close();
+});
+
+test('móvil: «Ajustes» en la barra inferior cambia el color de acento y la portada (no hay barra lateral)', async () => {
+  for (const ancho of [320, 390]) {
+    const p = await pagina({ viewport: { width: ancho, height: 780 }, isMobile: true, hasTouch: true, colorScheme: 'light' });
+    await ir(p, 'turnos');
+    assert.equal(await p.locator('.lateral .acentos').isVisible(), false, 'en el móvil la barra lateral no se ve');
+    await p.click('#abajo [data-perfil]');
+    await p.waitForSelector('#dlg-perfil[open]');
+    const botones = p.locator('#dlg-perfil [data-accent-pick]');
+    assert.equal(await botones.count(), 7);
+    const tam = await botones.evaluateAll((bs) => bs.map((b) => [Math.round(b.getBoundingClientRect().width), Math.round(b.getBoundingClientRect().top)]));
+    assert.ok(tam.every(([w]) => w >= 24), `${ancho} px: botones de al menos 24 px (${tam})`);
+    assert.equal(new Set(tam.map(([, t]) => t)).size, 1, `${ancho} px: los siete colores en una fila`);
+    await p.click('#dlg-perfil [data-accent-pick="rojo"]');
+    assert.equal(await p.getAttribute('html', 'data-accent'), 'rojo');
+    assert.equal(await p.getAttribute('#dlg-perfil [data-accent-pick="rojo"]', 'aria-pressed'), 'true');
+    assert.equal(await p.evaluate(() => JSON.parse(localStorage.getItem('bluejr-prefs')).accent), 'rojo');
+    const huella = readFileSync(new URL('../src/img/portada-rojo-claro.webp', import.meta.url)).toString('base64').slice(0, 160);
+    assert.ok((await p.evaluate(() => getComputedStyle(document.querySelector('.p-fondo')).backgroundImage)).includes(huella), 'la portada pasa a la ilustración roja');
+    await p.keyboard.press('Escape');
+    assert.ok(await desborda(p) <= 0, `${ancho} px desborda con cinco botones abajo`);
+    assert.deepEqual(p.fallos, []);
+    await p.context().close();
+  }
+});
