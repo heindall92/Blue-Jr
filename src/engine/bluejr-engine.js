@@ -198,6 +198,69 @@ const BJ = (() => {
   /** Celda CSV a prueba de fórmulas (=, +, -, @, tabulador o retorno al inicio). */
   const celdaCsv = (v) => { let s = String(v ?? ''); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
 
-  return { PESOS, UMBRAL_APTO, TICKET_MIN, VEREDICTOS, ACCIONES, SEVERIDADES, COMPETENCIAS, LIMITES, semilla, azar, registros, normalizar, camposDe, campoBien, clavesEn, corregir, resumenTurno, historial, safeParse, sanearEstado, celdaCsv, HORA };
+  /* ---------- Práctica: XP, racha, niveles e insignias ----------
+   * Todo se deriva de los tickets cerrados (nota y fecha): no hay contador que guardar, inflar ni sanear. */
+  const META_DIARIA = 150; // XP del día para cumplir la meta (unos dos tickets)
+  const NIVELES = Object.freeze([
+    { id: 'becario', xp: 0 }, { id: 'practicas', xp: 400 }, { id: 'n1', xp: 1200 }, { id: 'senior', xp: 2400 }, { id: 'n2', xp: 3400 }
+  ]);
+  const DIA_MS = 86400000;
+  const diaIso = (d) => new Date(d).toISOString().slice(0, 10);
+  const diaAntes = (iso, n = 1) => diaIso(Date.parse(iso + 'T00:00:00Z') - n * DIA_MS);
+
+  function progreso(respuestas = {}, hoy = diaIso(Date.now())) {
+    const cerradas = Object.values(respuestas).filter((r) => r && typeof r.nota === 'number');
+    const xp = cerradas.reduce((a, r) => a + r.nota, 0);
+    const porDia = {};
+    for (const r of cerradas) if (r.cuando) { const d = r.cuando.slice(0, 10); porDia[d] = (porDia[d] || 0) + r.nota; }
+    // La racha cuenta días seguidos con al menos un ticket; si hoy aún no hay, se mira desde ayer.
+    let d = porDia[hoy] ? hoy : diaAntes(hoy), racha = 0;
+    while (porDia[d] !== undefined) { racha++; d = diaAntes(d); }
+    let i = 0;
+    while (i + 1 < NIVELES.length && xp >= NIVELES[i + 1].xp) i++;
+    const nivel = NIVELES[i], sig = NIVELES[i + 1] || null;
+    return {
+      xp, xpHoy: porDia[hoy] || 0, meta: META_DIARIA, racha, dias: Object.keys(porDia).length,
+      nivel: nivel.id, nivelN: i + 1, siguiente: sig && sig.id, faltan: sig ? sig.xp - xp : 0,
+      pctNivel: sig ? Math.round(((xp - nivel.xp) / (sig.xp - nivel.xp)) * 100) : 100
+    };
+  }
+
+  function insignias(turnos, respuestas = {}, hoy) {
+    const casos = turnos.flatMap((t) => t.casos);
+    const hechos = casos.filter((c) => typeof respuestas[c.id]?.nota === 'number');
+    const r = (c) => respuestas[c.id];
+    const p = progreso(respuestas, hoy);
+    const lista = [
+      ['primer', hechos.length >= 1],
+      ['perfecto', hechos.some((c) => r(c).nota === 100)],
+      ['sin_alarma', hechos.filter((c) => c.veredicto !== 'vp' && r(c).veredicto === c.veredicto).length >= 3],
+      ['contencion', hechos.filter((c) => c.accion === 'contener' && r(c).accion === 'contener').length >= 5],
+      ['turno', turnos.some((t) => resumenTurno(t, respuestas).apto)],
+      ['racha3', p.racha >= 3],
+      ['semana', hechos.length === casos.length && casos.length > 0]
+    ];
+    return lista.map(([id, ok]) => ({ id, ok }));
+  }
+
+  /* ---------- Entidades de los registros (como los «campos interesantes» de un SIEM) ----------
+   * Cuentas, IP y equipos con su número de apariciones, para pivotar sobre ellos. */
+  const RE_CUENTA = /\b(?:user|TargetUserName|SubjectUserName|from|to|initiatedBy)=([^\s,;]+)/g;
+  const RE_IP = /\b(?:\d{1,3}\.){3}\d{1,3}\b/g;
+  const RE_EQUIPO = /\b(?:host|WorkstationName|device)=([^\s,;]+)/g;
+  function entidades(lineas, max = 5) {
+    const cuenta = { cuentas: new Map(), ips: new Map(), equipos: new Map() };
+    const suma = (m, v) => { if (v && v !== '-') m.set(v, (m.get(v) || 0) + 1); };
+    for (const l of lineas) {
+      for (const [, v] of l.m.matchAll(RE_CUENTA)) suma(cuenta.cuentas, v);
+      for (const [v] of l.m.matchAll(RE_IP)) suma(cuenta.ips, v);
+      for (const [, v] of l.m.matchAll(RE_EQUIPO)) suma(cuenta.equipos, v);
+      suma(cuenta.equipos, l.s);
+    }
+    const top = (m) => [...m].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, max);
+    return { cuentas: top(cuenta.cuentas), ips: top(cuenta.ips), equipos: top(cuenta.equipos) };
+  }
+
+  return { META_DIARIA, NIVELES, progreso, insignias, entidades, PESOS, UMBRAL_APTO, TICKET_MIN, VEREDICTOS, ACCIONES, SEVERIDADES, COMPETENCIAS, LIMITES, semilla, azar, registros, normalizar, camposDe, campoBien, clavesEn, corregir, resumenTurno, historial, safeParse, sanearEstado, celdaCsv, HORA };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = BJ;

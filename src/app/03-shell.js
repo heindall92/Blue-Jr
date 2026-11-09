@@ -35,7 +35,7 @@ function pintarLateral() {
       <div class="acentos" role="group" aria-label="${esc(T('acento'))}">${ACENTOS.map((a) => `<button type="button" class="acento-b" data-accent-pick="${a}" aria-pressed="${P.accent === a}" title="${esc(T('acentos.' + a))}" aria-label="${esc(T('acentos.' + a))}"></button>`).join('')}</div>
       <button type="button" class="cuenta-b" data-perfil title="${esc(S.perfil.nombre || T('perfil_sin'))}">
         <span class="avatar" aria-hidden="true">${S.perfil.nombre ? esc(iniciales(S.perfil.nombre)) : ic('user')}</span>
-        <span class="cuenta-txt"><b>${esc(S.perfil.nombre || T('perfil_sin'))}</b><small>${esc(T('perfil_rol'))}</small></span>
+        <span class="cuenta-txt"><b>${esc(S.perfil.nombre || T('perfil_sin'))}</b><small>${esc(T('niveles.' + progresoActual().nivel))} · <span class="num">${esc(T('xp_total', { n: num(progresoActual().xp) }))}</span></small></span>
       </button>
     </div>`;
   document.body.classList.toggle('lateral-compacto', !P.lateral);
@@ -83,7 +83,7 @@ function cerrarDialogo(d) { if (d.open) d.close(); }
 document.addEventListener('close', (e) => { if (e.target.tagName === 'DIALOG' && focoPrevio && document.contains(focoPrevio)) focoPrevio.focus(); }, true);
 
 /* ---------- Centro de ayuda ---------- */
-const TABS = ['guia', 'metodo', 'datos', 'atajos', 'glosario', 'acerca'];
+const TABS = ['guia', 'decidir', 'metodo', 'datos', 'atajos', 'glosario', 'acerca'];
 let tabAyuda = 'guia';
 function abrirAyuda(tab) {
   if (tab) tabAyuda = tab;
@@ -101,6 +101,7 @@ function pintarAyuda() {
 }
 function panelAyuda(t) {
   if (t === 'guia') return `<ol class="pasos">${T('guia_pasos').map(([a, b]) => `<li><b>${esc(a)}</b><span>${esc(b)}</span></li>`).join('')}</ol><p class="nota">${esc(T('guia_por_que'))}</p>`;
+  if (t === 'decidir') return decidirHtml();
   if (t === 'metodo') {
     const filas = [['veredicto', 'metodo_veredicto'], ['accion', 'metodo_accion'], ['campos', 'metodo_campos'], ['ticket', 'metodo_ticket']];
     return `<p>${esc(T('metodo_intro'))}</p><table class="tabla-pesos"><tbody>${filas.map(([k, txt]) => `<tr><td>${esc(T(txt, { m: BJ.TICKET_MIN }))}</td><td class="num" data-peso="${k}">${BJ.PESOS[k]}</td></tr>`).join('')}<tr class="total"><td>Total</td><td class="num">${Object.values(BJ.PESOS).reduce((a, b) => a + b, 0)}</td></tr></tbody></table>

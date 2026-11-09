@@ -53,6 +53,7 @@ function vTurnos() {
         <p class="reloj num" role="timer" id="reloj">${esc(textoReloj())}</p>
       </div>
     </section>
+    ${practicaHtml()}
     <div class="stats">${stats}</div>
     <h2 class="sec-t">${ic('calendar-clock')}${esc(T('turnos_lista'))}</h2>
     <ol class="turnos-lista">${tarjetas}</ol>`;
@@ -141,11 +142,13 @@ function panelCaso(c) {
       <p class="regla"><span>${esc(T('regla'))}</span> ${esc(L(c.regla))}</p>
       <p class="resumen">${esc(L(c.resumen))}</p>
     </div>
+    ${guiaHtml(c)}
     <div class="logs-cab"><h3>${ic('terminal')}${esc(T('registros'))}</h3><span class="num cuenta-lineas" id="cuenta-lineas"></span></div>
     <div class="logs-herr">
       <label class="filtro">${ic('filter')}<span class="sr-only">${esc(T('filtrar'))}</span><input id="filtro" type="search" autocomplete="off" spellcheck="false" placeholder="${esc(T('filtrar_ph'))}" value="${esc(UI.filtro)}"></label>
       <div class="chips" role="group" aria-label="${esc(T('fuentes'))}"><button type="button" class="chip" data-fuente="" aria-pressed="${!UI.fuente}">${esc(T('todas'))}</button>${fuentes.map((f) => `<button type="button" class="chip" data-fuente="${esc(f)}" aria-pressed="${UI.fuente === f}">${esc(f)}</button>`).join('')}</div>
     </div>
+    ${entidadesHtml(lineas)}
     <div class="logs" id="logs" tabindex="0" role="region" aria-label="${esc(T('registros'))}">${lineasHtml(c, lineas)}</div>`;
 }
 
@@ -170,8 +173,9 @@ function panelTicket(c) {
   const listo = r.veredicto && r.accion;
   return `<h2 id="ticket-t" class="panel-t">${ic('file-text')}${esc(T('ticket'))} <span class="num id">${c.id}</span></h2>
     <div class="ticket-f">
+      ${bloqueado ? '' : tareasHtml(c)}
       <fieldset><legend id="veredicto-t">${esc(T('veredicto'))}</legend>${opciones('veredicto', BJ.VEREDICTOS, r.veredicto)}</fieldset>
-      <fieldset><legend id="accion-t">${esc(T('accion'))}</legend>${opciones('accion', BJ.ACCIONES, r.accion)}</fieldset>
+      <fieldset><legend id="accion-t">${esc(T('accion'))}</legend>${opciones('accion', BJ.ACCIONES, r.accion)}<button type="button" class="enlace decidir-b" data-decidir-abrir>${ic('split')}${esc(T('decidir_btn'))}</button></fieldset>
       <fieldset><legend>${esc(T('datos_clave'))}</legend><div class="campos">${campos}</div></fieldset>
       <div class="evidencias"><p class="etq">${ic('pin')}${esc(T('evidencias'))} <span class="num">${ev.length ? esc(T('evidencias_n', { n: ev.length })) : ''}</span></p>${ev.length ? `<ol>${ev.map((l) => `<li><code><span class="num">${l.t}</span> ${esc(l.s)} ${esc(l.m)}</code></li>`).join('')}</ol>` : `<p class="nota">${esc(T('evidencias_vacio'))}</p>`}</div>
       <label class="campo">${esc(T('resumen_ticket'))}<textarea id="texto-ticket" rows="5" maxlength="${BJ.LIMITES.ticket}" placeholder="${esc(T('resumen_ph'))}"${bloqueado ? ' readonly' : ''}>${esc(r.ticket)}</textarea><small class="num" id="cuenta-ticket">${esc(T('caracteres', { n: r.ticket.trim().length, m: BJ.TICKET_MIN }))}</small></label>
@@ -216,6 +220,7 @@ function vHistorial() {
         <div class="acciones-datos"><button type="button" class="btn" data-exportar-md>${ic('download')}${esc(T('exportar_md'))}</button><button type="button" class="btn sec" data-exportar-json>${ic('download')}${esc(T('exportar_json'))}</button><button type="button" class="btn sec" data-importar>${ic('upload')}${esc(T('importar'))}</button><button type="button" class="btn peligro" data-borrar>${ic('rotate-ccw')}${esc(UI.borrarArmado ? T('borrar_confirmar') : T('borrar'))}</button></div>
       </section>
     </div>
+    ${insigniasHtml()}
     <section class="panel" aria-labelledby="tk-t"><h2 id="tk-t" class="panel-t">${ic('scroll-text')}${esc(T('tickets_titulo'))}</h2>${tickets.length ? `<ul class="hist-tickets">${tickets.map((c) => { const r = S.respuestas[c.id]; return `<li><a href="#${c.turno}" data-caso-ir="${c.id}"><span class="num id">${c.id}</span><span class="ht-tit">${esc(L(c.titulo))}</span><span class="ht-dec">${esc(T('veredictos.' + r.veredicto))} · ${esc(T('acciones.' + r.accion))}</span><span class="num nota-chip ${r.nota >= BJ.UMBRAL_APTO ? 'ok' : 'ko'}">${r.nota}</span></a></li>`; }).join('')}</ul>` : `<p class="vacio">${esc(T('sin_tickets'))}</p>`}</section>`;
 }
 

@@ -1,0 +1,758 @@
+{
+  "decision": {
+    "preguntas": {
+      "malicioso": {
+        "es": "¿Lo que ves en los registros es actividad maliciosa o no autorizada?",
+        "en": "Is what you see in the logs malicious or unauthorised activity?",
+        "ayuda": {
+          "es": "Busca la autorización antes de juzgar: un cambio aprobado (CHG), una incidencia (INC), una petición (REQ) o un pentest contratado convierten una técnica de ataque en trabajo legítimo.",
+          "en": "Look for authorisation before you judge: an approved change (CHG), an incident (INC), a request (REQ) or a contracted pentest turn an attack technique into legitimate work."
+        }
+      },
+      "real": {
+        "es": "¿La regla vio algo que ocurrió de verdad?",
+        "en": "Did the rule see something that really happened?",
+        "ayuda": {
+          "es": "Si la actividad existió y estaba autorizada, es benigno. Si la regla se equivocó (geolocalización de una VPN, una firma heurística sobre software legítimo, una condición mal escrita), es falso positivo.",
+          "en": "If the activity happened and was authorised, it is benign. If the rule got it wrong (VPN geolocation, a heuristic hit on legitimate software, a badly written condition), it is a false positive."
+        }
+      },
+      "efecto": {
+        "es": "¿Llegó a tener efecto? Un «login OK», un proceso que se ejecuta, una conexión saliente, un cambio de permisos o datos que salen.",
+        "en": "Did it take effect? A «login OK», a process that runs, an outbound connection, a permission change or data leaving.",
+        "ayuda": {
+          "es": "Un 403 del WAF, un puerto cerrado o un correo en cuarentena significan que el control funcionó. Un solo 200, un solo «login OK» o un solo proceso hijo lo cambian todo.",
+          "en": "A WAF 403, a closed port or a quarantined email mean the control worked. A single 200, a single «login OK» or a single child process changes everything."
+        }
+      },
+      "compromiso": {
+        "es": "¿Es un compromiso claro (cuenta robada, malware, C2, cifrado de ficheros) que el playbook puede cortar ya?",
+        "en": "Is it a clear compromise (stolen account, malware, C2, files being encrypted) that the playbook can cut off now?",
+        "ayuda": {
+          "es": "Si la amenaza es técnica y está activa, cada minuto cuenta. Si la duda es sobre una persona de la empresa, un fraude o datos personales, el N1 no actúa a ciegas: escala.",
+          "en": "If the threat is technical and active, every minute counts. If the doubt is about a person in the company, fraud or personal data, T1 does not act blindly: it escalates."
+        }
+      }
+    },
+    "resultados": {
+      "benigno": {
+        "veredicto": "benigno",
+        "accion": "cerrar",
+        "es": "Real pero autorizado. Cierra citando la autorización (CHG, INC, REQ) y, si la alerta es útil, déjala como está: debe seguir saltando la próxima vez.",
+        "en": "Real but authorised. Close quoting the authorisation (CHG, INC, REQ) and, if the alert is useful, leave it as it is: it should fire again next time.",
+        "ejemplo": {
+          "es": "El equipo de sistemas lanza un script de inventario por WinRM a todos los equipos dentro de la ventana de un cambio aprobado.",
+          "en": "The systems team runs an inventory script over WinRM on every host within the window of an approved change."
+        }
+      },
+      "fp": {
+        "veredicto": "fp",
+        "accion": "cerrar",
+        "es": "La regla se equivocó. Cierra explicando por qué y propone el ajuste (excluir un rango, un hash o corregir la condición): así el siguiente analista no pierde el tiempo.",
+        "en": "The rule got it wrong. Close explaining why and propose the tuning (exclude a range or a hash, fix the condition) so the next analyst does not waste time.",
+        "ejemplo": {
+          "es": "Una regla de exfiltración cuenta como subida la descarga de una actualización porque lee los bytes en el sentido contrario.",
+          "en": "An exfiltration rule counts an update download as an upload because it reads the bytes in the wrong direction."
+        }
+      },
+      "bloqueado": {
+        "veredicto": "vp",
+        "accion": "cerrar",
+        "es": "Ataque real, pero frenado y sin impacto. Es verdadero positivo: documenta lo que viste, comprueba que el control respondió en todas las peticiones y cierra. Escalar cada intento saturaría al nivel 2.",
+        "en": "A real attack, but stopped and with no impact. It is a true positive: document what you saw, check that the control answered every request and close. Escalating every attempt would flood tier 2.",
+        "ejemplo": {
+          "es": "Llega un correo con un adjunto malicioso, la pasarela lo pone en cuarentena y no lo recibe nadie.",
+          "en": "An email with a malicious attachment arrives, the gateway quarantines it and nobody receives it."
+        }
+      },
+      "contener": {
+        "veredicto": "vp",
+        "accion": "contener",
+        "es": "Compromiso activo: aplica el playbook ya (deshabilitar la cuenta, cortar la sesión, aislar el equipo, bloquear la IP o el dominio) y escala a N2 para el alcance. Contener no es resolver: es parar la hemorragia.",
+        "en": "Active compromise: run the playbook now (disable the account, kill the session, isolate the host, block the IP or domain) and escalate to T2 for scoping. Containing is not solving: it stops the bleeding.",
+        "ejemplo": {
+          "es": "Una cuenta de soporte inicia sesión de madrugada desde una IP extranjera y empieza a leer los buzones de dirección.",
+          "en": "A support account signs in at dawn from a foreign IP and starts reading the executives’ mailboxes."
+        }
+      },
+      "escalar": {
+        "veredicto": "vp",
+        "accion": "escalar",
+        "es": "Necesita a alguien con más contexto o autoridad: una persona de la casa, un fraude, datos personales o una cuenta que no sabes si está comprometida. Escala con todas las evidencias y no contactes ni bloquees a la persona por tu cuenta.",
+        "en": "It needs someone with more context or authority: a person in the company, fraud, personal data or an account you cannot tell is compromised. Escalate with all the evidence and do not contact or block the person yourself.",
+        "ejemplo": {
+          "es": "Alguien de Compras cambia el IBAN de un proveedor justo después de recibir un correo «urgente» que dice venir de ese proveedor.",
+          "en": "Someone in Purchasing changes a supplier’s IBAN right after an «urgent» email that claims to come from that supplier."
+        }
+      }
+    }
+  },
+  "familias": [
+    {
+      "id": "acceso",
+      "icono": "user",
+      "titulo": {
+        "es": "Identidad y accesos",
+        "en": "Identity and access"
+      },
+      "que": {
+        "es": "Inicios de sesión, VPN, RDP, MFA y cuentas de servicio. La pregunta de fondo es siempre la misma: ¿quien entra es quien dice ser y tiene por qué entrar ahí?",
+        "en": "Sign-ins, VPN, RDP, MFA and service accounts. The underlying question is always the same: is whoever signs in who they claim to be, and should they be there?"
+      },
+      "triaje": [
+        {
+          "es": "Cuenta los fallos y busca si después hay un «login OK» desde el mismo origen.",
+          "en": "Count the failures and check whether a «login OK» follows from the same source."
+        },
+        {
+          "es": "Mira el origen: IP de Internet, de la VPN corporativa o de una estación de administración.",
+          "en": "Check the source: Internet IP, corporate VPN or an admin workstation."
+        },
+        {
+          "es": "Comprueba el tipo de inicio de sesión (LogonType 2, 3, 5, 10) y si hubo MFA.",
+          "en": "Check the logon type (LogonType 2, 3, 5, 10) and whether MFA was used."
+        },
+        {
+          "es": "Busca una incidencia o un cambio que explique el acceso (INC, CHG).",
+          "en": "Look for an incident or change that explains the access (INC, CHG)."
+        }
+      ],
+      "fp": [
+        {
+          "es": "Salidas de la VPN de la empresa en otro país que la regla geolocaliza como un viaje.",
+          "en": "Company VPN exits in another country that the rule geolocates as travel."
+        },
+        {
+          "es": "LogonType 5 (servicio) incluido por error en una regla de inicios interactivos.",
+          "en": "LogonType 5 (service) wrongly included in an interactive sign-in rule."
+        },
+        {
+          "es": "Soporte que entra en un servidor con una incidencia asignada y en su horario.",
+          "en": "Support staff signing in to a server with an assigned ticket during working hours."
+        },
+        {
+          "es": "Desactivar la MFA con verificación de identidad en persona y registro del nuevo método en el acto.",
+          "en": "Disabling MFA with in-person identity checks and the new method registered on the spot."
+        }
+      ],
+      "analisis": [
+        {
+          "es": "¿Qué hizo la sesión después de entrar? Sigue la IP asignada por la VPN o el equipo de origen.",
+          "en": "What did the session do after signing in? Follow the VPN-assigned IP or the source host."
+        },
+        {
+          "es": "¿Un mismo origen falla contra muchas cuentas (rociado) o muchas veces contra una (fuerza bruta)?",
+          "en": "Does one source fail against many accounts (spraying) or many times against one (brute force)?"
+        },
+        {
+          "es": "¿Se aprobó una petición de MFA que la persona no esperaba?",
+          "en": "Was an MFA prompt approved that the person did not expect?"
+        }
+      ],
+      "respuesta": [
+        {
+          "si": {
+            "es": "Hay un acceso con éxito que la persona no reconoce o la sesión ya toca otros equipos",
+            "en": "There is a successful sign-in the person does not recognise, or the session is already reaching other hosts"
+          },
+          "accion": "contener",
+          "porque": {
+            "es": "La cuenta está en manos de otro: deshabilítala, corta la sesión y bloquea el origen antes de que se mueva.",
+            "en": "Someone else has the account: disable it, kill the session and block the source before it moves on."
+          }
+        },
+        {
+          "si": {
+            "es": "Solo hay fallos, la cuenta no llegó a entrar y el origen es ruido de Internet",
+            "en": "There are only failures, the account never got in and the source is Internet noise"
+          },
+          "accion": "cerrar",
+          "porque": {
+            "es": "Ataque real pero sin éxito: documéntalo como verdadero positivo y vigila si se repite.",
+            "en": "A real but unsuccessful attack: document it as a true positive and watch for repeats."
+          }
+        },
+        {
+          "si": {
+            "es": "El acceso coincide con un cambio o una incidencia (persona, equipo y hora)",
+            "en": "The access matches a change or ticket (person, host and time)"
+          },
+          "accion": "cerrar",
+          "porque": {
+            "es": "Es benigno: cierra citando la referencia.",
+            "en": "It is benign: close quoting the reference."
+          }
+        },
+        {
+          "si": {
+            "es": "Un servicio expuesto a Internet (RDP, VPN) recibe intentos y sigue abierto",
+            "en": "An Internet-facing service (RDP, VPN) is being attacked and is still open"
+          },
+          "accion": "contener",
+          "porque": {
+            "es": "La exposición es el problema: ciérrala o restríngela y escala para revisar si alguien llegó a entrar.",
+            "en": "The exposure is the problem: close or restrict it and escalate to check whether anyone got in."
+          }
+        }
+      ],
+      "casos": [
+        "T1-01",
+        "T1-05",
+        "T1-06",
+        "T1-08",
+        "T2-04",
+        "T3-08",
+        "T5-02",
+        "T5-06",
+        "T5-08"
+      ]
+    },
+    {
+      "id": "correo",
+      "icono": "mail",
+      "titulo": {
+        "es": "Correo y suplantación",
+        "en": "Email and impersonation"
+      },
+      "que": {
+        "es": "Phishing, adjuntos, reglas de buzón, consentimientos de aplicaciones y fraude del CEO. El correo es la puerta de entrada más común y la más engañosa.",
+        "en": "Phishing, attachments, mailbox rules, app consents and CEO fraud. Email is the most common way in and the most deceptive."
+      },
+      "triaje": [
+        {
+          "es": "Compara el dominio letra a letra con el real y mira su antigüedad.",
+          "en": "Compare the domain letter by letter with the real one and check its age."
+        },
+        {
+          "es": "Lee SPF, DKIM y DMARC, pero no te quedes ahí: un atacante pasa la autenticación de su propio dominio.",
+          "en": "Read SPF, DKIM and DMARC, but do not stop there: an attacker passes authentication for their own domain."
+        },
+        {
+          "es": "¿Quién más recibió el mismo correo y quién hizo clic o abrió el adjunto?",
+          "en": "Who else received the same email, and who clicked or opened the attachment?"
+        },
+        {
+          "es": "Busca reglas de reenvío o consentimientos nuevos en el buzón afectado.",
+          "en": "Look for new forwarding rules or consents on the affected mailbox."
+        }
+      ],
+      "fp": [
+        {
+          "es": "Un proveedor cambia de servidor y su SPF falla, pero DKIM y DMARC pasan y el envío es el habitual.",
+          "en": "A supplier changes mail server and its SPF fails, but DKIM and DMARC pass and the sending is as usual."
+        },
+        {
+          "es": "Un boletín interno aprobado que la regla toma por envío masivo sospechoso.",
+          "en": "An approved internal newsletter that the rule mistakes for suspicious bulk sending."
+        }
+      ],
+      "analisis": [
+        {
+          "es": "¿El adjunto llegó a ejecutarse? Busca un proceso de Office que lanza un intérprete.",
+          "en": "Did the attachment run? Look for an Office process launching an interpreter."
+        },
+        {
+          "es": "¿Hubo inicio de sesión en el buzón desde una IP extraña antes de crear la regla?",
+          "en": "Was there a sign-in to the mailbox from an odd IP before the rule was created?"
+        },
+        {
+          "es": "¿Qué permisos pide la aplicación (leer todo el correo, enviar en nombre de)?",
+          "en": "What permissions does the app ask for (read all mail, send on behalf of)?"
+        }
+      ],
+      "respuesta": [
+        {
+          "si": {
+            "es": "Alguien abrió el adjunto, introdujo credenciales o aceptó la aplicación",
+            "en": "Someone opened the attachment, entered credentials or accepted the app"
+          },
+          "accion": "contener",
+          "porque": {
+            "es": "Ya hay compromiso: revoca sesiones y consentimientos, aísla el equipo, purga el correo de todos los buzones y escala.",
+            "en": "There is already a compromise: revoke sessions and consents, isolate the host, purge the email from every mailbox and escalate."
+          }
+        },
+        {
+          "si": {
+            "es": "Hay una regla que reenvía el correo a un dominio externo",
+            "en": "There is a rule forwarding mail to an external domain"
+          },
+          "accion": "contener",
+          "porque": {
+            "es": "Los datos están saliendo mientras lees esto: elimina la regla, revoca la sesión y escala.",
+            "en": "Data is leaving while you read this: remove the rule, revoke the session and escalate."
+          }
+        },
+        {
+          "si": {
+            "es": "Se pide dinero o datos con urgencia en nombre de un directivo",
+            "en": "Money or data is urgently requested on behalf of an executive"
+          },
+          "accion": "escalar",
+          "porque": {
+            "es": "Lo urgente no es técnico: que Finanzas pare la operación por teléfono. Escala ya y bloquea el dominio.",
+            "en": "The urgent part is not technical: Finance must stop the payment by phone. Escalate now and block the domain."
+          }
+        },
+        {
+          "si": {
+            "es": "La autenticación falla por un error de configuración de un remitente conocido",
+            "en": "Authentication fails because of a known sender's misconfiguration"
+          },
+          "accion": "cerrar",
+          "porque": {
+            "es": "Benigno: cierra y avisa al remitente para que lo corrija.",
+            "en": "Benign: close and tell the sender to fix it."
+          }
+        }
+      ],
+      "casos": [
+        "T2-01",
+        "T2-02",
+        "T2-03",
+        "T2-05",
+        "T2-06",
+        "T2-07",
+        "T2-08"
+      ]
+    },
+    {
+      "id": "equipos",
+      "icono": "terminal",
+      "titulo": {
+        "es": "Equipos y procesos",
+        "en": "Endpoints and processes"
+      },
+      "que": {
+        "es": "Antivirus y EDR: PowerShell, binarios del sistema usados para descargar, tareas programadas, cuentas nuevas y cifrado de ficheros. Aquí manda el árbol de procesos: quién lanzó qué.",
+        "en": "Antivirus and EDR: PowerShell, system binaries used to download, scheduled tasks, new accounts and file encryption. The process tree rules here: who launched what."
+      },
+      "triaje": [
+        {
+          "es": "Lee el proceso padre y el hijo: Office, un navegador o un servicio que lanza un intérprete es raro.",
+          "en": "Read the parent and child process: Office, a browser or a service launching an interpreter is odd."
+        },
+        {
+          "es": "Decodifica lo codificado (Base64) antes de opinar.",
+          "en": "Decode anything encoded (Base64) before judging."
+        },
+        {
+          "es": "Comprueba la firma, la ruta y el hash del binario.",
+          "en": "Check the binary's signature, path and hash."
+        },
+        {
+          "es": "¿Hay un cambio aprobado o una herramienta de administración conocida detrás?",
+          "en": "Is there an approved change or a known admin tool behind it?"
+        }
+      ],
+      "fp": [
+        {
+          "es": "Detección heurística de baja confianza sobre un binario firmado, en su ruta estándar y muy extendido.",
+          "en": "A low-confidence heuristic hit on a signed, widely used binary in its standard path."
+        },
+        {
+          "es": "Ficheros de prueba de antivirus (EICAR) documentados en una incidencia.",
+          "en": "Antivirus test files (EICAR) documented in a ticket."
+        },
+        {
+          "es": "Herramientas de administración (PsExec) usadas por el equipo de sistemas en una ventana aprobada.",
+          "en": "Admin tools (PsExec) used by the systems team in an approved window."
+        }
+      ],
+      "analisis": [
+        {
+          "es": "¿Qué descargó o ejecutó después? Sigue las conexiones salientes del equipo.",
+          "en": "What did it download or run next? Follow the host's outbound connections."
+        },
+        {
+          "es": "¿Se creó persistencia (tarea, servicio, cuenta, clave de registro)?",
+          "en": "Was persistence created (task, service, account, registry key)?"
+        },
+        {
+          "es": "¿Hay renombrado o borrado masivo de ficheros o de copias de seguridad?",
+          "en": "Is there mass renaming or deletion of files or backups?"
+        }
+      ],
+      "respuesta": [
+        {
+          "si": {
+            "es": "Se ejecuta código malicioso, hay persistencia de un atacante o se cifran ficheros",
+            "en": "Malicious code runs, there is attacker persistence or files are being encrypted"
+          },
+          "accion": "contener",
+          "porque": {
+            "es": "Aísla el equipo ya: cada minuto son más ficheros o más movimiento lateral. Después, escala con el árbol de procesos.",
+            "en": "Isolate the host now: every minute means more files or more lateral movement. Then escalate with the process tree."
+          }
+        },
+        {
+          "si": {
+            "es": "Una cuenta de la casa hace un cambio sospechoso sin autorización y no sabes si es ella o un atacante",
+            "en": "An internal account makes a suspicious unauthorised change and you cannot tell whether it is them or an attacker"
+          },
+          "accion": "escalar",
+          "porque": {
+            "es": "Hace falta saber si la sesión está comprometida antes de actuar sobre una persona: escala con prioridad alta.",
+            "en": "You need to know whether the session is compromised before acting on a person: escalate with high priority."
+          }
+        },
+        {
+          "si": {
+            "es": "El antivirus ya bloqueó o puso en cuarentena algo documentado como prueba",
+            "en": "The antivirus already blocked or quarantined something documented as a test"
+          },
+          "accion": "cerrar",
+          "porque": {
+            "es": "La regla funcionó y la actividad es legítima: benigno, citando la incidencia.",
+            "en": "The rule worked and the activity is legitimate: benign, quoting the ticket."
+          }
+        }
+      ],
+      "casos": [
+        "T1-03",
+        "T1-04",
+        "T3-01",
+        "T3-02",
+        "T3-03",
+        "T3-05",
+        "T3-06",
+        "T3-07"
+      ]
+    },
+    {
+      "id": "red",
+      "icono": "server",
+      "titulo": {
+        "es": "Red y perímetro",
+        "en": "Network and perimeter"
+      },
+      "que": {
+        "es": "Escaneos, balizas hacia un C2, listas de reputación y minería. En red, el patrón importa más que una conexión suelta: intervalos, volúmenes y destinos.",
+        "en": "Scans, C2 beacons, reputation lists and mining. On the network, the pattern matters more than a single connection: intervals, volumes and destinations."
+      },
+      "triaje": [
+        {
+          "es": "¿Qué puertos respondieron? Que respondan los que son públicos a propósito no es una brecha.",
+          "en": "Which ports answered? Ports that are public on purpose answering is not a breach."
+        },
+        {
+          "es": "Mide el intervalo entre conexiones: un latido regular es una baliza, no una persona.",
+          "en": "Measure the interval between connections: a regular heartbeat is a beacon, not a person."
+        },
+        {
+          "es": "Comprueba el protocolo y el puerto contra lo que hace ese servidor normalmente.",
+          "en": "Check protocol and port against what that server normally does."
+        },
+        {
+          "es": "¿La IP entró hoy en una lista de reputación? Las listas también se equivocan.",
+          "en": "Did the IP join a reputation list today? Lists make mistakes too."
+        }
+      ],
+      "fp": [
+        {
+          "es": "Una fuente de inteligencia que mete por error una IP legítima (por ejemplo, un servidor de hora).",
+          "en": "A threat intel feed that wrongly adds a legitimate IP (for example a time server)."
+        },
+        {
+          "es": "El escaneo trimestral de vulnerabilidades desde el origen y en la ventana aprobados.",
+          "en": "The quarterly vulnerability scan from the approved source and window."
+        }
+      ],
+      "analisis": [
+        {
+          "es": "¿Qué proceso del equipo abre las conexiones?",
+          "en": "Which process on the host opens the connections?"
+        },
+        {
+          "es": "¿Hay tráfico de aplicación después del escaneo o solo sondeos?",
+          "en": "Is there application traffic after the scan or only probes?"
+        },
+        {
+          "es": "¿Sube la CPU o el consumo a la vez que las conexiones?",
+          "en": "Does CPU or consumption rise along with the connections?"
+        }
+      ],
+      "respuesta": [
+        {
+          "si": {
+            "es": "Un equipo interno habla con un C2 o con un pool de minería",
+            "en": "An internal host talks to a C2 or a mining pool"
+          },
+          "accion": "contener",
+          "porque": {
+            "es": "El equipo está comprometido: aíslalo, bloquea el destino y escala para buscar cómo entró.",
+            "en": "The host is compromised: isolate it, block the destination and escalate to find how it got in."
+          }
+        },
+        {
+          "si": {
+            "es": "Un escaneo desde Internet solo encuentra los puertos públicos y no hay tráfico después",
+            "en": "An Internet scan only finds the public ports and nothing follows"
+          },
+          "accion": "cerrar",
+          "porque": {
+            "es": "Es ruido de fondo de Internet: verdadero positivo documentado y cerrado.",
+            "en": "It is Internet background noise: a documented and closed true positive."
+          }
+        },
+        {
+          "si": {
+            "es": "El escaneo o la conexión coinciden con un cambio o la lista se equivocó",
+            "en": "The scan or connection matches a change, or the list was wrong"
+          },
+          "accion": "cerrar",
+          "porque": {
+            "es": "Benigno o falso positivo: cierra y, si es la lista, propón excluir la IP.",
+            "en": "Benign or false positive: close and, if it is the list, propose excluding the IP."
+          }
+        }
+      ],
+      "casos": [
+        "T1-02",
+        "T4-03",
+        "T4-04",
+        "T4-07",
+        "T4-08"
+      ]
+    },
+    {
+      "id": "web",
+      "icono": "flag",
+      "titulo": {
+        "es": "Aplicaciones web",
+        "en": "Web applications"
+      },
+      "que": {
+        "es": "Inyección SQL, ejecución de comandos y web shells. El código de respuesta HTTP es tu mejor amigo: dice si el ataque llegó o no.",
+        "en": "SQL injection, command execution and web shells. The HTTP status code is your best friend: it tells you whether the attack got through."
+      },
+      "triaje": [
+        {
+          "es": "Mira el código de respuesta de cada petición: 403 bloqueada, 200 servida.",
+          "en": "Check the status code of every request: 403 blocked, 200 served."
+        },
+        {
+          "es": "Lee el User-Agent: muchas herramientas automáticas de ataque se anuncian en él.",
+          "en": "Read the User-Agent: many automated attack tools announce themselves there."
+        },
+        {
+          "es": "Busca parámetros con comandos del sistema (whoami, id, cmd=).",
+          "en": "Look for parameters carrying system commands (whoami, id, cmd=)."
+        },
+        {
+          "es": "¿El servidor web lanzó procesos o abrió conexiones salientes?",
+          "en": "Did the web server launch processes or open outbound connections?"
+        }
+      ],
+      "fp": [
+        {
+          "es": "Peticiones legítimas con caracteres que parecen SQL (apellidos con apóstrofo, búsquedas).",
+          "en": "Legitimate requests with SQL-like characters (surnames with apostrophes, searches)."
+        }
+      ],
+      "analisis": [
+        {
+          "es": "¿Alguna petición maliciosa recibió un 200?",
+          "en": "Did any malicious request get a 200?"
+        },
+        {
+          "es": "¿Aparece un fichero nuevo en el directorio web?",
+          "en": "Does a new file appear in the web directory?"
+        },
+        {
+          "es": "¿El proceso del servidor web lanza un intérprete de comandos?",
+          "en": "Does the web server process launch a command interpreter?"
+        }
+      ],
+      "respuesta": [
+        {
+          "si": {
+            "es": "Hay ejecución de comandos, un fichero nuevo en el directorio web o procesos hijos del servidor",
+            "en": "There is command execution, a new file in the web directory or child processes of the server"
+          },
+          "accion": "contener",
+          "porque": {
+            "es": "El atacante ya está dentro del servidor: aíslalo o sácalo de servicio y escala.",
+            "en": "The attacker is already inside the server: isolate it or take it out of service and escalate."
+          }
+        },
+        {
+          "si": {
+            "es": "Todas las peticiones maliciosas reciben un 403 y no hay nada después",
+            "en": "Every malicious request gets a 403 and nothing follows"
+          },
+          "accion": "cerrar",
+          "porque": {
+            "es": "El control funcionó: verdadero positivo documentado. Un solo 200 cambiaría la decisión.",
+            "en": "The control worked: a documented true positive. A single 200 would change the decision."
+          }
+        }
+      ],
+      "casos": [
+        "T4-01",
+        "T4-02"
+      ]
+    },
+    {
+      "id": "datos",
+      "icono": "upload",
+      "titulo": {
+        "es": "Fuga de datos",
+        "en": "Data leakage"
+      },
+      "que": {
+        "es": "USB, subidas a la nube personal y DNS anómalo. Aquí a menudo hay una persona de la casa detrás, y eso cambia quién decide.",
+        "en": "USB, uploads to personal cloud and anomalous DNS. There is often a person from the company behind it, and that changes who decides."
+      },
+      "triaje": [
+        {
+          "es": "¿Qué datos son? Nóminas, clientes, DNI o IBAN son datos personales.",
+          "en": "What data is it? Payroll, customers, ID numbers or IBANs are personal data."
+        },
+        {
+          "es": "¿Cuánto volumen y a dónde va: USB, nube personal, un dominio raro?",
+          "en": "How much volume and where to: USB, personal cloud, an odd domain?"
+        },
+        {
+          "es": "¿La persona tiene una razón de trabajo o una petición aprobada?",
+          "en": "Does the person have a work reason or an approved request?"
+        },
+        {
+          "es": "En DNS, mira la longitud y la forma de los subdominios: datos codificados no parecen nombres.",
+          "en": "In DNS, check the length and shape of subdomains: encoded data does not look like names."
+        }
+      ],
+      "fp": [
+        {
+          "es": "Copias de seguridad o migraciones aprobadas que mueven mucho volumen.",
+          "en": "Approved backups or migrations moving a lot of volume."
+        }
+      ],
+      "analisis": [
+        {
+          "es": "¿Hay contexto de RR. HH. (baja, cambio de puesto, accesos temporales sin retirar)?",
+          "en": "Is there HR context (leaving, role change, temporary access never removed)?"
+        },
+        {
+          "es": "¿Las consultas DNS salen de un proceso o equipo comprometido?",
+          "en": "Do the DNS queries come from a compromised process or host?"
+        },
+        {
+          "es": "¿Se repite el comportamiento en otros días?",
+          "en": "Does the behaviour repeat on other days?"
+        }
+      ],
+      "respuesta": [
+        {
+          "si": {
+            "es": "Una persona de la empresa saca datos personales sin una petición que lo justifique",
+            "en": "A company employee takes personal data out without a request that justifies it"
+          },
+          "accion": "escalar",
+          "porque": {
+            "es": "Implica a una persona, a RR. HH. y a protección de datos. Un N1 no contiene ni contacta a la persona por su cuenta: escala con todas las evidencias.",
+            "en": "It involves a person, HR and data protection. T1 does not contain or contact the person alone: escalate with all the evidence."
+          }
+        },
+        {
+          "si": {
+            "es": "Los datos salen por un canal técnico (DNS, C2) desde un equipo comprometido",
+            "en": "Data leaves through a technical channel (DNS, C2) from a compromised host"
+          },
+          "accion": "contener",
+          "porque": {
+            "es": "Es un atacante, no una persona: aísla el equipo y bloquea el destino ya.",
+            "en": "It is an attacker, not a person: isolate the host and block the destination now."
+          }
+        }
+      ],
+      "casos": [
+        "T1-07",
+        "T4-05",
+        "T4-06"
+      ]
+    },
+    {
+      "id": "directorio",
+      "icono": "lock",
+      "titulo": {
+        "es": "Directorio activo y credenciales",
+        "en": "Active Directory and credentials"
+      },
+      "que": {
+        "es": "Tickets de Kerberos, replicación del directorio, memoria de LSASS, resolución de nombres y administradores nuevos. Son pasos hacia el control total del dominio: rara vez hay margen para esperar.",
+        "en": "Kerberos tickets, directory replication, LSASS memory, name resolution and new admins. They are steps towards full domain control: there is rarely room to wait."
+      },
+      "triaje": [
+        {
+          "es": "Tipo de cifrado de los tickets: 0x17 (RC4) en lugar de 0x12 (AES) es la marca del kerberoasting.",
+          "en": "Ticket encryption type: 0x17 (RC4) instead of 0x12 (AES) is the kerberoasting tell."
+        },
+        {
+          "es": "¿Quién pide la replicación del directorio? Solo los controladores de dominio deberían.",
+          "en": "Who requests directory replication? Only domain controllers should."
+        },
+        {
+          "es": "¿Quién toca la memoria de LSASS y con qué herramienta?",
+          "en": "Who touches LSASS memory and with what tool?"
+        },
+        {
+          "es": "¿Hay un pentest o un cambio aprobado con esa IP, esas fechas y esa fase?",
+          "en": "Is there an approved pentest or change with that IP, those dates and that phase?"
+        }
+      ],
+      "fp": [
+        {
+          "es": "Técnicas de ataque reales ejecutadas por el equipo de pentest autorizado y anotadas en un cambio.",
+          "en": "Real attack techniques run by the authorised pentest team and recorded in a change."
+        }
+      ],
+      "analisis": [
+        {
+          "es": "¿Desde qué equipo y con qué cuenta? Encadénalo con las alertas de los días anteriores.",
+          "en": "From which host and with which account? Chain it with the alerts from previous days."
+        },
+        {
+          "es": "¿Qué cuentas privilegiadas pueden estar expuestas?",
+          "en": "Which privileged accounts may be exposed?"
+        },
+        {
+          "es": "¿Se añadió alguien a un grupo de administración sin cambio aprobado?",
+          "en": "Was anyone added to an admin group without an approved change?"
+        }
+      ],
+      "respuesta": [
+        {
+          "si": {
+            "es": "Hay volcado de credenciales, replicación desde un equipo que no es DC o un administrador nuevo sin cambio",
+            "en": "There is a credential dump, replication from a non-DC host or a new admin without a change"
+          },
+          "accion": "contener",
+          "porque": {
+            "es": "Es el camino al dominio: aísla los equipos, deshabilita las cuentas implicadas y escala como incidente.",
+            "en": "It is the road to the domain: isolate the hosts, disable the accounts involved and escalate as an incident."
+          }
+        },
+        {
+          "si": {
+            "es": "La técnica la ejecuta el pentest autorizado con la IP, la fecha y la fase anotadas",
+            "en": "The technique is run by the authorised pentest with the IP, date and phase recorded"
+          },
+          "accion": "cerrar",
+          "porque": {
+            "es": "Benigno, citando el cambio. Y buena noticia: la detección funciona.",
+            "en": "Benign, quoting the change. And good news: the detection works."
+          }
+        }
+      ],
+      "casos": [
+        "T3-04",
+        "T5-01",
+        "T5-03",
+        "T5-04",
+        "T5-05",
+        "T5-07"
+      ]
+    }
+  ]
+}

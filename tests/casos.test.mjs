@@ -65,3 +65,49 @@ test('las referencias cruzadas entre casos existen', () => {
   const ids = new Set(CASOS.map((c) => c.id));
   for (const c of CASOS) for (const m of `${c.explica.es} ${c.explica.en}`.matchAll(/\bT[1-5]-0[1-8]\b/g)) assert.ok(ids.has(m[0]), `${c.id} cita ${m[0]}`);
 });
+
+/* ---------- Guías de investigación y árbol de decisión ---------- */
+const GUIAS = leerJson('src/data/guias.json');
+
+test('guías: cada caso está en exactamente una familia y todo es bilingüe', () => {
+  const vistos = new Map();
+  for (const f of GUIAS.familias) {
+    assert.ok(bil(f.titulo) && bil(f.que), f.id);
+    for (const k of ['triaje', 'fp', 'analisis']) { assert.ok(f[k].length >= 1, `${f.id}.${k}`); f[k].forEach((x, i) => assert.ok(bil(x), `${f.id}.${k}[${i}]`)); }
+    assert.ok(f.respuesta.length >= 2, `${f.id}: al menos dos salidas`);
+    for (const r of f.respuesta) { assert.ok(bil(r.si) && bil(r.porque), f.id); assert.ok(BJ.ACCIONES.includes(r.accion), `${f.id}: ${r.accion}`); }
+    for (const id of f.casos) { assert.ok(!vistos.has(id), `${id} en ${vistos.get(id)} y ${f.id}`); vistos.set(id, f.id); }
+  }
+  assert.deepEqual([...vistos.keys()].sort(), CASOS.map((c) => c.id).sort());
+});
+
+test('guías: la respuesta de cada caso está entre las salidas que enseña su familia', () => {
+  // La guía no da la solución, pero nunca puede dejar fuera la acción correcta.
+  for (const f of GUIAS.familias) for (const id of f.casos) {
+    const c = CASOS.find((x) => x.id === id);
+    assert.ok(f.respuesta.some((r) => r.accion === c.accion), `${id}: ${c.accion} no aparece en la guía de ${f.id}`);
+  }
+});
+
+test('guías: no citan casos ni datos concretos de ningún caso', () => {
+  const texto = JSON.stringify({ ...GUIAS, familias: GUIAS.familias.map(({ casos, ...f }) => f) });
+  for (const c of CASOS) {
+    assert.ok(!texto.includes(c.id), `la guía cita ${c.id}`);
+    // Los nombres de campo que salen en los registros de muchos casos (LogonType, EventID…) son vocabulario, no pistas.
+    const comun = (k) => CASOS.filter((x) => x.logs.some((l) => l.join(' ').includes(k))).length >= 3;
+    for (const k of c.claves) if (k.length > 5 && !/^T\d{4}/.test(k) && !comun(k)) assert.ok(!texto.includes(k), `la guía cita «${k}» de ${c.id}`);
+  }
+});
+
+test('árbol de decisión: todas las ramas llegan a un resultado válido y bilingüe', () => {
+  const D = GUIAS.decision;
+  for (const [k, p] of Object.entries(D.preguntas)) assert.ok(bil(p) && bil(p.ayuda), k);
+  for (const [k, r] of Object.entries(D.resultados)) {
+    assert.ok(bil(r) && bil(r.ejemplo), k);
+    assert.ok(BJ.VEREDICTOS.includes(r.veredicto) && BJ.ACCIONES.includes(r.accion), k);
+  }
+  // Las cinco salidas cubren las tres acciones y los tres veredictos.
+  const res = Object.values(D.resultados);
+  assert.deepEqual([...new Set(res.map((r) => r.accion))].sort(), [...BJ.ACCIONES].sort());
+  assert.deepEqual([...new Set(res.map((r) => r.veredicto))].sort(), [...BJ.VEREDICTOS].sort());
+});

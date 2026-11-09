@@ -32,7 +32,7 @@ const P = {
 const guardarPrefs = () => escribir(CLAVE_PREFS, JSON.stringify(P));
 
 /* ---------- Estado de la interfaz (no se guarda) ---------- */
-const UI = { turno: null, caso: null, filtro: '', fuente: null, panel: 'caso', ultimoTurno: leer('bluejr-ultimo') || 'T1', borrarArmado: false, vistaAnimada: null };
+const UI = { turno: null, caso: null, filtro: '', fuente: null, panel: 'caso', ultimoTurno: leer('bluejr-ultimo') || 'T1', borrarArmado: false, vistaAnimada: null, guia: null, guiaTab: 'triaje', investigado: new Set() };
 
 /* ---------- Textos ---------- */
 const T = (k, vars) => {
@@ -61,11 +61,11 @@ function aplicarTema() {
 }
 
 /* ---------- Avisos ---------- */
-function avisar(texto) {
+function avisar(texto, icono = 'circle-check') {
   const caja = $('#toasts');
   const t = document.createElement('div');
   t.className = 'toast';
-  t.innerHTML = `${ic('circle-check')}<span></span>`;
+  t.innerHTML = `${ic(icono)}<span></span>`;
   t.querySelector('span').textContent = texto;
   caja.append(t);
   while (caja.children.length > 3) caja.firstElementChild.remove();

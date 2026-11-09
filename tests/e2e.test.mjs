@@ -110,6 +110,10 @@ test('ayuda: pestañas con flechas y fórmula generada desde las constantes', as
   await ir(p, 'turnos');
   await p.keyboard.press('?');
   await p.waitForSelector('#dlg-ayuda[open] [role=tab]');
+  // El foco llega a la pestaña en el siguiente fotograma: sin esperar, la flecha puede caer fuera.
+  await p.waitForFunction(() => document.activeElement?.getAttribute('role') === 'tab');
+  await p.keyboard.press('ArrowRight');
+  assert.equal(await p.getAttribute('[role=tab][aria-selected=true]', 'data-tab'), 'decidir');
   await p.keyboard.press('ArrowRight');
   assert.equal(await p.getAttribute('[role=tab][aria-selected=true]', 'data-tab'), 'metodo');
   for (const [k, v] of Object.entries(BJ.PESOS)) assert.equal(await p.textContent(`[data-peso="${k}"]`), String(v));
@@ -318,7 +322,85 @@ test('portada: sin consola, cifras contadas y estático con movimiento reducido'
   await p.context().close();
   const q = await pagina({ reducedMotion: 'reduce' });
   await ir(q, 'turnos');
+  await q.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished)));
   const vis = await q.evaluate(() => ['.p-fondo', '.p-ojo'].map((s) => getComputedStyle(document.querySelector(s)).opacity));
   assert.deepEqual(vis, ['1', '1'], 'con movimiento reducido la ilustración aparece entera sin esperas');
   await q.context().close();
+});
+
+test('entrenador: guía por pestañas, pivote por entidad y tareas que se marcan solas', async () => {
+  const p = await pagina();
+  await ir(p, 'T1');
+  // Guía abierta mientras se aprende, con triaje, análisis y respuesta; la respuesta enseña todas las salidas.
+  assert.equal(await p.getAttribute('#guia', 'open'), '');
+  assert.match(await p.textContent('#guia summary'), /Identidad y accesos/);
+  await p.click('[data-guia-tab="respuesta"]');
+  assert.equal(await p.getAttribute('[data-guia-tab="respuesta"]', 'aria-pressed'), 'true');
+  const acciones = await p.$$eval('.g-resp .acc', (xs) => xs.map((x) => x.textContent));
+  assert.ok(acciones.includes('Contener y escalar') && acciones.includes('Cerrar'), acciones.join(', '));
+  assert.ok(await p.evaluate(() => document.activeElement?.dataset.guiaTab === 'respuesta'), 'el foco sigue en la pestaña');
+  // Pivotar: pulsar una IP filtra los registros por ella; volver a pulsarla quita el filtro.
+  const total = await p.locator('#logs .linea').count();
+  assert.equal(await p.locator('.tareas li.hecha').count(), 0);
+  await p.click('[data-pivote="203.0.113.45"]');
+  assert.equal(await p.inputValue('#filtro'), '203.0.113.45');
+  const filtradas = await p.locator('#logs .linea').count();
+  assert.ok(filtradas > 0 && filtradas < total, `${filtradas} de ${total}`);
+  assert.equal(await p.locator('#logs .linea', { hasNotText: '203.0.113.45' }).count(), 0);
+  assert.equal(await p.locator('.tareas li.hecha').count(), 1, 'investigar queda hecha');
+  await p.click('[data-pivote="203.0.113.45"]');
+  assert.equal(await p.locator('#logs .linea').count(), total);
+  // Tareas: evidencia, veredicto, acción, datos y resumen.
+  await p.click('#logs .linea >> nth=0');
+  await p.click('[data-veredicto="vp"]');
+  await p.click('[data-accion="contener"]');
+  await p.fill('[data-campo="ip"]', '203.0.113.45');
+  await p.fill('[data-campo="usuario"]', 'r.ibanez');
+  await p.fill('[data-campo="mitre"]', 'T1110.001');
+  assert.match(await p.textContent('.tareas .etq'), /5 de 6/);
+  await p.fill('#texto-ticket', 'Fuerza bruta desde 203.0.113.45 que acaba en login OK de r.ibanez y acceso por SMB al servidor de ficheros.');
+  assert.match(await p.textContent('.tareas .etq'), /6 de 6/);
+  // Al cerrar, aviso de XP y la portada lo refleja (meta, racha, nivel).
+  await p.click('[data-cerrar-ticket]');
+  await p.waitForSelector('#resultado');
+  assert.match(await p.textContent('#toasts'), /\+100 XP/);
+  await p.click('a[href="#turnos"]');
+  await p.waitForSelector('.practica');
+  assert.match(await p.textContent('.pr-hoy'), /100 de 150 XP/);
+  assert.match(await p.textContent('.pr-racha'), /1 día/);
+  assert.match(await p.textContent('.pr-reto'), /T1-02/, 'la siguiente alerta es la primera pendiente');
+  assert.match(await p.textContent('.cuenta-b small'), /100 XP/);
+  await p.context().close();
+});
+
+test('entrenador: el árbol «¿escalo o no?» llega a las cinco salidas y se reinicia', async () => {
+  const p = await pagina();
+  await ir(p, 'T1');
+  await p.click('.decidir-b');
+  await p.waitForSelector('#dlg-ayuda[open] .d-preg');
+  assert.equal(await p.getAttribute('[role=tab][aria-selected=true]', 'data-tab'), 'decidir');
+  const salidas = { 'si,si,si': 'Contener y escalar', 'si,si,no': 'Escalar a N2', 'si,no': 'Cerrar', 'no,si': 'Benigno', 'no,no': 'Falso positivo' };
+  for (const [ruta, esperado] of Object.entries(salidas)) {
+    for (const r of ruta.split(',')) await p.click(`#panel-ayuda .d-preg [data-decidir="${r}"]`);
+    assert.match(await p.textContent('.d-res'), new RegExp(esperado), ruta);
+    assert.equal(await p.locator('.d-camino li').count(), ruta.split(',').length);
+    await p.click('.d-res [data-decidir="reset"]');
+    assert.equal(await p.locator('.d-camino li').count(), 0);
+  }
+  // Con el contenido largo, solo se desplaza el cuerpo: las pestañas no encogen.
+  for (const r of ['si', 'si', 'no']) await p.click(`#panel-ayuda .d-preg [data-decidir="${r}"]`);
+  const alto = await p.evaluate(() => document.querySelector('#dlg-ayuda [role=tab]').getBoundingClientRect().height);
+  assert.ok(alto >= 40, `pestañas a ${alto} px`);
+  await p.context().close();
+});
+
+test('historial: insignias ganadas y pendientes', async () => {
+  const p = await pagina();
+  const c = INDICE['T1-01'];
+  await p.addInitScript(([id, r]) => { if (!localStorage.getItem('bluejr-v1')) localStorage.setItem('bluejr-v1', JSON.stringify({ respuestas: { [id]: { ...r, cerrado: true, cuando: new Date().toISOString() } } })); }, [c.id, respuestaPerfecta(c)]);
+  await ir(p, 'historial');
+  assert.equal(await p.locator('.insignias li').count(), 7);
+  assert.equal(await p.locator('.insignias li.ok').count(), 2, 'primer ticket y ticket perfecto');
+  assert.match(await p.textContent('.insignias-p .pildora'), /2 de 7/);
+  await p.context().close();
 });
