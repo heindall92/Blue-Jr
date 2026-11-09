@@ -43,6 +43,7 @@ function cerrarTicket() {
   const c = CASOS[UI.caso];
   const r = respuesta(c.id);
   if (!r.veredicto || !r.accion) return;
+  const antes = progresoActual();
   r.cerrado = true;
   r.cuando = new Date().toISOString();
   r.nota = BJ.corregir(c, r).nota;
@@ -50,7 +51,7 @@ function cerrarTicket() {
   const scroll = scrollY;
   pintar();
   scrollTo(0, scroll);
-  avisar(T('ticket_cerrado', { id: c.id, n: r.nota }));
+  avisosXp(antes, progresoActual(), c.id, r.nota);
   UI.panel = 'ticket';
   $('.puesto')?.setAttribute('data-panel-activo', 'ticket');
   $$('[data-panel]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.panel === 'ticket'));
@@ -74,7 +75,20 @@ document.addEventListener('click', (e) => {
   if (d.casoIr) { UI.caso = d.casoIr; return; }
   if (d.caso) return abrirCaso(d.caso);
   if (d.panel) { UI.panel = d.panel; $('.puesto').setAttribute('data-panel-activo', d.panel); return $$('[data-panel]').forEach((x) => x.setAttribute('aria-pressed', x.dataset.panel === d.panel)); }
-  if (d.fuente !== undefined) { UI.fuente = d.fuente || null; $$('.chips [data-fuente]').forEach((x) => x.setAttribute('aria-pressed', (x.dataset.fuente || null) === UI.fuente)); return pintarLineas(); }
+  if (d.pivote !== undefined) {
+    UI.filtro = UI.filtro === d.pivote ? '' : d.pivote; UI.investigado.add(UI.caso);
+    $('#filtro').value = UI.filtro;
+    $$('[data-pivote]').forEach((x) => x.setAttribute('aria-pressed', x.dataset.pivote === UI.filtro));
+    pintarLineas(); return actualizarTareas();
+  }
+  if (d.guiaTab) { UI.guiaTab = d.guiaTab; const g = $('#guia'); g.outerHTML = guiaHtml(CASOS[UI.caso]); return $(`[data-guia-tab="${d.guiaTab}"]`)?.focus(); }
+  if ('decidirAbrir' in d) { camino = []; return abrirAyuda('decidir'); }
+  if (d.decidir) {
+    camino = d.decidir === 'reset' ? [] : [...camino, d.decidir];
+    $('#panel-ayuda').innerHTML = decidirHtml();
+    return ($('#panel-ayuda [data-decidir="si"]') || $('#panel-ayuda [data-decidir="reset"]'))?.focus();
+  }
+  if (d.fuente !== undefined) { UI.investigado.add(UI.caso); UI.fuente = d.fuente || null; $$('.chips [data-fuente]').forEach((x) => x.setAttribute('aria-pressed', (x.dataset.fuente || null) === UI.fuente)); return pintarLineas(); }
   if (d.linea !== undefined) {
     const r = respuesta(UI.caso); const n = +d.linea;
     r.evidencias = r.evidencias.includes(n) ? r.evidencias.filter((x) => x !== n) : [...r.evidencias, n].slice(0, BJ.LIMITES.evidencias);
@@ -114,9 +128,13 @@ document.addEventListener('click', (e) => { const a = e.target.closest('[data-ca
 document.addEventListener('input', (e) => {
   const t = e.target;
   if (t.id === 'q') return buscar(t.value);
-  if (t.id === 'filtro') { UI.filtro = t.value; return pintarLineas(); }
-  if (t.dataset.campo) { respuesta(UI.caso).campos[t.dataset.campo] = t.value.slice(0, BJ.LIMITES.campo); return guardar(); }
-  if (t.id === 'texto-ticket') { respuesta(UI.caso).ticket = t.value.slice(0, BJ.LIMITES.ticket); guardar(); $('#cuenta-ticket').textContent = T('caracteres', { n: t.value.trim().length, m: BJ.TICKET_MIN }); }
+  if (t.id === 'filtro') {
+    UI.filtro = t.value; if (t.value.trim()) UI.investigado.add(UI.caso);
+    $$('[data-pivote]').forEach((x) => x.setAttribute('aria-pressed', x.dataset.pivote === UI.filtro));
+    pintarLineas(); return actualizarTareas();
+  }
+  if (t.dataset.campo) { respuesta(UI.caso).campos[t.dataset.campo] = t.value.slice(0, BJ.LIMITES.campo); guardar(); return actualizarTareas(); }
+  if (t.id === 'texto-ticket') { respuesta(UI.caso).ticket = t.value.slice(0, BJ.LIMITES.ticket); guardar(); $('#cuenta-ticket').textContent = T('caracteres', { n: t.value.trim().length, m: BJ.TICKET_MIN }); actualizarTareas(); }
 });
 
 document.addEventListener('submit', (e) => {
@@ -169,6 +187,8 @@ document.addEventListener('keydown', (e) => {
     if (sig) { abrirCaso(sig.id, false); $(`.cola-item[data-caso="${sig.id}"]`)?.focus(); }
   }
 });
+
+document.addEventListener('toggle', (e) => { if (e.target.id === 'guia') UI.guia = e.target.open; }, true);
 
 addEventListener('hashchange', () => { pintar(); $('#main').focus({ preventScroll: true }); scrollTo(0, 0); });
 matchMedia('(prefers-color-scheme: light)').addEventListener?.('change', () => { if (!P.theme) pintar(); });

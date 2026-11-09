@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/badge/licencia-MIT-4169A1?style=flat"/></a>
-  <img alt="Versión 0.2.1" src="https://img.shields.io/badge/versi%C3%B3n-0.2.1-6B9BFF?style=flat"/>
+  <img alt="Versión 0.3.0" src="https://img.shields.io/badge/versi%C3%B3n-0.3.0-6B9BFF?style=flat"/>
   <img alt="40 alertas" src="https://img.shields.io/badge/alertas-40-7C4DFF?style=flat"/>
   <img alt="5 turnos" src="https://img.shields.io/badge/turnos-5-2E9E7A?style=flat"/>
   <img alt="MITRE ATT&CK" src="https://img.shields.io/badge/MITRE-ATT%26CK-E07B39?style=flat"/>
@@ -74,8 +74,8 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
     </tr>
     <tr>
       <td valign="top"><code>├─ ◈ pruebas:</code><br><br>
-        <img alt="Unitarias" src="https://img.shields.io/badge/unitarias-30-2E8B57?style=for-the-badge"/>
-        <img alt="E2E" src="https://img.shields.io/badge/e2e-14-2E8B57?style=for-the-badge"/>
+        <img alt="Unitarias" src="https://img.shields.io/badge/unitarias-39-2E8B57?style=for-the-badge"/>
+        <img alt="E2E" src="https://img.shields.io/badge/e2e-17-2E8B57?style=for-the-badge"/>
         <img alt="axe" src="https://img.shields.io/badge/axe-0%20infracciones-2E8B57?style=for-the-badge"/><br>
         <sub><code>cada caso se resuelve leyendo sus registros · red bloqueada en el e2e · claro y oscuro, 1440 y 390 px</code></sub>
       </td>
@@ -89,7 +89,7 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
   </tbody>
   <tfoot>
     <tr>
-      <td colspan="2"><code>version: 0.2.1&nbsp;&nbsp;·&nbsp;&nbsp;nivel: SOC N1&nbsp;&nbsp;·&nbsp;&nbsp;empresa: Norte Logística (ficticia)&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
+      <td colspan="2"><code>version: 0.3.0&nbsp;&nbsp;·&nbsp;&nbsp;nivel: SOC N1&nbsp;&nbsp;·&nbsp;&nbsp;empresa: Norte Logística (ficticia)&nbsp;&nbsp;·&nbsp;&nbsp;licencia: MIT</code></td>
     </tr>
   </tfoot>
 </table>
@@ -99,6 +99,16 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
 ---
 
 ## <img src="docs/assets/icons/sparkles.svg" width="20" height="20" valign="middle"/> Novedades
+
+### 0.3.0 · noviembre de 2026 · El entrenador
+
+BlueJr deja de ser solo un examen y pasa a enseñar cómo se trabaja en un SOC, con las mismas piezas que usan los SIEM de verdad:
+
+- **Guía de investigación en cada alerta**, como las de Elastic Security: triaje (comprobaciones rápidas y falsos positivos habituales), análisis y respuesta con todas las salidas («si ves esto, contener y escalar, porque…»). Hay una por familia de detección (identidad, correo, equipos, red, web, fuga de datos y directorio activo): enseña a razonar sin dar la respuesta del caso, y una prueba lo garantiza.
+- **«¿Escalo o no?»**: un árbol de decisión de tres preguntas que lleva a las cinco salidas de un nivel 1, cada una con su porqué y un ejemplo que no está en ningún turno. Se abre desde el ticket.
+- **Entidades para pivotar**, como los «campos interesantes» de Splunk o las entidades de Sentinel: cuentas, IP y equipos con su número de apariciones. Al pulsar uno, los registros se filtran por él.
+- **Tareas del incidente**, como en Sentinel: filtrar o pivotar, fijar evidencia, decidir, rellenar datos y escribir el resumen. Se marcan solas mientras trabajas.
+- **Práctica diaria**, como en Atlas GRC: XP (la nota de cada ticket), meta de 150 XP al día, racha de días seguidos, cinco niveles (de becario a listo para N2), siete insignias y la siguiente alerta en la portada. Todo se calcula a partir de tus tickets: no hay contador que inflar, y una copia importada no puede inventarse puntos.
 
 ### 0.2.1 · noviembre de 2026
 
@@ -124,6 +134,7 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
 
 - [Novedades](#-novedades)
 - [Cómo se usa](#-cómo-se-usa)
+- [El entrenador](#-el-entrenador)
 - [Mapa mental](#-mapa-mental)
 - [Vistas](#-vistas)
 - [Cómo se corrige](#-cómo-se-corrige)
@@ -149,6 +160,30 @@ Para el primer empleo en ciberseguridad piden experiencia, y para tener experien
 4. **Documenta.** Rellena los datos clave (IP, cuentas, equipos, cambios, ID de MITRE ATT&CK), fija las líneas que lo demuestran y escribe el ticket.
 5. **Aprende.** Al cerrar ves la nota, lo esperado y una explicación de por qué.
 6. **Entrega el relevo** al terminar el turno y **exporta tu historial** para la entrevista.
+
+## <img src="docs/assets/icons/compass.svg" width="20" height="20" valign="middle"/> El entrenador
+
+Un junior no aprende con una nota: aprende cuando entiende **por qué** se escala una alerta y otra no. Cada pieza del entrenador sale de cómo se trabaja en un SIEM de verdad:
+
+| Pieza | Inspirada en | Qué enseña |
+|---|---|---|
+| Guía de investigación | Investigation guides de Elastic Security (triaje, análisis, respuesta) | Qué mirar primero, qué falsos positivos son habituales y qué hacer según lo que encuentres |
+| ¿Escalo o no? | Matrices de escalado de los playbooks de un SOC | La diferencia entre cerrar, escalar a N2 y contener, con un ejemplo de cada salida |
+| Entidades para pivotar | «Campos interesantes» de Splunk y entidades de Microsoft Sentinel | A seguir una IP, una cuenta o un equipo por todos los registros |
+| Tareas del incidente | Tareas de los incidentes de Microsoft Sentinel | El método: investigar, fijar evidencia, decidir y documentar |
+| Práctica diaria | La racha y la meta diaria de Atlas GRC | Constancia: un par de tickets al día, todos los días |
+
+<table>
+<tr>
+<td width="50%"><img src="docs/capturas/guia-claro.png" alt="Guía de investigación en la pestaña Respuesta y registros filtrados por la IP 203.0.113.45"/><br/><sub><b>Guía y pivote</b> · la respuesta según lo que encuentres y los registros filtrados por una IP</sub></td>
+<td width="50%"><img src="docs/capturas/decidir-claro.png" alt="Árbol «¿Escalo o no?» con tres respuestas y la decisión Escalar a N2"/><br/><sub><b>¿Escalo o no?</b> · tres preguntas hasta la decisión, con su porqué</sub></td>
+</tr>
+<tr>
+<td colspan="2"><img src="docs/capturas/guia-oscuro.png" alt="Guía de investigación de la familia Equipos y procesos en modo oscuro, con las tareas del incidente en el ticket"/><br/><sub><b>Guía y tareas del incidente</b> · en oscuro</sub></td>
+</tr>
+</table>
+
+**Niveles.** Becario (0 XP) · Analista en prácticas (400) · Analista N1 (1200) · Analista N1 sénior (2400) · Listo para N2 (3400). Cada ticket suma su nota (hasta 100). **Insignias:** primer ticket, ticket perfecto, sin falsas alarmas, contención a tiempo, turno superado, constancia (tres días seguidos) y semana completa.
 
 ## <img src="docs/assets/icons/brain-circuit.svg" width="20" height="20" valign="middle"/> Mapa mental
 
@@ -333,10 +368,10 @@ Detalle en [SECURITY.md](SECURITY.md).
 
 | Suite | Pruebas | Qué cubre |
 |---|---|---|
-| Motor | 16 | Corrección por criterio, normalización, MITRE, ruido determinista que nunca cita entidades del caso, historial, saneado de importaciones, CSV contra fórmulas |
-| Casos | 7 | Cada caso se resuelve leyendo sus registros, textos bilingües, solo IP de documentación y dominios `.example`, referencias cruzadas válidas |
+| Motor | 21 | Corrección por criterio, normalización, MITRE, ruido determinista que nunca cita entidades del caso, historial, saneado de importaciones, CSV contra fórmulas, XP, racha (con el corte de un día sin práctica), niveles, insignias y entidades |
+| Casos | 11 | Cada caso se resuelve leyendo sus registros, textos bilingües, solo IP de documentación y dominios `.example`, referencias cruzadas válidas; cada caso en una sola guía, su acción correcta siempre entre las salidas de la guía, ninguna guía cita datos de un caso y el árbol de decisión cubre las tres acciones y los tres veredictos |
 | Repositorio | 7 | HTML al día, CSP sin `unsafe-inline` en scripts, paridad de claves ES/EN, versión única, enlaces y cifras de este README, y la raíz que lleva a la aplicación en Pages |
-| E2E | 14 | Alerta de punta a punta, teclado, ayuda, inglés sin restos de español, exportar e importar, importación hostil, relevo, móvil, tema, movimiento (entrada antes de 450 ms), lateral plegable y portada |
+| E2E | 17 | Alerta de punta a punta, teclado, ayuda, inglés sin restos de español, exportar e importar, importación hostil, relevo, móvil, tema, movimiento (entrada antes de 450 ms), lateral plegable y portada; guía por pestañas, pivote por entidad, tareas que se marcan solas, XP y racha al cerrar, las cinco salidas del árbol de decisión e insignias |
 | Accesibilidad | 4 | axe en vistas, estados y todos los diálogos, en claro y oscuro, a 1440 y 390 px: 0 infracciones |
 
 ## <img src="docs/assets/icons/calendar-clock.svg" width="20" height="20" valign="middle"/> Hoja de ruta
@@ -346,9 +381,10 @@ Detalle en [ROADMAP.md](ROADMAP.md).
 - [x] 0.1.0 · Primera semana: cinco turnos, corrección, relevo e historial
 - [x] 0.2.0 · Portada, movimiento, lateral plegable, modo oscuro y tipografía
 - [x] 0.2.1 · Radar como marca y prueba de movimiento estable en la CI
-- [ ] 0.3.0 · Turnos con reloj: SLA por severidad y alertas que llegan mientras trabajas
-- [ ] 0.4.0 · Segunda semana: nube y SaaS
-- [ ] 0.5.0 · Del ticket a la entrevista: historial en PDF y tickets como historias STAR para Astrolabio
+- [x] 0.3.0 · El entrenador: guías de investigación, ¿escalo o no?, entidades, tareas y práctica diaria
+- [ ] 0.4.0 · Turnos con reloj: SLA por severidad y alertas que llegan mientras trabajas
+- [ ] 0.5.0 · Segunda semana: nube y SaaS
+- [ ] 0.6.0 · Del ticket a la entrevista: historial en PDF y tickets como historias STAR para Astrolabio
 
 ## <img src="docs/assets/icons/triangle-alert.svg" width="20" height="20" valign="middle"/> Limitaciones conocidas
 
@@ -372,8 +408,9 @@ Blue-Jr/
 │   │   ├── 02b-motion.js         Movimiento: entrada, cifras y píldora del lateral
 │   │   ├── 03-shell.js           Lateral, barra superior, búsqueda, ayuda y perfil
 │   │   ├── 04-views.js           Portada, turno e historial
+│   │   ├── 04b-entreno.js        Guía, entidades, tareas, ¿escalo o no?, práctica e insignias
 │   │   └── 05-events.js          Eventos, teclado y arranque
-│   ├── data/                     empresa.json y t1…t5.json (40 casos)
+│   ├── data/                     empresa.json, t1…t5.json (40 casos) y guias.json
 │   ├── styles/bluejr.css         Tokens, claro y oscuro, siete acentos, móvil
 │   └── fonts/                    Outfit y Geist Mono (OFL)
 │

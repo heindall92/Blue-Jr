@@ -2,6 +2,21 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [versionado semántico](https://semver.org/lang/es/).
 
+## [0.3.0] - 2026-11-09
+
+### Añadido
+- Guía de investigación en cada alerta, una por familia de detección (identidad y accesos, correo, equipos, red, web, fuga de datos y directorio activo), con triaje, falsos positivos habituales, análisis y respuesta según lo que se encuentre. Se pliega y se abre en pestañas. Datos en `src/data/guias.json`.
+- Árbol «¿Escalo o no?» en la ayuda y desde el ticket: tres preguntas, cinco salidas con su porqué y un ejemplo que no está en ningún turno.
+- Entidades para pivotar: cuentas, IP y equipos de los registros con su número de apariciones; al pulsar uno se filtran los registros.
+- Tareas del incidente en el ticket, que se marcan solas.
+- Práctica diaria en la portada (meta de XP, racha, nivel y siguiente alerta), nivel y XP en el lateral, avisos de XP al cerrar e insignias en el historial. Todo se deriva de los tickets (`BJ.progreso`, `BJ.insignias`).
+- Pruebas: 9 unitarias (XP, racha, niveles, insignias, entidades, cobertura de las guías, sin datos de casos, árbol) y 3 e2e.
+
+### Corregido
+- En móvil, el campo que recibe el foco (por ejemplo, el filtro) quedaba detrás de la barra inferior: ahora el desplazamiento respeta las dos barras fijas.
+- Las capturas en oscuro salían en claro desde que la aplicación arranca siempre en claro: el script pulsa el interruptor.
+- Pruebas más robustas: la de la ayuda espera a que el foco llegue a la pestaña y la de movimiento reducido, a que terminen las animaciones de 0,01 ms.
+
 ## [0.2.1] - 2026-11-08
 
 ### Añadido
